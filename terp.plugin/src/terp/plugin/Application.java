@@ -18,6 +18,8 @@
 
 package terp.plugin;
 
+import terp.plugin.data.IDatabase;
+
 /**
  *
  * @author ilknur
