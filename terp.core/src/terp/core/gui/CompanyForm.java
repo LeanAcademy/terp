@@ -17,17 +17,25 @@
 
 package terp.core.gui;
 
+import terp.core.model.CompanyTableModel;
+import terp.plugin.Application;
+import terp.plugin.data.ICompany;
+import terp.plugin.data.IDatabase;
+
 /**
  *
  * @author ilknur
  */
 public class CompanyForm extends javax.swing.JInternalFrame {
 
+    private Application app = null;
+    
     /**
      * Creates new form CompanyForm
      */
     public CompanyForm() {
-        initComponents();
+        initComponents();        
+        initTable();
     }
 
     /**
@@ -40,7 +48,7 @@ public class CompanyForm extends javax.swing.JInternalFrame {
     private void initComponents() {
 
         jScrollPane1 = new javax.swing.JScrollPane();
-        jTable1 = new javax.swing.JTable();
+        tblCompany = new javax.swing.JTable();
 
         setClosable(true);
         setMaximizable(true);
@@ -48,40 +56,28 @@ public class CompanyForm extends javax.swing.JInternalFrame {
         setToolTipText("");
         setName("Companies"); // NOI18N
         addInternalFrameListener(new javax.swing.event.InternalFrameListener() {
-            public void internalFrameActivated(javax.swing.event.InternalFrameEvent evt) {
-            }
-            public void internalFrameClosed(javax.swing.event.InternalFrameEvent evt) {
+            public void internalFrameOpened(javax.swing.event.InternalFrameEvent evt) {
             }
             public void internalFrameClosing(javax.swing.event.InternalFrameEvent evt) {
                 formİnternalFrameClosing(evt);
             }
-            public void internalFrameDeactivated(javax.swing.event.InternalFrameEvent evt) {
-            }
-            public void internalFrameDeiconified(javax.swing.event.InternalFrameEvent evt) {
+            public void internalFrameClosed(javax.swing.event.InternalFrameEvent evt) {
             }
             public void internalFrameIconified(javax.swing.event.InternalFrameEvent evt) {
             }
-            public void internalFrameOpened(javax.swing.event.InternalFrameEvent evt) {
+            public void internalFrameDeiconified(javax.swing.event.InternalFrameEvent evt) {
+            }
+            public void internalFrameActivated(javax.swing.event.InternalFrameEvent evt) {
+            }
+            public void internalFrameDeactivated(javax.swing.event.InternalFrameEvent evt) {
             }
         });
 
-        jTable1.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
-
-            },
-            new String [] {
-                "Id", "Company Name", "Company Long Name", "Status"
-            }
-        ) {
-            Class[] types = new Class [] {
-                java.lang.Long.class, java.lang.String.class, java.lang.String.class, java.lang.Integer.class
-            };
-
-            public Class getColumnClass(int columnIndex) {
-                return types [columnIndex];
-            }
-        });
-        jScrollPane1.setViewportView(jTable1);
+        tblCompany.setAutoCreateColumnsFromModel(false);
+        tblCompany.setModel(new CompanyTableModel());
+        tblCompany.setColumnSelectionAllowed(true);
+        jScrollPane1.setViewportView(tblCompany);
+        tblCompany.getColumnModel().getSelectionModel().setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -107,6 +103,21 @@ public class CompanyForm extends javax.swing.JInternalFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JTable jTable1;
+    private javax.swing.JTable tblCompany;
     // End of variables declaration//GEN-END:variables
+
+    private void initTable() {
+        
+       this.app = Application.getInstance();
+       IDatabase db = app.getDatabase();
+       ICompany cmpDb = db.createCompanyDao();
+       
+       CompanyTableModel companyTableModel = 
+               new CompanyTableModel(cmpDb.getColumns());
+       
+       this.tblCompany.setModel(companyTableModel);
+       
+       companyTableModel.updateData(cmpDb.findAll());
+       
+    }
 }
