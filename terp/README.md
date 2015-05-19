@@ -1,2 +1,2 @@
 # terp
-T is an ERP system
+This is main runable program
