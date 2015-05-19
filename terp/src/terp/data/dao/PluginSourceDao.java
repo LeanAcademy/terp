@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 ilknur
+ * Copyright (C) 2014 Lean Academy
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,18 +18,18 @@
 package terp.data.dao;
 
 import terp.data.DbContext;
-import terp.data.model.PluginSource;
+import terp.data.model.PluginModel;
 
 /**
  *
- * @author ilknur
+ * @author cevdet
  */
 
 
-public class PluginSourceDao extends DbContext<PluginSource>{
+public class PluginSourceDao extends DbContext<PluginModel>{
     
     public PluginSourceDao(){
-        super(PluginSource.class);
+        super(PluginModel.class);
     }
     
 }

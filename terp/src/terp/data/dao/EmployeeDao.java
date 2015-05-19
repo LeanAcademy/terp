@@ -18,17 +18,13 @@
 package terp.data.dao;
 
 import terp.data.DbContext;
-import terp.data.model.Employee;
-
-/**
- *
- * @author ilknur
- */
+import terp.data.model.EmployeeModel;
 
 
-public class EmployeeDao extends DbContext<Employee>{
+
+public class EmployeeDao extends DbContext<EmployeeModel>{
     
     public EmployeeDao(){
-        super(Employee.class);
+        super(EmployeeModel.class);
     }
 }

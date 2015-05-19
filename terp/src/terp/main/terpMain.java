@@ -22,6 +22,7 @@ import terp.plugin.Application;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
+import terp.data.intfaces.Database;
 import terp.gui.LoginForm;
 import terp.gui.MainFrame;
 import terp.gui.SplashScreen;
@@ -47,9 +48,17 @@ public class terpMain {
             Application app = Application.getInstance();
             
             //set applications
+            //set manu manager
             app.setMenuManager(mainFrame);
+            
+            //set desktop manager
             app.setDesktop(mainFrame);
-            app.setDatabase(null); //TODO: change
+            
+            //set dabase interface and manager
+            Database database = new Database();
+            app.setDatabase(database);
+            
+            //set user manager
             app.setUser(null);//TODO: change
             
             

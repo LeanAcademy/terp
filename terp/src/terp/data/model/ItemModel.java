@@ -37,7 +37,7 @@ import javax.persistence.UniqueConstraint;
             @UniqueConstraint(name = "ix_malzeme", columnNames="mlz_kodu")
         }
 )
-public class Item implements Serializable {
+public class ItemModel implements Serializable {
    
     private long rowid;
     private String itemId;

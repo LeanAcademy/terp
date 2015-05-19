@@ -25,6 +25,7 @@ import static javax.persistence.GenerationType.IDENTITY;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
+import terp.plugin.data.Company;
 
 /**
  *
@@ -37,12 +38,12 @@ import javax.persistence.UniqueConstraint;
             @UniqueConstraint(name="ix_firma", columnNames="firma_adi")
         }
 )
-public class Company implements Serializable {
+public class CompanyModel extends Company implements Serializable {
     
-    private long rowid;
-    private String companyName;
-    private String companyLongName;
-    private int status;
+    //private long rowid;
+    //private String companyName;
+    //private String companyLongName;
+    //private int status;
 
     @Id
     @GeneratedValue(strategy=IDENTITY)

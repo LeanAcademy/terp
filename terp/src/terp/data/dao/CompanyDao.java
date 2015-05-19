@@ -18,17 +18,13 @@
 package terp.data.dao;
 
 import terp.data.DbContext;
-import terp.data.model.Company;
-
-/**
- * Data access object for Company table
- * @author ilknur
- */
+import terp.data.model.CompanyModel;
 
 
-public class CompanyDao extends DbContext<Company> {
+
+public class CompanyDao extends DbContext<CompanyModel> {
     
     public CompanyDao(){
-        super(Company.class);
+        super(CompanyModel.class);
     }
 }

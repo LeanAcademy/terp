@@ -13,7 +13,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
-import terp.data.model.Employee;
+import terp.data.model.EmployeeModel;
 import terp.plugin.Application;
 import terp.plugin.IUser;
 import terp.users.User;
@@ -197,7 +197,7 @@ public class LoginForm extends javax.swing.JDialog {
     private void btnSubmitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSubmitActionPerformed
         try {
             //local variables
-            Employee _emp;
+            EmployeeModel _emp;
             String _usr;
             String _pwd;
             String _hashPwd;

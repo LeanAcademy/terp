@@ -19,14 +19,14 @@
 package terp.data.dao;
 
 import terp.data.DbContext;
-import terp.data.model.Branch;
+import terp.data.model.BranchModel;
 
 /**
  *
  * @author ilknur
  */
-public class BranchDao extends DbContext<Branch>{
+public class BranchDao extends DbContext<BranchModel>{
     public BranchDao(){
-        super(Branch.class);
+        super(BranchModel.class);
     }
 }

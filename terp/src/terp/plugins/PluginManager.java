@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import terp.data.model.PluginSource;
+import terp.data.model.PluginModel;
 import terp.data.dao.PluginSourceDao;
 import terp.plugin.*;
 
@@ -114,9 +114,9 @@ public class PluginManager {
         
         //create database connection
         PluginSourceDao db = new PluginSourceDao();
-        List<PluginSource> plgList = db.findAll();
+        List<PluginModel> plgList = db.findAll();
         
-        for(PluginSource plg : plgList){
+        for(PluginModel plg : plgList){
             
             //load plugin
             IPlugin p = this.loadPlugin(plg.getPluginName());

@@ -36,7 +36,7 @@ import javax.persistence.UniqueConstraint;
             @UniqueConstraint(name="ix_kullanici", columnNames="kullanici_adi")
         }
 )
-public  class Employee implements Serializable {
+public  class EmployeeModel implements Serializable {
 
     private Long rowid;
     private String userName;
@@ -46,7 +46,7 @@ public  class Employee implements Serializable {
     private int status;
     private EmployeeGroup group;
 
-    public Employee(){
+    public EmployeeModel(){
     }
 
     @Id

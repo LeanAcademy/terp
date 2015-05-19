@@ -42,10 +42,10 @@ import javax.persistence.UniqueConstraint;
                     columnNames = {"firma_ref", "sube_adi"})
         }
 )
-public class Branch implements Serializable{
+public class BranchModel implements Serializable{
     
     private long rowid;
-    private Company company;
+    private CompanyModel company;
     private String branchName;
     private String branchLongName;
     private int status;
@@ -68,11 +68,11 @@ public class Branch implements Serializable{
             referencedColumnName = "ref_num",
             foreignKey = @ForeignKey(name = "fk_sube_firma")
     )
-    public Company getCompany(){
+    public CompanyModel getCompany(){
         return this.company;
     }
     
-    public void setCompany(Company company){
+    public void setCompany(CompanyModel company){
         this.company = company;
     }
     

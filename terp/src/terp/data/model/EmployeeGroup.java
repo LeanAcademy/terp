@@ -53,7 +53,7 @@ public  class EmployeeGroup implements Serializable {
     private Long rowid;
     private String groupName;
     private int status;
-    private Set<Employee> employee = new HashSet<>();
+    private Set<EmployeeModel> employee = new HashSet<>();
     
     public EmployeeGroup(){
     }
@@ -89,11 +89,11 @@ public  class EmployeeGroup implements Serializable {
     }
     
     @OneToMany(fetch=FetchType.LAZY, mappedBy="group")
-    public Set<Employee> getEmployee(){
+    public Set<EmployeeModel> getEmployee(){
         return this.employee;
     }
     
-    public void setEmployee(Set<Employee> employee){
+    public void setEmployee(Set<EmployeeModel> employee){
         this.employee = employee;
     }
 

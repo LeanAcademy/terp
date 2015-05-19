@@ -16,12 +16,7 @@ import javax.persistence.UniqueConstraint;
     @UniqueConstraint(name="pk_eklenti", columnNames="ref_num"),
     @UniqueConstraint(name="ix_eklenti", columnNames="eklenti_adi")
 })
-@NamedQueries({
-    @NamedQuery(name="PLUGINSOURCE_FIND_ALL", query="from PluginSource ps"),
-    @NamedQuery(name="PLUGINSOURCE_FIND_BY_PK", query="from PluginSource ps "
-            + "where ps.rowid = :id")
-})
-public  class PluginSource implements Serializable {
+public  class PluginModel implements Serializable {
 
     private Long rowid;
     private String pluginName;
@@ -56,7 +51,7 @@ public  class PluginSource implements Serializable {
         this.type = type;
     }
     
-    public PluginSource(){
+    public PluginModel(){
     }
 
 }

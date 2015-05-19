@@ -19,7 +19,7 @@
 package terp.users;
 
 import terp.data.dao.EmployeeDao;
-import terp.data.model.Employee;
+import terp.data.model.EmployeeModel;
 import terp.plugin.IUser;
 
 /**
@@ -104,10 +104,10 @@ public final class User implements IUser {
         if(this.authenticated) 
             return;
         
-        String sql = "from Employee e "
+        String sql = "from EmployeeModel e "
                 + "where e.userName = '" + this.userName + "' and "
                 + "e.type = 1";
-        Employee emp = employeeDao.firstOrDefault(sql);
+        EmployeeModel emp = employeeDao.firstOrDefault(sql);
         
         if(emp == null)
             return;

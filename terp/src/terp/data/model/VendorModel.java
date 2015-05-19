@@ -43,11 +43,11 @@ import javax.persistence.UniqueConstraint;
             )
         }
 )
-public class Vendor implements Serializable{
+public class VendorModel implements Serializable{
     
     private long rowid;
-    private Company company;
-    private Branch branch;
+    private CompanyModel company;
+    private BranchModel branch;
     private String venId;
     private String venName;
     private String venCountry;
@@ -91,11 +91,11 @@ public class Vendor implements Serializable{
             referencedColumnName = "ref_num",
             foreignKey = @ForeignKey(name = "fk_tedarikci_firma")
     )
-    public Company getCompany(){
+    public CompanyModel getCompany(){
         return this.company;
     }
     
-    public void setCompany(Company company){
+    public void setCompany(CompanyModel company){
         this.company = company;
     }
     
@@ -110,11 +110,11 @@ public class Vendor implements Serializable{
             referencedColumnName = "ref_num",
             foreignKey = @ForeignKey(name = "fk_tedarikci_sube")
     )
-    public Branch getBranch(){
+    public BranchModel getBranch(){
         return this.branch;
     }
     
-    public void setBranch(Branch branch){
+    public void setBranch(BranchModel branch){
         this.branch = branch;
     }
     

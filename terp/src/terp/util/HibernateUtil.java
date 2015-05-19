@@ -40,10 +40,10 @@ public class HibernateUtil {
             Configuration configuration = new Configuration().configure();
             configuration
                     .addPackage("terp.data")
-                    .addAnnotatedClass(terp.data.model.Company.class)
-                    .addAnnotatedClass(terp.data.model.Branch.class)
-                    .addAnnotatedClass(terp.data.model.PluginSource.class)
-                    .addAnnotatedClass(terp.data.model.Employee.class)
+                    .addAnnotatedClass(terp.data.model.CompanyModel.class)
+                    .addAnnotatedClass(terp.data.model.BranchModel.class)
+                    .addAnnotatedClass(terp.data.model.PluginModel.class)
+                    .addAnnotatedClass(terp.data.model.EmployeeModel.class)
                     .addAnnotatedClass(terp.data.model.EmployeeGroup.class);
             
             serviceRegistry = new ServiceRegistryBuilder()

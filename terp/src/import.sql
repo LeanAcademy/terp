@@ -11,3 +11,7 @@ values('Administrator', '"�`Y[�c�-#o�e(�', 'Admin', 0, 1, 1);
 --insert core plugins data
 insert into terp.eklenti(eklenti_adi, tip)
 values('terp.core', 0);
+
+--insert value into company table
+insert into terp.firma(firma_unv, firma_adi,durum)
+values('Test', 'Test company', 0);
