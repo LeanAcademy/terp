@@ -1,4 +1,20 @@
 
 T is an open source ERP program
 
+To build this program:
+
+1- Checkout this repository
+2- Open with Netbeans 8.1
+3- Setup a Java DB sample database and connect to DB
+4- Change hibernate.cfg.xml congiguration file
+5- Run terp program.
+
 T bir açık kaynak kodu ile yazılmış ERP sistemidir
+
+Bu programı derlemek için:
+
+1- bu repository 'den Checkout yapın
+2- Netbeans 8.1 ile projeleri açın
+3- Java DB ile bir örnek database oluşturun ve DB'ye bağlanın
+4- hibernate.cfg.xml dosyasını yeni database bağlantısına göre düzenleyin
+5- Programı Run ile çalıştırın
