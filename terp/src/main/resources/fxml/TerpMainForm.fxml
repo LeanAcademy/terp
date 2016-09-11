@@ -13,27 +13,19 @@
         <items>
           <AnchorPane fx:id="apMainMenu" minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
                <children>
-                  <VBox AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-                     <children>
-                        <BorderPane prefHeight="25.0" prefWidth="200.0">
-                           <right>
-                              <Button fx:id="btnSlideMenu" mnemonicParsing="false" onAction="#btnSlideMenuOnAction" text="&lt;" BorderPane.alignment="CENTER" />
-                           </right>
-                           <bottom>
-                              <HBox prefHeight="36.0" prefWidth="179.0" BorderPane.alignment="CENTER">
-                                 <children>
-                                    <TextField fx:id="txtSearchMenuItem" prefHeight="26.0" prefWidth="150.0" HBox.hgrow="ALWAYS">
-                                       <HBox.margin>
-                                          <Insets bottom="5.0" left="3.0" right="3.0" top="5.0" />
-                                       </HBox.margin>
-                                    </TextField>
-                                 </children>
-                              </HBox>
-                           </bottom>
-                        </BorderPane>
-                        <Accordion fx:id="acMainMenu" layoutY="287.0" prefHeight="24.0" prefWidth="196.0" AnchorPane.bottomAnchor="5.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" />
-                     </children>
-                  </VBox>
+                  <BorderPane prefHeight="60.0" prefWidth="235.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                     <right>
+                        <Button fx:id="btnSlideMenu" mnemonicParsing="false" onAction="#btnSlideMenuOnAction" text="&lt;" BorderPane.alignment="CENTER" />
+                     </right>
+                     <bottom>
+                        <TextField fx:id="txtSearchMenuItem" prefHeight="26.0" prefWidth="150.0" promptText="Search" BorderPane.alignment="CENTER">
+                           <BorderPane.margin>
+                              <Insets left="5.0" right="5.0" />
+                           </BorderPane.margin>
+                        </TextField>
+                     </bottom>
+                  </BorderPane>
+                  <TreeView fx:id="tvMainMenu" onMouseClicked="#tvMainMenuOnMouseClicked" prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="65.0" />
                </children></AnchorPane>
           <AnchorPane fx:id="apMainContent" minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0" />
         </items>

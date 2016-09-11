@@ -52,7 +52,13 @@ public class MenuSource implements Serializable {
     private int menuType;
     
     @Column(name="ust_menu", nullable=false, columnDefinition ="int default 0")
-    private int menuParent;
+    private Long menuParent;
+    
+    @Column(name="program", length=128, nullable=true)
+    private String programName;
+    
+    @Column(name="eklenti", nullable=true, columnDefinition="int default 0")
+    private int isPlugin;
     
     @Column(name="durum", nullable=false)
     private int status;
@@ -98,12 +104,28 @@ public class MenuSource implements Serializable {
         this.menuType = menuType;
     }
 
-    public int getMenuParent() {
+    public Long getMenuParent() {
         return menuParent;
     }
 
-    public void setMenuParent(int menuParent) {
+    public void setMenuParent(Long menuParent) {
         this.menuParent = menuParent;
+    }
+
+    public String getProgramName() {
+        return programName;
+    }
+
+    public void setProgramName(String programName) {
+        this.programName = programName;
+    }
+
+    public int getIsPlugin() {
+        return isPlugin;
+    }
+
+    public void setIsPlugin(int isPlugin) {
+        this.isPlugin = isPlugin;
     }
     
 }

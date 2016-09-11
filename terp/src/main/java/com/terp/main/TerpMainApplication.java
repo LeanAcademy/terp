@@ -5,12 +5,13 @@
  */
 package com.terp.main;
 
+import com.terp.data.impl.Database;
 import com.terp.gui.controllers.LoginFormController;
+import com.terp.plugin.TerpApplication;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Application;
-import javafx.application.Platform;
 import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -31,6 +32,7 @@ public class TerpMainApplication extends Application {
      */
     public void showMainForm(){
         
+        //load main frame
         try {
             Parent root = FXMLLoader.load(getClass()
                     .getResource("/fxml/TerpMainForm.fxml"));
@@ -54,6 +56,12 @@ public class TerpMainApplication extends Application {
     @Override
     public void start(Stage stage) throws Exception {
         
+        // create database and save it
+        Database db = new Database();
+        TerpApplication terpApp = TerpApplication.getInstance();
+        terpApp.setDatabase(db);
+        
+        // stage
         this.stage = stage;
         this.stage.setOnCloseRequest(onCloseRequest);
         showLoginForm();

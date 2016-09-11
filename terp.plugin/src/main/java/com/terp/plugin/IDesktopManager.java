@@ -18,6 +18,8 @@
 
 package com.terp.plugin;
 
+import javafx.scene.Node;
+
 /**
  *
  * @author ilknur
@@ -30,7 +32,7 @@ public interface IDesktopManager {
      * add component to desktop
      * @param comp 
      */
-    public void addToDesktop(java.awt.Component comp);
+    public void addToDesktop(Node comp);
     
     
 }

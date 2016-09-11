@@ -23,22 +23,30 @@ import javax.persistence.UniqueConstraint;
 })
 public  class PluginSource implements Serializable {
 
-    private Long rowid;
-    private String pluginName;
-    private int type;
-
     @Id    
     @Column(name="ref_num",nullable=false)
     @GeneratedValue(strategy=GenerationType.IDENTITY)
+    private Long rowid;
+    
+    @Column(name="eklenti_adi",nullable=false,length=128)
+    private String pluginName;
+    
+    @Column(name="tip")
+    private int type;
+    
+    @Column(name="sinif_adi")
+    private String mainClassName;
+
+    // Gettters and setters
+    ///////////////////////////
     public Long getRowid() {
         return this.rowid;
     }
 
     public void setRowid (Long rowid) {
         this.rowid = rowid;
-    }
+    }    
     
-    @Column(name="eklenti_adi",nullable=false,length=128)
     public String getPluginName() {
         return this.pluginName;
     }
@@ -46,8 +54,7 @@ public  class PluginSource implements Serializable {
     public void setPluginName (String pluginName) {
         this.pluginName = pluginName;
     }
-
-    @Column(name="tip")
+    
     public int getType() {
         return this.type;
     }
@@ -57,6 +64,14 @@ public  class PluginSource implements Serializable {
     }
     
     public PluginSource(){
+    }
+
+    public String getMainClassName() {
+        return mainClassName;
+    }
+
+    public void setMainClassName(String mainClassName) {
+        this.mainClassName = mainClassName;
     }
 
 }

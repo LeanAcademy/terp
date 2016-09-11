@@ -43,7 +43,7 @@ public class PluginManager {
     
     //private variables
     private String dir = null;
-    private Map<String, IPlugin> plugins = new HashMap<>();
+    private Map<Long, IPlugin> plugins = new HashMap<>();
     private final String version = "1.0";
     
     /**
@@ -54,47 +54,51 @@ public class PluginManager {
     }
     
     /**
-     * Plug in loader.
-     * @param fileName 
+     * Plug in loader. 
+     * @param pluginId
      * @return  IPlugin
      */
-    protected IPlugin loadPlugin(final String fileName){
+    protected IPlugin loadPlugin(final Long pluginId){
 
         URL url = null;
-        String jarName = fileName + ".jar";
-        String pluginName = fileName + ".plugin.Plugin";
+        
+        // get plugin details
+        PluginSourceDao pluginSourceDao = new PluginSourceDao();
+        PluginSource pluginSource = pluginSourceDao.firstOrDefault(pluginId);
+        
+        String jarName = pluginSource.getPluginName() + ".jar";
         
         try {
-            Path filePath = Paths.get("dist/plugins");
+            Path filePath = Paths.get("../terp/plugins");
             
             DirectoryStream<Path> stream = 
                     Files.newDirectoryStream(filePath, "*.jar");
+            
+            // TODO : implement jar package download
             for(Path file : stream) {
+                
                 //save file name
                 String strFile = file.getFileName().toString();
                 
                 //debug logger
-                Logger.getLogger(PluginManager.class.getName())
-                        .log(Level.INFO, file.getFileName().toString());
+                LOG.log(Level.INFO, file.getFileName().toString());
                 
                 if(strFile == null ? jarName == null : strFile.equals(jarName)){
                     url = file.toUri().toURL();
             
                     URL[] urls = new URL[]{url};
                     URLClassLoader cl = new URLClassLoader(urls);
-                    Class<IPlugin> plg = (Class<IPlugin>)cl.loadClass(pluginName);
+                    Class<IPlugin> plg = (Class<IPlugin>)cl.loadClass(pluginSource.getMainClassName());
                     //plg.newInstance().run(); // TODO : delete test
                     return plg.newInstance();
-                }
+                } 
             }
             
         } catch (MalformedURLException ex) {
-            Logger.getLogger(PluginManager.class.getName())
-                    .log(Level.SEVERE, null, ex);
+            LOG.log(Level.SEVERE, null, ex);
         } catch (IOException | ClassNotFoundException | InstantiationException 
                 | IllegalAccessException ex) {
-            Logger.getLogger(PluginManager.class.getName())
-                    .log(Level.SEVERE, null, ex);
+            LOG.log(Level.SEVERE, null, ex);
         }
         
         return null;
@@ -114,44 +118,59 @@ public class PluginManager {
         
         //create database connection
         PluginSourceDao db = new PluginSourceDao();
+        
+        // load installed plugins
         List<PluginSource> plgList = db.findAll();
         
         for(PluginSource plg : plgList){
             
             //load plugin
-            IPlugin p = this.loadPlugin(plg.getPluginName());
+            IPlugin p = this.loadPlugin(plg.getRowid());
             
             //check plugin version
-            if(p.getSystemVersion() == null ? this.version != null 
-                    : !p.getSystemVersion().equals(this.version)){
+            if(p.getSystemVersion() == null 
+                    || !p.getSystemVersion().equals(this.version)){
                 //log and show error
-                Logger.getLogger(PluginManager.class.getName())
-                        .log(Level.SEVERE, "{0}" + " " 
-                                + "version error : {1}", 
-                                new Object[]{p.getName(), 
-                                    p.getSystemVersion()});
-            } else {            
+                Object[] params = new Object[]{p.getName(), p.getSystemVersion()};
+                LOG.log(Level.SEVERE, "{0} version error : {1}", params);
+
+            } else {
+                
                 //add plugin into list
-                plugins.put(plg.getPluginName(), p);
+                plugins.put(plg.getRowid(), p);
+                
+                // run plugin's main class and method
+                try{                    
+                    p.run();                    
+                }catch(Exception e){
+                    LOG.log(Level.SEVERE, null, e);
+                }
+                
+                // information to debug system
+                LOG.log(Level.INFO, "Plugin {0} is loaded", p.getName());
             }
         }
+        
     }
     
     /**
      * Find plugin and load it if not already done.
-     * @param fileName
+     * @param pluginId
      * @return new instance IPlugin
      */
-    public IPlugin getPlugin(final String fileName){
+    public IPlugin getPlugin(final Long pluginId){
+        
         //check if plugin already loaded
-        if(plugins.containsKey(fileName)){
-            return plugins.get(fileName);
+        if(plugins.containsKey(pluginId)){
+            return plugins.get(pluginId);
         } else {
             IPlugin plg;
-            plg = loadPlugin(fileName);
+            plg = loadPlugin(pluginId);
             return plg;
         }
-    } 
+    }
+    
+    private static final Logger LOG = Logger.getLogger(PluginManager.class.getName());
 }
 
 
