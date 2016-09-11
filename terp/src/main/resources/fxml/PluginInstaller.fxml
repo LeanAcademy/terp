@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.net.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane id="AnchorPane" prefHeight="301.0" prefWidth="576.0" styleClass="mainFxmlClass" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.terp.gui.controllers.PluginInstallerController">
+    <stylesheets>
+        <URL value="@/styles/globalstyle.css" />
+    </stylesheets>
+   <children>
+      <Label layoutX="15.0" layoutY="25.0" text="Plugin file" AnchorPane.leftAnchor="15.0" AnchorPane.topAnchor="25.0" />
+      <TextField fx:id="txtPluginFileName" layoutX="99.0" layoutY="20.0" prefHeight="25.0" prefWidth="368.0" AnchorPane.leftAnchor="99.0" AnchorPane.rightAnchor="109.0" AnchorPane.topAnchor="20.0" />
+      <Button fx:id="btnBorwse" layoutX="477.0" layoutY="20.0" mnemonicParsing="false" onAction="#btnBrowseOnAction" prefHeight="25.0" prefWidth="76.0" text="Browse" AnchorPane.rightAnchor="23.0" AnchorPane.topAnchor="20.0" />
+      <HBox layoutX="299.0" layoutY="260.0" prefHeight="25.0" prefWidth="219.0" AnchorPane.bottomAnchor="16.0" AnchorPane.leftAnchor="299.0" AnchorPane.rightAnchor="58.0">
+         <children>
+            <Button fx:id="btnInstall" defaultButton="true" mnemonicParsing="false" onAction="#btnInstallOnAction" prefHeight="25.0" prefWidth="108.0" text="Install" />
+            <Button fx:id="btnCancel" mnemonicParsing="false" onAction="#btnCancelOnAction" prefWidth="108.0" text="Cancel" />
+         </children>
+      </HBox>
+      <Label layoutX="15.0" layoutY="69.0" prefHeight="15.0" prefWidth="64.0" text="Result" />
+      <TextArea fx:id="txtResult" layoutX="99.0" layoutY="51.0" prefHeight="200.0" prefWidth="368.0" wrapText="true" AnchorPane.bottomAnchor="50.0" AnchorPane.leftAnchor="99.0" AnchorPane.rightAnchor="109.0" AnchorPane.topAnchor="51.0" />
+   </children>
+</AnchorPane>
