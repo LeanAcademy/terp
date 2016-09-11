@@ -10,6 +10,7 @@ import com.terp.data.model.MenuSource;
 import com.terp.gui.MenuItem;
 import com.terp.plugin.IDesktopManager;
 import com.terp.plugin.IMenuManager;
+import com.terp.plugin.IStatusbarManager;
 import com.terp.plugin.TerpApplication;
 import com.terp.plugins.PluginManager;
 import java.net.URL;
@@ -27,18 +28,23 @@ import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.SplitPane.Divider;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
+import javafx.stage.Stage;
 import javax.swing.JPanel;
 
 /**
  *
  * @author cevdet
  */
-public class TerpMainFormController implements Initializable, IMenuManager, IDesktopManager {
+public class TerpMainFormController implements Initializable, 
+        IMenuManager, IDesktopManager, IStatusbarManager {
     
     ///////////////////////////////////////////////////////////////////////////
     // FXML defined variables
@@ -60,7 +66,10 @@ public class TerpMainFormController implements Initializable, IMenuManager, IDes
     private AnchorPane apMainFrame;
     
     @FXML
-    private AnchorPane apMainContent;    
+    private AnchorPane apMainContent;
+
+    @FXML
+    private TabPane tpDesktopContainer;
     
     @FXML
     void btnSlideMenuOnAction(ActionEvent event) {
@@ -154,7 +163,7 @@ public class TerpMainFormController implements Initializable, IMenuManager, IDes
                         // load fxml program
                         Node nodeProgram = FXMLLoader.load(getClass().getResource(
                                 "/fxml/" + program + ".fxml"));
-                        this.addToDesktop(nodeProgram);
+                        this.addToDesktop(nodeProgram, program);
                         break;
                     case 1:
                         // load plugin fxml program
@@ -172,9 +181,20 @@ public class TerpMainFormController implements Initializable, IMenuManager, IDes
     private static final Logger LOG = Logger.getLogger(
             TerpMainFormController.class.getName());
     
+    private Stage primaryStage;
+    
+    //////////////////////////////////////////////////////////////////////////
+    // public routines
+    //////////////////////////////////////////////////////////////////////////
+    
+    public void setPrimaryStage(Stage stage){
+        this.primaryStage = stage;
+    }
+    
     //////////////////////////////////////////////////////////////////////////
     // Overrides
     //////////////////////////////////////////////////////////////////////////
+    
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         // create application
@@ -193,6 +213,9 @@ public class TerpMainFormController implements Initializable, IMenuManager, IDes
         
         // setting menu manager to grant access
         terpApp.setMenuManager(this);
+        
+        // settin statusbar manager
+        terpApp.setStatusbar(this);
         
         // load menu
         loadMenu();
@@ -214,11 +237,33 @@ public class TerpMainFormController implements Initializable, IMenuManager, IDes
     }
 
     @Override
-    public void addToDesktop(Node node) {
+    public void addToDesktop(Node node, String headerText) {
         if (node != null){
-            this.apMainContent.getChildren().removeAll();
-            this.apMainContent.getChildren().add(node);
+            Tab newProgramContainer = new Tab();
+            newProgramContainer.setContent(node);
+            newProgramContainer.setText(headerText);            
+            this.tpDesktopContainer.getTabs().add(newProgramContainer);
         }
+    }
+
+    @Override
+    public void updateStatus(String status, ImageView imageView) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void updateUser(String userName) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void updateCompany(String company) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void updateDatabase(String database) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
 }
