@@ -86,9 +86,14 @@ public class PluginManager {
                 if(strFile == null ? jarName == null : strFile.equals(jarName)){
                     url = file.toUri().toURL();
             
-                    URL[] urls = new URL[]{url};
-                    URLClassLoader cl = new URLClassLoader(urls);
-                    Class<IPlugin> plg = (Class<IPlugin>)cl.loadClass(pluginSource.getMainClassName());
+                    //URL[] urls = new URL[]{url};
+                    PluginClassLoader.addFile(file.toFile());
+                    
+                    
+                    //URLClassLoader cl = new URLClassLoader(urls);
+                    Class<IPlugin> plg = (Class<IPlugin>)ClassLoader
+                            .getSystemClassLoader()
+                            .loadClass(pluginSource.getMainClassName());
                     //plg.newInstance().run(); // TODO : delete test
                     return plg.newInstance();
                 } 
@@ -112,6 +117,9 @@ public class PluginManager {
         this.dir = dir;
     }
     
+    /**
+     * load all plugins into memory
+     */
     public void loadAllPlugin(){
         
         int count = 0;
