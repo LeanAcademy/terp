@@ -5,9 +5,11 @@
  */
 package com.terp.main;
 
-import com.terp.data.impl.Database;
+import com.terp.data.Database;
 import com.terp.gui.controllers.LoginFormController;
+import com.terp.gui.controllers.TerpMainFormController;
 import com.terp.plugin.TerpApplication;
+import com.terp.plugins.PluginFactoryImpl;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -24,6 +26,10 @@ import javafx.stage.WindowEvent;
  * @author cevdet
  */
 public class TerpMainApplication extends Application {
+    
+    // application header
+    private final String APP_TITLE = "T - ERP SYSTEM";
+    
     // main stage
     private Stage stage = null;
     
@@ -32,15 +38,27 @@ public class TerpMainApplication extends Application {
      */
     public void showMainForm(){
         
+        //load plugins
+        PluginFactoryImpl pluginFactory = new PluginFactoryImpl();
+        pluginFactory.loadAllPlugin();
+        TerpApplication terpApp = TerpApplication.getInstance();
+        terpApp.setPluginFactory(pluginFactory);
+        
         //load main frame
         try {
-            Parent root = FXMLLoader.load(getClass()
+            
+            FXMLLoader loader = new FXMLLoader(getClass()
                     .getResource("/fxml/TerpMainForm.fxml"));
+            Parent root = loader.load();
+            
+            TerpMainFormController controller = loader.<TerpMainFormController>getController();
             
             Scene scene = new Scene(root);
             
             this.stage.setScene(scene);
             this.stage.setMaximized(true);
+            this.stage.setTitle(APP_TITLE);
+            controller.setPrimaryStage(stage);
             this.stage.show();
             
         } catch (IOException ex) {
@@ -92,6 +110,7 @@ public class TerpMainApplication extends Application {
             // show form
             Scene scene = new Scene(root);
             this.stage.setScene(scene);
+            this.stage.setTitle(APP_TITLE);
             this.stage.show();
             
             
@@ -100,6 +119,9 @@ public class TerpMainApplication extends Application {
         }
     }
     
+    /**
+     * close event
+     */
     private final EventHandler onCloseRequest = new EventHandler<WindowEvent>(){
         @Override
         public void handle(WindowEvent event) {
@@ -109,5 +131,8 @@ public class TerpMainApplication extends Application {
         
     };
     
-    private static final Logger LOG = Logger.getLogger(LoginFormController.class.getName());
+    /**
+     * logger
+     */
+    private static final Logger LOG = Logger.getLogger(TerpMainApplication.class.getName());
 }
