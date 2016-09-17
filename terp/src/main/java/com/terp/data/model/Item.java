@@ -18,11 +18,9 @@
 
 package com.terp.data.model;
 
-import java.io.Serializable;
+import com.terp.data.CommonFields;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import static javax.persistence.GenerationType.IDENTITY;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
@@ -37,21 +35,38 @@ import javax.persistence.UniqueConstraint;
             @UniqueConstraint(name = "ix_malzeme", columnNames="mlz_kodu")
         }
 )
-public class Item implements Serializable {
-   
-    private long rowid;
-    private String itemId;
-    private String itemDesc;
-    private String itemUnit;
-
-    @Id
-    @GeneratedValue(strategy=IDENTITY)    
-    @Column(name = "ref_num")
-    public long getRowid(){
-        return this.rowid;
-    }
+public class Item extends CommonFields{
     
-    public void setRowid(long rowid) {
-        this.rowid = rowid;
+    @Column(name="mlz_kodu", nullable=false)
+    private String itemId;
+    @Column(name="mlz_tanimi", nullable=false)
+    private String itemDesc;
+    @Column(name="mlz_birimi", nullable=false)
+    private String itemUnit;    
+    
+    public Item(){}
+    
+    public String getItemId() {
+        return itemId;
+    }
+
+    public void setItemId(String itemId) {
+        this.itemId = itemId;
+    }
+
+    public String getItemDesc() {
+        return itemDesc;
+    }
+
+    public void setItemDesc(String itemDesc) {
+        this.itemDesc = itemDesc;
+    }
+
+    public String getItemUnit() {
+        return itemUnit;
+    }
+
+    public void setItemUnit(String itemUnit) {
+        this.itemUnit = itemUnit;
     }
 }

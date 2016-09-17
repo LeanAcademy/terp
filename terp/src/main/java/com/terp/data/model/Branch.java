@@ -18,6 +18,8 @@
 
 package com.terp.data.model;
 
+import com.terp.data.CommonFields;
+import com.terp.plugin.IBranch;
 import java.io.Serializable;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -42,7 +44,7 @@ import javax.persistence.UniqueConstraint;
                     columnNames = {"firma_ref", "sube_adi"})
         }
 )
-public class Branch implements Serializable{
+public class Branch extends CommonFields implements Serializable, IBranch{
     
     private long rowid;
     private Company company;
@@ -102,4 +104,5 @@ public class Branch implements Serializable{
     public void setStatus(int status) {
         this.status = status;
     }
+
 }

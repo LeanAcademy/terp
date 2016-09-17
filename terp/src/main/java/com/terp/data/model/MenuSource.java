@@ -60,6 +60,9 @@ public class MenuSource implements Serializable {
     @Column(name="eklenti", nullable=true, columnDefinition="int default 0")
     private int isPlugin;
     
+    @Column(name="ekl_ref_num", nullable=true)
+    private Long pluginId;
+    
     @Column(name="durum", nullable=false)
     private int status;
 
@@ -126,6 +129,14 @@ public class MenuSource implements Serializable {
 
     public void setIsPlugin(int isPlugin) {
         this.isPlugin = isPlugin;
+    }
+
+    public Long getPluginId() {
+        return pluginId;
+    }
+
+    public void setPluginId(Long pluginId) {
+        this.pluginId = pluginId;
     }
     
 }

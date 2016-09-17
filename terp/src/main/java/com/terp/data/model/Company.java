@@ -17,6 +17,8 @@
 
 package com.terp.data.model;
 
+import com.terp.data.CommonFields;
+import com.terp.plugin.ICompany;
 import java.io.Serializable;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -37,7 +39,7 @@ import javax.persistence.UniqueConstraint;
             @UniqueConstraint(name="ix_firma", columnNames="firma_adi")
         }
 )
-public class Company implements Serializable {
+public class Company extends CommonFields implements Serializable, ICompany {
     
     private long rowid;
     private String companyName;
@@ -80,5 +82,6 @@ public class Company implements Serializable {
     
     public void setStatus(int status){
         this.status = status;
-    }    
+    }
+    
 }

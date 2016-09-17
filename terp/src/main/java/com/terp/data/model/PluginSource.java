@@ -16,11 +16,6 @@ import javax.persistence.UniqueConstraint;
     @UniqueConstraint(name="pk_eklenti", columnNames="ref_num"),
     @UniqueConstraint(name="ix_eklenti", columnNames="eklenti_adi")
 })
-@NamedQueries({
-    @NamedQuery(name="PLUGINSOURCE_FIND_ALL", query="from PluginSource ps"),
-    @NamedQuery(name="PLUGINSOURCE_FIND_BY_PK", query="from PluginSource ps "
-            + "where ps.rowid = :id")
-})
 public  class PluginSource implements Serializable {
 
     @Id    
@@ -37,15 +32,16 @@ public  class PluginSource implements Serializable {
     @Column(name="sinif_adi")
     private String mainClassName;
 
+    //////////////////////////////////////////////////////////////////////////
     // Gettters and setters
-    ///////////////////////////
+    //////////////////////////////////////////////////////////////////////////
     public Long getRowid() {
         return this.rowid;
     }
 
     public void setRowid (Long rowid) {
         this.rowid = rowid;
-    }    
+    }
     
     public String getPluginName() {
         return this.pluginName;

@@ -17,6 +17,8 @@
 
 package com.terp.data.model;
 
+import com.terp.data.CommonFields;
+import com.terp.plugin.IEmployeeGroup;
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
@@ -48,7 +50,7 @@ import javax.persistence.UniqueConstraint;
             query="from EmployeeGroup eg "
             + "where eg.rowid = :id")
 })
-public  class EmployeeGroup implements Serializable {
+public  class EmployeeGroup extends CommonFields implements Serializable, IEmployeeGroup {
 
     private Long rowid;
     private String groupName;

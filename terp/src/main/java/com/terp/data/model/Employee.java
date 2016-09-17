@@ -17,6 +17,8 @@
 
 package com.terp.data.model;
 
+import com.terp.data.CommonFields;
+import com.terp.plugin.IEmployee;
 import java.io.Serializable;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -36,7 +38,7 @@ import javax.persistence.UniqueConstraint;
             @UniqueConstraint(name="ix_kullanici", columnNames="kullanici_adi")
         }
 )
-public  class Employee implements Serializable {
+public  class Employee extends CommonFields implements Serializable, IEmployee {
 
     private Long rowid;
     private String userName;
