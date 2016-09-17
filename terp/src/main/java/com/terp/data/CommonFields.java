@@ -148,6 +148,29 @@ public abstract class CommonFields implements Serializable {
         return list;        
     }
     
+    public List<Object> findAll(String sql){
+        // get current session
+        Session session = HibernateUtil.getSessionFactory().openSession();
+        
+        // check session
+        if(session == null){
+            return null;
+        }
+        
+        // begin transaction
+        session.getTransaction().begin();
+        
+        // find by primary key
+        Query qry = session.createQuery(sql);
+        List<Object> list = qry.list();
+        
+        // commint transaction
+        session.getTransaction().commit();
+        
+        // return object
+        return list;
+    }
+    
     public Object firstOrDefault(long key) {
         
         // get current session
