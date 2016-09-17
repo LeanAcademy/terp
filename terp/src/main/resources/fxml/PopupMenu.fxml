@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.image.*?>
+<?import java.lang.*?>
+<?import java.net.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane id="AnchorPane" fx:id="apPopupContainer" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.terp.gui.controllers.PopupMenuController">
+    <stylesheets>
+        <URL value="@/styles/globalstyle.css" />
+        <URL value="@/styles/popupmenu.css" />
+    </stylesheets>
+   <children>
+      <VBox prefHeight="205.0" prefWidth="360.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
+         <children>
+            <FlowPane layoutX="-36.0" prefHeight="93.0" prefWidth="360.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+               <children>
+                  <Button fx:id="btnUserSettings" contentDisplay="TOP" mnemonicParsing="false" prefHeight="80.0" prefWidth="80.0" text="User" textAlignment="CENTER" wrapText="true">
+                     <tooltip>
+                        <Tooltip text="User settings" />
+                     </tooltip>
+                     <FlowPane.margin>
+                        <Insets bottom="5.0" left="2.5" right="2.5" top="5.0" />
+                     </FlowPane.margin>
+                     <graphic>
+                        <ImageView pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@../images/glyphicons-4-user.png" />
+                           </image>
+                        </ImageView>
+                     </graphic>
+                  </Button>
+                  <Button fx:id="btnCompnay" contentDisplay="TOP" mnemonicParsing="false" prefHeight="80.0" prefWidth="80.0" text="Company">
+                     <tooltip>
+                        <Tooltip text="Empty Tooltip" />
+                     </tooltip>
+                     <FlowPane.margin>
+                        <Insets bottom="5.0" left="2.5" right="2.5" top="5.0" />
+                     </FlowPane.margin>
+                     <graphic>
+                        <ImageView pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@../images/glyphicons-619-mixed-buildings.png" />
+                           </image>
+                        </ImageView>
+                     </graphic>
+                  </Button>
+                  <Button contentDisplay="TOP" mnemonicParsing="false" prefHeight="80.0" prefWidth="80.0" text="Branch">
+                     <tooltip>
+                        <Tooltip text="Empty Tooltip" />
+                     </tooltip>
+                     <FlowPane.margin>
+                        <Insets bottom="5.0" left="2.5" right="2.5" top="5.0" />
+                     </FlowPane.margin>
+                     <graphic>
+                        <ImageView pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@../images/glyphicons-90-building.png" />
+                           </image></ImageView>
+                     </graphic>
+                  </Button>
+                  <Button contentDisplay="TOP" mnemonicParsing="false" prefHeight="80.0" prefWidth="80.0" text="Period">
+                     <tooltip>
+                        <Tooltip text="Empty Tooltip" />
+                     </tooltip>
+                     <FlowPane.margin>
+                        <Insets bottom="5.0" left="2.5" right="2.5" top="5.0" />
+                     </FlowPane.margin>
+                     <graphic>
+                        <ImageView pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@../images/glyphicons-649-important-day.png" />
+                           </image></ImageView>
+                     </graphic>
+                  </Button>
+               </children>
+            </FlowPane>
+            <Separator />
+            <FlowPane prefHeight="95.0" prefWidth="360.0">
+               <children>
+                  <Button fx:id="btnServerSetup" contentDisplay="TOP" mnemonicParsing="false" onAction="#btnServerOnAction" prefHeight="80.0" prefWidth="80.0" text="Server">
+                     <graphic>
+                        <ImageView pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@../images/glyphicons-464-server.png" />
+                           </image></ImageView>
+                     </graphic>
+                     <tooltip>
+                        <Tooltip text="Empty Tooltip" />
+                     </tooltip>
+                     <FlowPane.margin>
+                        <Insets bottom="5.0" left="2.5" right="2.5" top="5.0" />
+                     </FlowPane.margin>
+                  </Button>
+                  <Button fx:id="btnSqlEditor" contentDisplay="TOP" mnemonicParsing="false" prefHeight="80.0" prefWidth="80.0" text="SQL">
+                     <graphic>
+                        <ImageView pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@../images/glyphicons-547-quote.png" />
+                           </image>
+                        </ImageView>
+                     </graphic>
+                     <tooltip>
+                        <Tooltip text="Empty Tooltip" />
+                     </tooltip>
+                  </Button>
+                  <Separator orientation="VERTICAL">
+                     <FlowPane.margin>
+                        <Insets left="5.0" />
+                     </FlowPane.margin>
+                  </Separator>
+                  <Button fx:id="btnProgramSettings" contentDisplay="TOP" mnemonicParsing="false" onAction="#btnProgramSettingsOnAction" prefHeight="80.0" prefWidth="80.0" text="Settings">
+                     <graphic>
+                        <ImageView pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@../images/glyphicons-137-cogwheel.png" />
+                           </image>
+                        </ImageView>
+                     </graphic>
+                     <tooltip>
+                        <Tooltip text="Empty Tooltip" />
+                     </tooltip>
+                     <FlowPane.margin>
+                        <Insets bottom="5.0" left="2.5" right="2.5" top="5.0" />
+                     </FlowPane.margin>
+                  </Button>
+               </children>
+            </FlowPane>
+            <Separator prefWidth="200.0" />
+            <HBox prefHeight="43.0" prefWidth="360.0">
+               <children>
+                  <Button fx:id="btnExitProgram" mnemonicParsing="false" onAction="#btnExitProgramOnAction" text="Exit program">
+                     <graphic>
+                        <ImageView pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@../images/glyphicons-389-exit.png" />
+                           </image>
+                        </ImageView>
+                     </graphic>
+                     <HBox.margin>
+                        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                     </HBox.margin>
+                  </Button>
+               </children>
+            </HBox>
+         </children>
+      </VBox>
+   </children>
+</AnchorPane>
