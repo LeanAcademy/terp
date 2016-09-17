@@ -16,6 +16,7 @@ The regular expression classes are not available.
  */
 package com.terp.data.model;
 
+import com.terp.data.CommonFields;
 import java.io.Serializable;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -35,12 +36,7 @@ import javax.persistence.UniqueConstraint;
             @UniqueConstraint(name = "ix_menu", 
                     columnNames = {"menu_kodu"})
         })
-public class MenuSource implements Serializable {
-
-    @Id
-    @GeneratedValue(strategy=IDENTITY)
-    @Column(name = "ref_num", nullable = false)
-    private Long rowid;
+public class MenuSource extends CommonFields implements Serializable {
     
     @Column(name="menu_kodu", nullable=false, length=20)
     private String menuId;
@@ -65,15 +61,6 @@ public class MenuSource implements Serializable {
     
     @Column(name="durum", nullable=false)
     private int status;
-
-    
-    public Long getRowid() {
-        return rowid;
-    }
-
-    public void setRowid(Long rowid) {
-        this.rowid = rowid;
-    }
 
     public String getMenuName() {
         return menuName;

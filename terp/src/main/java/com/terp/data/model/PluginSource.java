@@ -1,5 +1,6 @@
 package com.terp.data.model;
 
+import com.terp.data.CommonFields;
 import java.io.Serializable;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -16,12 +17,7 @@ import javax.persistence.UniqueConstraint;
     @UniqueConstraint(name="pk_eklenti", columnNames="ref_num"),
     @UniqueConstraint(name="ix_eklenti", columnNames="eklenti_adi")
 })
-public  class PluginSource implements Serializable {
-
-    @Id    
-    @Column(name="ref_num",nullable=false)
-    @GeneratedValue(strategy=GenerationType.IDENTITY)
-    private Long rowid;
+public  class PluginSource extends CommonFields implements Serializable {
     
     @Column(name="eklenti_adi",nullable=false,length=128)
     private String pluginName;
@@ -35,13 +31,6 @@ public  class PluginSource implements Serializable {
     //////////////////////////////////////////////////////////////////////////
     // Gettters and setters
     //////////////////////////////////////////////////////////////////////////
-    public Long getRowid() {
-        return this.rowid;
-    }
-
-    public void setRowid (Long rowid) {
-        this.rowid = rowid;
-    }
     
     public String getPluginName() {
         return this.pluginName;
