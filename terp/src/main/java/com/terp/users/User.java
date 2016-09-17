@@ -18,8 +18,8 @@
 
 package com.terp.users;
 
-import com.terp.data.dao.EmployeeDao;
 import com.terp.data.model.Employee;
+import com.terp.plugin.IEmployee;
 import com.terp.plugin.IUser;
 
 /**
@@ -34,7 +34,7 @@ public final class User implements IUser {
     private long groupId;
     private boolean authenticated;
     private boolean administrator;
-    private EmployeeDao employeeDao;
+    private IEmployee employee;
     private Object password;
     
     public User(){
@@ -44,7 +44,7 @@ public final class User implements IUser {
         this.administrator = false;
         
         //create eployee dao
-        this.employeeDao = new EmployeeDao();
+        this.employee = new Employee();
         
     }    
     
@@ -55,7 +55,7 @@ public final class User implements IUser {
         this.administrator = false;
         
         //create eployee dao
-        this.employeeDao = new EmployeeDao();
+        this.employee = new Employee();
         
         //set user name and password
         this.userName = name;
@@ -107,7 +107,7 @@ public final class User implements IUser {
         String sql = "from Employee e "
                 + "where e.userName = '" + this.userName + "' and "
                 + "e.type = 1";
-        Employee emp = employeeDao.firstOrDefault(sql);
+        Employee emp = (Employee) employee.firstOrDefault(sql);
         
         if(emp == null)
             return;
