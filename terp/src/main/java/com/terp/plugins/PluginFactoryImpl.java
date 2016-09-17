@@ -21,7 +21,6 @@ package com.terp.plugins;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLClassLoader;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -32,39 +31,35 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import com.terp.data.model.PluginSource;
-import com.terp.data.dao.PluginSourceDao;
 import com.terp.plugin.*;
 
 /**
  * IPlugin manager class
  * @author ilknur
  */
-public class PluginManager {
+public class PluginFactoryImpl implements IPluginFactory {
     
     //private variables
-    private String dir = null;
-    private Map<Long, IPlugin> plugins = new HashMap<>();
+    private static final Map<Long, IPlugin> pluginList = new HashMap<>();
     private final String version = "1.0";
     
     /**
      * constructor
      */
-    public PluginManager(){
-   
-    }
+    public PluginFactoryImpl(){}
     
     /**
      * Plug in loader. 
      * @param pluginId
      * @return  IPlugin
      */
-    protected IPlugin loadPlugin(final Long pluginId){
+    private IPlugin loadPlugin(final Long pluginId){
 
         URL url = null;
         
         // get plugin details
-        PluginSourceDao pluginSourceDao = new PluginSourceDao();
-        PluginSource pluginSource = pluginSourceDao.firstOrDefault(pluginId);
+        PluginSource pluginSource = new PluginSource();
+        pluginSource = (PluginSource) pluginSource.firstOrDefault(pluginId);
         
         String jarName = pluginSource.getPluginName() + ".jar";
         
@@ -108,32 +103,24 @@ public class PluginManager {
         
         return null;
     }
-
-    /**
-     * Set directory of plugins
-     * @param dir 
-     */
-    public void setPluginDir(String dir){
-        this.dir = dir;
-    }
     
     /**
-     * load all plugins into memory
+     * load all pluginList into memory
      */
     public void loadAllPlugin(){
         
         int count = 0;
         
         //create database connection
-        PluginSourceDao db = new PluginSourceDao();
+        PluginSource db = new PluginSource();
         
-        // load installed plugins
-        List<PluginSource> plgList = db.findAll();
+        // load installed pluginList
+        List<Object> plgList = db.findAll();
         
-        for(PluginSource plg : plgList){
+        for(Object plg : plgList){
             
             //load plugin
-            IPlugin p = this.loadPlugin(plg.getRowid());
+            IPlugin p = this.loadPlugin(((PluginSource)plg).getRowId());
             
             //check plugin version
             if(p.getSystemVersion() == null 
@@ -145,7 +132,7 @@ public class PluginManager {
             } else {
                 
                 //add plugin into list
-                plugins.put(plg.getRowid(), p);
+                pluginList.put(((PluginSource)plg).getRowId(), p);
                 
                 // run plugin's main class and method
                 try{                    
@@ -166,11 +153,12 @@ public class PluginManager {
      * @param pluginId
      * @return new instance IPlugin
      */
+    @Override
     public IPlugin getPlugin(final Long pluginId){
         
         //check if plugin already loaded
-        if(plugins.containsKey(pluginId)){
-            return plugins.get(pluginId);
+        if(pluginList.containsKey(pluginId)){
+            return pluginList.get(pluginId);
         } else {
             IPlugin plg;
             plg = loadPlugin(pluginId);
@@ -178,7 +166,11 @@ public class PluginManager {
         }
     }
     
-    private static final Logger LOG = Logger.getLogger(PluginManager.class.getName());
+    /**
+     * logger
+     */
+    private static final Logger LOG = Logger.getLogger(PluginFactoryImpl.class.getName());
+    
 }
 
 
