@@ -17,7 +17,7 @@
  */
 package com.terp.plugin;
 
-import java.util.Map;
+import com.terp.common.ICommonMethods;
 
 
 /**
@@ -26,9 +26,5 @@ import java.util.Map;
  */
 
 
-public interface ICompany {
-    public ResultData findAll();
-    public ResultData firstOrDefault(long key);
-    public ResultData addOrUpdate(Map<Integer, Object> row);
-    public void delete(long rowId);
+public interface ICompany extends ICommonMethods {
 }

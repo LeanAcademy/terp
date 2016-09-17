@@ -32,7 +32,7 @@ public interface IDesktopManager {
      * add component to desktop
      * @param comp 
      */
-    public void addToDesktop(Node comp);
+    public void addToDesktop(Node comp, String headerText);
     
     
 }

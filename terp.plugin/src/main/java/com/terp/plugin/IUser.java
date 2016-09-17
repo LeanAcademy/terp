@@ -17,8 +17,6 @@
  */
 package com.terp.plugin;
 
-import java.util.List;
-
 /**
  *
  * @author ilknur

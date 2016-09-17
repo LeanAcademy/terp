@@ -29,6 +29,8 @@ public class TerpApplication {
     private IUser user;
     private IDesktopManager desktop;
     private IDatabase database;
+    private IStatusbarManager statusbar;
+    private IPluginFactory pluginFactory;
     
     private TerpApplication(){
         
@@ -108,6 +110,22 @@ public class TerpApplication {
      */
     public void setDatabase(IDatabase database){
         this.database = database;
-    }    
+    }
+
+    public IStatusbarManager getStatusbar() {
+        return statusbar;
+    }
+
+    public void setStatusbar(IStatusbarManager statusbar) {
+        this.statusbar = statusbar;
+    }
+
+    public IPluginFactory getPluginFactory() {
+        return pluginFactory;
+    }
+
+    public void setPluginFactory(IPluginFactory pluginFactory) {
+        this.pluginFactory = pluginFactory;
+    }
     
 }

@@ -17,28 +17,16 @@
 
 package com.terp.plugin;
 
-import javax.swing.JPanel;
+import javafx.scene.Node;
 
-/**
- *
- * @author ilknur
- */
 
 
 public interface IMenuManager {
     
     /**
-     * return menu at given index
-     * @param tabName
-     * @param btnName
-     * @param enabled
-     */
-    public void setButtonEnabled(String tabName, String btnName, boolean enabled);
-    
-    /**
      * add toolbar to main frame
      * @param tb
      */
-    public void addToolKit(JPanel tb);
+    public void addToolKit(Node node);
     
 }

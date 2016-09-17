@@ -65,4 +65,6 @@ public interface IPlugin {
      * @return 
      */
     public boolean isInstalled();
+    
+    public void loadProgram(String program);
 }
