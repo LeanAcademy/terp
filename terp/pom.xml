@@ -125,5 +125,10 @@
             <artifactId>derbyclient</artifactId>
             <version>10.12.1.1</version>
         </dependency>
+        <dependency>
+            <groupId>org.controlsfx</groupId>
+            <artifactId>controlsfx</artifactId>
+            <version>8.40.11</version>
+        </dependency>
     </dependencies>
 </project>

@@ -17,12 +17,15 @@
 
 package com.terp.core.plugin;
 
-import java.awt.event.ActionEvent;
 import java.util.logging.Logger;
 import com.terp.plugin.TerpApplication;
 import com.terp.plugin.IDesktopManager;
 import com.terp.plugin.IMenuManager;
 import com.terp.plugin.IPlugin;
+import java.io.IOException;
+import java.util.logging.Level;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
 
 /**
  *
@@ -89,6 +92,25 @@ public class Plugin implements IPlugin{
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
+    @Override
+    public void loadProgram(String program) {
+        
+        if (this.desktopManager == null) {
+            this.desktopManager = this.app.getDesktopManager();
+        }
+        
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource(
+                    "/fxml/" + program + ".fxml"));
+            //loader.setController( new CompanyFormController());
+            Node node = loader.load();
+            this.desktopManager.addToDesktop(node, name + "-" + program);
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, null, ex);
+        }
+    }
+    
     //logger
     private static final Logger LOG = Logger.getLogger(Plugin.class.getName());
+   
 }

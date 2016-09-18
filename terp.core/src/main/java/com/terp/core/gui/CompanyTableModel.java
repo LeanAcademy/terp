@@ -20,7 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.swing.table.AbstractTableModel;
 import com.terp.plugin.ICompany;
-import com.terp.plugin.ResultData;
+import java.util.List;
 
 /**
  *
@@ -37,11 +37,7 @@ public class CompanyTableModel extends AbstractTableModel {
     public CompanyTableModel(ICompany cmp) {
         cache = new HashMap();
         this.cmp = cmp;
-        ResultData rd = cmp.findAll();
-        this.headers = new String[rd.fields.size()];
-        this.headers = rd.fields.toArray(headers);
-        this.cache =  rd.data;
-        this.colCount = rd.fields.size();
+        List<Object> rd = cmp.findAll();
     }
 
     @Override
@@ -95,9 +91,5 @@ public class CompanyTableModel extends AbstractTableModel {
      }
      
      public void update(){
-         ResultData rd = cmp.findAll();
-         this.cache = rd.data;
-         
-         fireTableDataChanged();
      }
 }
