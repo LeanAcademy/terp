@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.terp.plugins;
+package com.terp.util;
 
 import java.io.File;
 import java.io.IOException;
@@ -27,7 +27,7 @@ import java.net.URLClassLoader;
  *
  * @author cevdet
  */
-public class PluginClassLoader {
+public class TerpClassLoader {
     
     private static final Class[] parameters = new Class[]{URL.class};
     
@@ -41,7 +41,13 @@ public class PluginClassLoader {
     }//end method
     
     public static void addURL(URL u) throws IOException {
-
+        
+        // check if file exists
+        File file = new File(u.getPath());
+        if(!file.exists() || file.isDirectory()){
+            throw new IOException("Error, file not found");
+        }
+        
         URLClassLoader sysloader = (URLClassLoader) ClassLoader.getSystemClassLoader();
         Class sysclass = URLClassLoader.class;
 
@@ -56,7 +62,7 @@ public class PluginClassLoader {
                 | InvocationTargetException t) {
            t.printStackTrace();
            throw new IOException("Error, could not add URL to system classloader");
-        }//end try catch
+        }
 
      
     }//end method

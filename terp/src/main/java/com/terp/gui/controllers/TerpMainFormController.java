@@ -5,39 +5,34 @@
  */
 package com.terp.gui.controllers;
 
-import com.terp.data.dao.MenuSourceDao;
 import com.terp.data.model.MenuSource;
 import com.terp.gui.MenuItem;
-import com.terp.plugin.IDesktopManager;
-import com.terp.plugin.IMenuManager;
-import com.terp.plugin.IStatusbarManager;
-import com.terp.plugin.TerpApplication;
-import com.terp.plugins.PluginManager;
+import com.terp.plugin.*;
+import java.io.IOException;
 import java.net.URL;
 import java.util.List;
 import java.util.ResourceBundle;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.SortedSet;
+import java.util.TreeSet;
+import java.util.logging.*;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
+import javafx.event.Event;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Node;
-import javafx.scene.control.Button;
-import javafx.scene.control.SplitPane;
+import javafx.scene.control.*;
 import javafx.scene.control.SplitPane.Divider;
-import javafx.scene.control.Tab;
-import javafx.scene.control.TabPane;
-import javafx.scene.control.TextField;
-import javafx.scene.control.TreeItem;
-import javafx.scene.control.TreeView;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
-import javax.swing.JPanel;
+import org.controlsfx.control.PopOver;
+import org.controlsfx.control.textfield.TextFields;
 
 /**
  *
@@ -49,10 +44,7 @@ public class TerpMainFormController implements Initializable,
     ///////////////////////////////////////////////////////////////////////////
     // FXML defined variables
     ///////////////////////////////////////////////////////////////////////////
-    
-    @FXML
-    private Button btnSlideMenu;
-
+   
     @FXML
     private SplitPane spMainPane;
 
@@ -67,17 +59,33 @@ public class TerpMainFormController implements Initializable,
     
     @FXML
     private AnchorPane apMainContent;
+    
+    @FXML
+    private AnchorPane apMainMenu;
 
     @FXML
     private TabPane tpDesktopContainer;
     
     @FXML
-    void btnSlideMenuOnAction(ActionEvent event) {
-        // TODO : implement close button for side menu divider
-    }
+    private Label lblStatusText;
     
     @FXML
-    void tvMainMenuOnMouseClicked(MouseEvent mouseEvent) {
+    private ImageView imgStatus;
+    
+    @FXML
+    private ToolBar tbMainToolBar;
+    
+    @FXML
+    private ToggleButton tbtnShowHideMenu;
+    
+    @FXML
+    private Button btnRunProgram;
+
+    @FXML
+    private ToggleButton tbtnPopupMenu;
+    
+    @FXML
+    private void tvMainMenuOnMouseClicked(MouseEvent mouseEvent) {
         if(mouseEvent.getClickCount() == 2){
             
             // get selected menu item 
@@ -85,128 +93,237 @@ public class TerpMainFormController implements Initializable,
           
             // find out if there is program for it
             if(selectedItem != null){
-                loadProgram(selectedItem.getCurrentItem().getProgramName(),
-                        selectedItem.getCurrentItem().getIsPlugin());
+                if(selectedItem.getCurrentItem().getIsPlugin() == 0){
+                    loadProgram(selectedItem.getCurrentItem().getProgramName());
+                } else if (selectedItem.getCurrentItem().getIsPlugin() == 1 ){
+                    loadProgram(selectedItem.getCurrentItem().getProgramName(),
+                            selectedItem.getCurrentItem().getPluginId());
+                }
             }
         }
     }
     
+    @FXML
+    private void btnRunProgramOnAction(ActionEvent actionEvent){
+        
+    }
+    
+    /**
+     * handle tbtnShowHideMenu onAction event.
+     * @param actionEvent 
+     */
+    @FXML
+    private void tbtnShowHideMenuOnAction(ActionEvent actionEvent){
+        if(this.tbtnShowHideMenu.selectedProperty().get()){
+            
+            // show menu
+            this.spMainPane.getItems().add(0, this.apMainMenu);
+            // TODO : set divider position to it's default (saved) value
+            
+        } else {
+            
+            // hide menu
+            this.spMainPane.getItems().remove(this.apMainMenu);
+        }
+    }
+    
+    
+    @FXML
+    private void tbPopupMenuOnAction(ActionEvent event){
+       if(this.tbtnPopupMenu.selectedProperty().get()){
+           
+           // show popup menu
+           this.popOverMenu.show((Node) event.getSource());
+           
+       }else{
+           this.popOverMenu.hide();
+       }
+    }
+    
     ///////////////////////////////////////////////////////////////////////////
     // Private variables and routines
-    ///////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////    
     
-    private final ChangeListener<Number> dividerPositionChangeListener = 
+    /**
+     * Logger
+     */
+    private static final Logger LOG = Logger.getLogger(
+            TerpMainFormController.class.getName());
+    
+    /**
+     * Primary stage. It is used to change application title
+     */
+    private Stage primaryStage;
+
+    /**
+     * Suggessions for search box
+     */
+    private SortedSet<String> entries;
+    
+    /**
+     * popup menu
+     */
+    private PopOver popOverMenu;
+    
+    /**
+     * Event handler for adjusting of divider position
+     */
+    private final ChangeListener<Number> paneWidthChangeListener = 
             new ChangeListener<Number>(){
         @Override
         public void changed(ObservableValue<? extends Number> observable, 
                 Number oldValue, Number newValue) {
-            // set min width
+            Divider divider = spMainPane.getDividers().get(0);
+            Double position = divider.getPosition();
+                      
+            divider.positionProperty().set(
+                    position * oldValue.doubleValue()/newValue.doubleValue());
+         
         }
-        
     };
     
-    private ChangeListener<Number> paneWidthChangeListener = 
-            new ChangeListener<Number>(){
+    /**
+     * Event handler for search text field to manage run button
+     */
+    private final ChangeListener<String> txtSearchChangeListener =
+            new ChangeListener<String>(){
         @Override
-        public void changed(ObservableValue<? extends Number> observable, 
-                Number oldValue, Number newValue) {
-            
+        public void changed(ObservableValue<? extends String> observable, 
+                String oldValue, String newValue) {
+            if(txtSearchMenuItem.getText().length() > 0){
+                btnRunProgram.setDisable(false);
+            } else {
+                btnRunProgram.setDisable(true);
+            }
         }
-    };
+                
+    };    
     
     /**
      * load main menus
      */
     private void loadMenu(){
-        // TODO : load menu        
+        
+        // update status
+        this.updateStatus("Loading menu", null);
+        
         // create root node
         TreeItem rootNode = new TreeItem("Ana menü");
         rootNode.setExpanded(true);
         
         // read menu records
-        MenuSourceDao menuSourceDao = new MenuSourceDao();
+        MenuSource menuSource = new MenuSource();
         String sql = "from MenuSource e where e.menuType=0"; 
-        List<MenuSource> list =  menuSourceDao.findAll(sql);
+        List<Object> list =  menuSource.findAll(sql);
         
-        //build accordion
-        for(MenuSource item : list){
+        //build tree menu
+        for(Object item : list){
             
             // create titled pane
-            MenuItem menuLeaf = new MenuItem(item);
+            MenuItem menuLeaf = new MenuItem((MenuSource) item);
             rootNode.getChildren().add(menuLeaf);
             
-            // add into tree view
-            tvMainMenu.rootProperty().set(rootNode);
         }
         
-    }
-    
-    /**
-     * load all plugins that setup in database 
-     */
-    private void loadPlugins(){
+        // add into tree view
+        tvMainMenu.rootProperty().set(rootNode);
         
-        PluginManager pm = new PluginManager();
-        pm.loadAllPlugin();
+        // load all programs for search text field
+        String sql2 = "from MenuSource e where e.programName is not null";
+        List<Object> list2 = menuSource.findAll(sql2);
+        for(Object item2 : list2){
+            entries.add(((MenuSource)item2).getMenuId() + " - " 
+                    + ((MenuSource)item2).getMenuName());
+        }
         
+        // update status
+        this.updateStatus("Menu loaded!", null);
     }
 
-    private void loadProgram(String program, Integer isPlugin) {
+    /**
+     * load program into destop.
+     * @param program
+     * @param isPlugin 
+     */
+    private void loadProgram(String program) {
         
-        // load menu
+        // load program related to menu
         try{
-            
-            if(program != null){
-                // menu found
-                switch (isPlugin){
-                    case 0:
-                        // load fxml program
-                        Node nodeProgram = FXMLLoader.load(getClass().getResource(
-                                "/fxml/" + program + ".fxml"));
-                        this.addToDesktop(nodeProgram, program);
-                        break;
-                    case 1:
-                        // load plugin fxml program
-                        break;
-                    default:
-                        break;
-                }
-            }
+            // load fxml program
+            Node nodeProgram = FXMLLoader.load(getClass().getResource(
+                    "/fxml/" + program + ".fxml"));
+            this.addToDesktop(nodeProgram, program);           
             
         }catch(Exception e){
             LOG.log(Level.SEVERE, null,e);
         }
     }
     
-    private static final Logger LOG = Logger.getLogger(
-            TerpMainFormController.class.getName());
+    /**
+     * load program from plugin.
+     * @param program
+     * @param pluginId 
+     */
+    private void loadProgram(String program, Long pluginId){
+        
+        // load program from plugin related to menu
+        TerpApplication terpApp = TerpApplication.getInstance();
+        IPlugin plg = terpApp.getPluginFactory().getPlugin(pluginId);
+        plg.loadProgram(program);
+           
+    }
     
-    private Stage primaryStage;
-    
+    private void createPopup(){
+        
+        try {
+            // load popup menu fxml
+            Node node = FXMLLoader.load(getClass().getResource("/fxml/PopupMenu.fxml"));
+            
+            this.popOverMenu = new PopOver();
+            this.popOverMenu.setOnAutoHide(new EventHandler<Event>(){
+                @Override
+                public void handle(Event event) {
+                    tbtnPopupMenu.setSelected(false);
+                }
+            });
+            this.popOverMenu.setContentNode(node);
+            this.popOverMenu.setArrowLocation(PopOver.ArrowLocation.TOP_RIGHT);
+            this.popOverMenu.setCornerRadius(0);
+            
+            
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, null, ex);
+        }
+        
+        
+        
+    }
     //////////////////////////////////////////////////////////////////////////
     // public routines
     //////////////////////////////////////////////////////////////////////////
     
-    public void setPrimaryStage(Stage stage){
-        this.primaryStage = stage;
-    }
     
     //////////////////////////////////////////////////////////////////////////
     // Overrides
     //////////////////////////////////////////////////////////////////////////
     
+    /**
+     * Initialize this controller and main frame.
+     * @param url
+     * @param rb 
+     */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
+        
         // create application
         TerpApplication terpApp = TerpApplication.getInstance();
         
-        // adding listener to divider
-        Divider divider = this.spMainPane.getDividers().get(0);
-        divider.positionProperty().addListener(this.dividerPositionChangeListener);
+        // create sorted list for auto complete
+        this.entries = new TreeSet<>();        
         
-        
-        // adding listener to width of anchorpane
+        // adding listener
         this.apMainFrame.widthProperty().addListener(this.paneWidthChangeListener);
+        this.txtSearchMenuItem.textProperty().addListener(txtSearchChangeListener);
         
         // setting desktop manager to give plugins access
         terpApp.setDesktop(this);
@@ -220,19 +337,16 @@ public class TerpMainFormController implements Initializable,
         // load menu
         loadMenu();
         
-        // load palugins
-        loadPlugins();
+        // create context menu for auto complete
+        TextFields.bindAutoCompletion(txtSearchMenuItem, entries);
         
-    }
-    
-    @Override
-    public void setButtonEnabled(String tabName, String btnName, 
-            boolean enabled) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        // create popup menu
+        createPopup();
+        
     }
 
     @Override
-    public void addToolKit(JPanel tb) {
+    public void addToolKit(Node node) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
@@ -247,8 +361,9 @@ public class TerpMainFormController implements Initializable,
     }
 
     @Override
-    public void updateStatus(String status, ImageView imageView) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public void updateStatus(String status, Image img) {
+        this.lblStatusText.setText(status);
+        this.imgStatus.setImage(img);
     }
 
     @Override
@@ -265,5 +380,19 @@ public class TerpMainFormController implements Initializable,
     public void updateDatabase(String database) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
+
+    @Override
+    public Stage getPrimaryStage() {
+        return this.primaryStage;
+    }
+
+    /**
+     * set primary stage of this class
+     * @param stage 
+     */
     
+    @Override
+    public void setPrimaryStage(Stage stage){
+        this.primaryStage = stage;
+    }    
 }

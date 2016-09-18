@@ -54,9 +54,10 @@ public class LoginFormController implements Initializable {
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        //
-    }
-
+        this.txtPassword.setText("Admin");
+        this.txtUserName.setText("Admin");
+    }    
+    
     @FXML private void btnSubmitOnAction(ActionEvent event){
         
         //local variables
@@ -69,6 +70,8 @@ public class LoginFormController implements Initializable {
         try {    
             //get application
             TerpApplication app = TerpApplication.getInstance();
+            
+            
             
             //get inputs
             _usr = this.txtUserName.getText();
@@ -105,7 +108,7 @@ public class LoginFormController implements Initializable {
                 app.setUser(mUser);
                 
                 //show main frame
-                this.mainApp.showMainForm();
+                this.mainApp.startMainGui();
                 
             }else{
                 // TODO: add user not authenticated exception

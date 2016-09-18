@@ -18,6 +18,7 @@
 
 package com.terp.plugins;
 
+import com.terp.util.TerpClassLoader;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -82,7 +83,7 @@ public class PluginFactoryImpl implements IPluginFactory {
                     url = file.toUri().toURL();
             
                     //URL[] urls = new URL[]{url};
-                    PluginClassLoader.addFile(file.toFile());
+                    TerpClassLoader.addFile(file.toFile());
                     
                     
                     //URLClassLoader cl = new URLClassLoader(urls);

@@ -16,6 +16,15 @@
  */
 package com.terp.util;
 
+import com.terp.data.model.Branch;
+import com.terp.data.model.Company;
+import com.terp.data.model.Employee;
+import com.terp.data.model.EmployeeGroup;
+import com.terp.data.model.Item;
+import com.terp.data.model.MenuSource;
+import com.terp.data.model.MenuTranslations;
+import com.terp.data.model.PluginSource;
+import java.util.Properties;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.Configuration;
@@ -31,16 +40,21 @@ public class HibernateUtil {
     private static SessionFactory buildSessionFactory() {
         try {
             // Create the SessionFactory from hibernate.cfg.xml
-            Configuration configuration = new Configuration().configure();
+            //Configuration configuration = new Configuration().configure();
+            Configuration configuration = new Configuration();
+            Properties props = TerpProperties.getInstance().getHibernateProps();
+            
             configuration
-                    .addPackage("terp.data")
-                    .addAnnotatedClass(com.terp.data.model.Company.class)
-                    .addAnnotatedClass(com.terp.data.model.Branch.class)
-                    .addAnnotatedClass(com.terp.data.model.PluginSource.class)
-                    .addAnnotatedClass(com.terp.data.model.Employee.class)
-                    .addAnnotatedClass(com.terp.data.model.EmployeeGroup.class)
-                    .addAnnotatedClass(com.terp.data.model.MenuSource.class)
-                    .addAnnotatedClass(com.terp.data.model.MenuTranslations.class);
+                    .addProperties(props)
+                    .addPackage("com.terp.data.model")
+                    .addAnnotatedClass(Company.class)
+                    .addAnnotatedClass(Branch.class)
+                    .addAnnotatedClass(PluginSource.class)
+                    .addAnnotatedClass(Employee.class)
+                    .addAnnotatedClass(EmployeeGroup.class)
+                    .addAnnotatedClass(MenuSource.class)
+                    .addAnnotatedClass(MenuTranslations.class)
+                    .addAnnotatedClass(Item.class);
             
             serviceRegistry = new StandardServiceRegistryBuilder()
                     .applySettings(configuration.getProperties())
@@ -63,5 +77,9 @@ public class HibernateUtil {
     
     public static SessionFactory getSessionFactory() {
         return sessionFactory;
+    }
+    
+    private void readProperties(){
+        
     }
 }
