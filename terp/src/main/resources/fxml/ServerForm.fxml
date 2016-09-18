@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import java.lang.*?>
+<?import java.net.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane id="AnchorPane" prefHeight="400.0" prefWidth="600.0" styleClass="mainFxmlClass" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/8" fx:controller="com.terp.gui.controllers.ServerFormController">
+    <stylesheets>
+        <URL value="@/styles/serverform.css" />
+    </stylesheets>
+   <children>
+      <Label layoutX="17.0" layoutY="27.0" text="Server name" AnchorPane.leftAnchor="20.0" AnchorPane.topAnchor="30.0" />
+      <TextField fx:id="txtServerName" layoutX="128.0" layoutY="23.0" prefHeight="25.0" prefWidth="325.0" AnchorPane.leftAnchor="128.0" AnchorPane.topAnchor="25.0" />
+      <Label layoutX="20.0" layoutY="69.0" text="Port" AnchorPane.leftAnchor="20.0" AnchorPane.topAnchor="65.0" />
+      <TextField fx:id="txtPort" layoutX="129.0" layoutY="64.0" prefHeight="25.0" prefWidth="105.0" AnchorPane.leftAnchor="128.0" AnchorPane.topAnchor="60.0" />
+      <Label layoutX="17.0" layoutY="108.0" text="Catalog" AnchorPane.leftAnchor="20.0" AnchorPane.topAnchor="100.0" />
+      <TextField fx:id="txtCatalog" layoutX="129.0" layoutY="102.0" prefHeight="25.0" prefWidth="325.0" AnchorPane.leftAnchor="128.0" AnchorPane.topAnchor="95.0" />
+      <Label layoutX="27.0" layoutY="118.0" text="Driver" AnchorPane.leftAnchor="20.0" AnchorPane.topAnchor="135.0" />
+      <TextField fx:id="txtDriver" layoutX="139.0" layoutY="112.0" prefHeight="25.0" prefWidth="325.0" AnchorPane.leftAnchor="128.0" AnchorPane.topAnchor="130.0" />
+      <Button fx:id="btnBrowse" layoutX="461.0" layoutY="129.0" mnemonicParsing="false" onAction="#btnBrowseOnAction" text="Browse" />
+      <Label layoutX="23.0" layoutY="171.0" text="Infomation" AnchorPane.leftAnchor="20.0" AnchorPane.topAnchor="170.0" />
+      <TextArea fx:id="txtaInformation" disable="true" layoutX="128.0" layoutY="170.0" prefHeight="127.0" prefWidth="325.0" wrapText="true" AnchorPane.leftAnchor="128.0" AnchorPane.topAnchor="170.0" />
+      <HBox layoutX="346.0" layoutY="362.0">
+         <children>
+            <Button fx:id="btnSave" mnemonicParsing="false" onAction="#btnSaveOnAction" prefWidth="80.0" text="Save">
+               <HBox.margin>
+                  <Insets left="2.0" right="2.0" />
+               </HBox.margin>
+            </Button>
+            <Button fx:id="btnTest" mnemonicParsing="false" onAction="#btnTestOnAction" prefWidth="80.0" text="Test">
+               <HBox.margin>
+                  <Insets left="2.0" right="2.0" />
+               </HBox.margin>
+            </Button>
+            <Button fx:id="btnCancel" mnemonicParsing="false" onAction="#btnCancelOnAction" prefWidth="80.0" text="Cancel">
+               <HBox.margin>
+                  <Insets left="2.0" right="2.0" />
+               </HBox.margin>
+            </Button>
+         </children>
+      </HBox>
+   </children>
+</AnchorPane>
