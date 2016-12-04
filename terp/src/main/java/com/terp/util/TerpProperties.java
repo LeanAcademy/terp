@@ -26,6 +26,7 @@ public class TerpProperties {
     
     private static TerpProperties props;
     private Properties hibernateProps;
+    private Properties viewProps;
     
     
     private TerpProperties(){}
@@ -43,5 +44,13 @@ public class TerpProperties {
 
     public void setHibernateProps(Properties hibernateProps) {
         this.hibernateProps = hibernateProps;
+    }
+
+    public Properties getViewProps() {
+        return viewProps;
+    }
+
+    public void setViewProps(Properties viewProps) {
+        this.viewProps = viewProps;
     }
 }

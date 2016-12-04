@@ -78,8 +78,4 @@ public class HibernateUtil {
     public static SessionFactory getSessionFactory() {
         return sessionFactory;
     }
-    
-    private void readProperties(){
-        
-    }
 }

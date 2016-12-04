@@ -84,12 +84,19 @@ public class TerpMainApplication extends Application {
         
         // save hibernate properties in to class        
         terpProp.setHibernateProps(props);
+        
+        // load application.properties file
+        
     }
     
     /**
      * save properties
      */
-    private void saveProperties(){}
+    private void saveProperties(){
+        
+        // save view properties
+        
+    }
     
     /**
      * load plugins
@@ -215,6 +222,7 @@ public class TerpMainApplication extends Application {
     private final EventHandler onCloseRequest = new EventHandler<WindowEvent>(){
         @Override
         public void handle(WindowEvent event) {
+            saveProperties();
             System.out.print("Terp ending");
             System.exit(0);
         }
