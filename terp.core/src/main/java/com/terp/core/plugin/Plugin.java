@@ -32,6 +32,7 @@ import javafx.scene.Node;
  * @author ilknur
  */
 public class Plugin implements IPlugin{
+    
     private final String name = "terp.core";
     private final String sysVersion = "1.0";
     private final String pluginVersion = "1.0";
@@ -84,11 +85,13 @@ public class Plugin implements IPlugin{
 
     @Override
     public void install() {
+        // TODO : install routine implementation
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
     public boolean isInstalled() {
+        // TODO : isInstalled routine implementation
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
