@@ -14,6 +14,7 @@ import com.terp.util.TerpClassLoader;
 import com.terp.util.TerpProperties;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Properties;
 import java.util.logging.Level;
@@ -34,23 +35,113 @@ import javafx.stage.WindowEvent;
  */
 public class TerpMainApplication extends Application {
     
+// <editor-fold defaultstate="collapsed" desc=" Private variables ">
     // application header
     private final String APP_TITLE = "T - ERP SYSTEM";
-    
+
     // main stage
     private Stage stage = null;
-    
+
     // properties of all application
     TerpProperties terpProp = TerpProperties.getInstance();
-    
+
     /**
-     * show main form 
+     * logger
      */
-    public void startMainGui(){
+    private static final Logger LOG = Logger.getLogger(
+            TerpMainApplication.class.getName());
+
+// </editor-fold>
+    
+// <editor-fold defaultstate="collapsed" desc=" Private routines ">
+    /**
+     * load properties
+     */
+    private void loadProperties() throws IOException {
+        // load hibernate database connection properties and
+        // save it into main class.
+        // It will be used to connect to server
+        Properties hibernateProps = new Properties();        
+        hibernateProps.load(new FileInputStream("../terp/etc/hibernate.properties"));        
+        terpProp.setHibernateProps(hibernateProps);
+
+        // load application.properties file
+        Properties guiProps = new Properties();
+        guiProps.load(new FileInputStream("../terp/etc/application.properties"));
+        terpProp.setViewProps(guiProps);
+    }
+
+    /**
+     * save properties
+     */
+    private void saveProperties() throws IOException {
+
+        // save hibernate database connection properties in to file
+        Properties guiProps = terpProp.getViewProps();
+        guiProps.store(new FileOutputStream("../terp/etc/application.properties"), null);
+    }
+
+    /**
+     * load plugins
+     */
+    private void loadPlugins() {
+        PluginFactoryImpl pluginFactory = new PluginFactoryImpl();
+        pluginFactory.loadAllPlugin();
+        TerpApplication terpApp = TerpApplication.getInstance();
+        terpApp.setPluginFactory(pluginFactory);
+    }
+
+    /**
+     * close event it is used because of main thread do not terminate w.o. this
+     */
+    private final EventHandler onCloseRequest = new EventHandler<WindowEvent>() {
+        @Override
+        public void handle(WindowEvent event) {
+            try {
+                saveProperties();
+            } catch (IOException ex) {
+                LOG.log(Level.SEVERE, null, ex);
+            }
+            System.out.print("Terp ending");
+            System.exit(0);
+        }
         
+    };
+
+// </editor-fold>    
+    
+// <editor-fold defaultstate="collapsed" desc=" Overrides ">
+    /**
+     * start
+     *
+     * @param stage
+     * @throws Exception
+     */
+    @Override
+    public void start(Stage stage) throws Exception {
+
+        // create database and save it
+        Database db = new Database();
+        TerpApplication terpApp = TerpApplication.getInstance();
+        terpApp.setDatabase(db);
+
+        // stage
+        this.stage = stage;
+        this.stage.setOnCloseRequest(onCloseRequest);
+        showLoginForm();
+    }
+
+// </editor-fold>
+    
+// <editor-fold defaultstate="collapsed" desc=" Public routines ">
+    /**
+     * show main form
+     */
+    public void startMainGui() {
+
         //load plugins
         loadPlugins();
-        
+
         //load main frame
         try {
             
@@ -67,64 +158,12 @@ public class TerpMainApplication extends Application {
             this.stage.setTitle(APP_TITLE);
             controller.setPrimaryStage(stage);
             this.stage.show();
+
             
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, null, ex);
         }
-    }
-    
-    /**
-     * load properties
-     */
-    private void loadProperties() throws IOException{
-        //load hibernate database connection properties
-        Properties props = new Properties();
-            
-        props.load(new FileInputStream("../terp/etc/hibernate.properties"));
         
-        // save hibernate properties in to class        
-        terpProp.setHibernateProps(props);
-        
-        // load application.properties file
-        
-    }
-    
-    /**
-     * save properties
-     */
-    private void saveProperties(){
-        
-        // save view properties
-        
-    }
-    
-    /**
-     * load plugins
-     */
-    private void loadPlugins(){
-        PluginFactoryImpl pluginFactory = new PluginFactoryImpl();
-        pluginFactory.loadAllPlugin();
-        TerpApplication terpApp = TerpApplication.getInstance();
-        terpApp.setPluginFactory(pluginFactory);
-    }
-    
-    /**
-     * start 
-     * @param stage
-     * @throws Exception 
-     */
-    @Override
-    public void start(Stage stage) throws Exception {
-        
-        // create database and save it
-        Database db = new Database();
-        TerpApplication terpApp = TerpApplication.getInstance();
-        terpApp.setDatabase(db);
-        
-        // stage
-        this.stage = stage;
-        this.stage.setOnCloseRequest(onCloseRequest);
-        showLoginForm();
     }
 
     /**
@@ -135,10 +174,10 @@ public class TerpMainApplication extends Application {
     }
 
     /**
-     * show login form 
+     * show login form
      */
-    public void showLoginForm(){
-        
+    public void showLoginForm() {
+
         // load properties
         try {
             
@@ -154,9 +193,9 @@ public class TerpMainApplication extends Application {
             alert.show();
             return;
         }
-        
+
         // check driver file
-        if(terpProp.getHibernateProps().getProperty("driver.jarfile.name") == null){
+        if (terpProp.getHibernateProps().getProperty("driver.jarfile.name") == null) {
             Alert alert = new Alert(AlertType.ERROR);
             alert.setTitle("Error");
             alert.setHeaderText("Driver file is not setup. "
@@ -164,12 +203,12 @@ public class TerpMainApplication extends Application {
             alert.show();
             return;
         }
-        
+
         // load driver file
         File driver = new File(
                 terpProp.getHibernateProps().getProperty("driver.jarfile.name")
         );
-        
+
         // load driver class and register in classpath
         // TerpClassLoader is used to do. Driver will be automaticaly 
         // added to classpath
@@ -180,12 +219,12 @@ public class TerpMainApplication extends Application {
             Alert alert = new Alert(AlertType.ERROR);
             alert.setTitle("Error");
             alert.setHeaderText("Driver file is not found.\n"
-                    + "Please edit \"hibernate.properties\" \nfile " 
+                    + "Please edit \"hibernate.properties\" \nfile "
                     + driver.getPath());
             alert.show();
             return;
         }
-        
+
         // login form load and show
         // set main application to login controller to allow access
         // main application is used as callback after rigt authorization
@@ -193,18 +232,17 @@ public class TerpMainApplication extends Application {
             // load login form fxml
             FXMLLoader loader = new FXMLLoader(getClass()
                     .getResource("/fxml/LoginForm.fxml"));
-            Parent root = (Parent)loader.load();
-            
+            Parent root = (Parent) loader.load();
+
             // passing application instance to login form
             LoginFormController controller = loader.<LoginFormController>getController();
             controller.setApplication(this);
-            
+
             // show form
             Scene scene = new Scene(root);
             this.stage.setScene(scene);
             this.stage.setTitle(APP_TITLE);
             this.stage.show();
-            
             
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, null, ex);
@@ -214,23 +252,6 @@ public class TerpMainApplication extends Application {
             alert.show();
         }
     }
-    
-    /**
-     * close event
-     * it is used because of main thread do not terminate w.o. this
-     */
-    private final EventHandler onCloseRequest = new EventHandler<WindowEvent>(){
-        @Override
-        public void handle(WindowEvent event) {
-            saveProperties();
-            System.out.print("Terp ending");
-            System.exit(0);
-        }
-        
-    };
-    
-    /**
-     * logger
-     */
-    private static final Logger LOG = Logger.getLogger(TerpMainApplication.class.getName());
+
+// </editor-fold>
 }
