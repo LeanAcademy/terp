@@ -18,6 +18,7 @@
 
 package com.terp.plugin;
 
+import java.util.Properties;
 import javafx.scene.Node;
 import javafx.stage.Stage;
 
@@ -32,9 +33,11 @@ public interface IDesktopManager {
     /**
      * add component to desktop
      * @param comp 
+     * @param headerText 
      */
     public void addToDesktop(Node comp, String headerText);
     
     public Stage getPrimaryStage();
+    
     public void setPrimaryStage(Stage primaryStage);
 }

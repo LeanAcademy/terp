@@ -66,5 +66,9 @@ public interface IPlugin {
      */
     public boolean isInstalled();
     
+    /**
+     * load programs related to this plugin
+     * @param program 
+     */
     public void loadProgram(String program);
 }
