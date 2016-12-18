@@ -22,9 +22,6 @@ import com.terp.plugin.ICompany;
 import java.io.Serializable;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import static javax.persistence.GenerationType.IDENTITY;
-import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 
@@ -40,24 +37,25 @@ import javax.persistence.UniqueConstraint;
         }
 )
 public class Company extends CommonFields implements Serializable, ICompany {
-    
-    private long rowid;
-    private String companyName;
-    private String companyLongName;
-    private int status;
 
-    @Id
-    @GeneratedValue(strategy=IDENTITY)
-    @Column(name="ref_num", nullable = false)
-    public long getRowid() {
-        return rowid;
-    }
-
-    public void setRowid(long rowid) {
-        this.rowid = rowid;
-    }
-    
     @Column(name="firma_adi", nullable = false, length=50)
+    private String companyName;
+    
+    @Column(name="firma_unv", nullable = false, length=128 )
+    private String companyLongName;
+    
+    @Column(name="aciklama", nullable = true, length=256 )
+    private String notes;
+    
+    @Column(name="durum", nullable = false )
+    private int status;
+    
+    @Column(name="vergi_no", nullable = false, length=20 )
+    private String stateTaxCode;
+
+    @Column(name="vergi_dairesi", nullable = false, length=20 )
+    private String stateTaxRegion;   
+        
     public String getCompanyName() {
         return this.companyName;
     }
@@ -66,22 +64,44 @@ public class Company extends CommonFields implements Serializable, ICompany {
         this.companyName = companyName;
     }
     
-    @Column(name="firma_unv", nullable = false, length=128 )
     public String getCompanyLongName() {
         return this.companyLongName;
     }
     
     public void setCompanyLongName(String companyLongName){
         this.companyLongName = companyLongName;
-    }
+    }    
     
-    @Column(name="durum", nullable = false )
     public int getStatus() {
         return this.status;
     }
     
     public void setStatus(int status){
         this.status = status;
+    }
+
+    public String getNotes() {
+        return notes;
+    }
+
+    public void setNotes(String notes) {
+        this.notes = notes;
+    }
+
+    public String getStateTaxCode() {
+        return stateTaxCode;
+    }
+
+    public void setStateTaxCode(String stateTaxCode) {
+        this.stateTaxCode = stateTaxCode;
+    }
+
+    public String getStateTaxRegion() {
+        return stateTaxRegion;
+    }
+
+    public void setStateTaxRegion(String stateTaxRegion) {
+        this.stateTaxRegion = stateTaxRegion;
     }
     
 }

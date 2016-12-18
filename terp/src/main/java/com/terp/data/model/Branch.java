@@ -25,9 +25,6 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.ForeignKey;
-import javax.persistence.GeneratedValue;
-import static javax.persistence.GenerationType.IDENTITY;
-import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
@@ -45,58 +42,49 @@ import javax.persistence.UniqueConstraint;
         }
 )
 public class Branch extends CommonFields implements Serializable, IBranch{
-    
-    private long rowid;
-    private Company company;
-    private String branchName;
-    private String branchLongName;
-    private int status;
-
-    @Id
-    @GeneratedValue(strategy=IDENTITY)
-    @Column(name = "ref_num", nullable = false)
-    public long getRowid() {
-        return this.rowid;
-    }
-
-    public void setRowid(long rowid) {
-        this.rowid = rowid;
-    }
-    
+        
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
-            name = "firma_ref", 
+            name = "firma_ref",
             nullable = false,
             referencedColumnName = "ref_num",
             foreignKey = @ForeignKey(name = "fk_sube_firma")
     )
+    private Company company;
+    
+    @Column(name = "sube_adi", nullable = false, length = 50)
+    private String branchName;
+    
+    @Column(name = "sube_aciklama", nullable = false, length = 50)
+    private String branchLongName;
+    
+    @Column(name = "durum", nullable = false)
+    private int status;    
+    
     public Company getCompany(){
         return this.company;
     }
     
     public void setCompany(Company company){
         this.company = company;
-    }
-    
-    @Column(name = "sube_adi", nullable = false, length = 50)
+    }    
+        
     public String getBranchName() {
         return this.branchName;
     }
 
     public void setBranchName(String  branchName) {
         this.branchName = branchName;
-    }
+    }    
     
-    @Column(name = "sube_aciklama", nullable = false, length = 50)
     public String getBranchLongName() {
         return this.branchLongName;
     }
 
     public void setBranchLongName(String  branchLongName) {
         this.branchLongName = branchLongName;
-    }
+    }    
     
-    @Column(name = "durum", nullable = false)
     public long getStatus() {
         return this.status;
     }
