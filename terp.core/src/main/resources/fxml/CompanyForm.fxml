@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.image.*?>
 <?import javafx.geometry.*?>
 <?import java.lang.*?>
 <?import java.net.*?>
@@ -8,7 +9,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane id="AnchorPane" prefHeight="483.0" prefWidth="674.0" styleClass="mainFxmlClass" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/8" fx:controller="com.terp.core.gui.CompanyFormController">
+<AnchorPane id="AnchorPane" prefHeight="483.0" prefWidth="674.0" styleClass="mainFxmlClass" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.terp.core.gui.CompanyFormController">
     <stylesheets>
         <URL value="@/styles/companyform.css" />
     </stylesheets>
@@ -20,8 +21,24 @@
                <children>
                   <ToolBar prefHeight="40.0" prefWidth="200.0">
                     <items>
-                      <Button mnemonicParsing="false" text="Button" />
-                        <Button mnemonicParsing="false" text="Button" />
+                      <Button fx:id="btnSearch" defaultButton="true" maxWidth="95.0" mnemonicParsing="false" prefWidth="95.0" text="Search">
+                           <graphic>
+                              <ImageView fx:id="imgBtnSearch" fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true" />
+                           </graphic></Button>
+                        <Button fx:id="btnAdd" maxWidth="95.0" mnemonicParsing="false" prefWidth="95.0" text="Add">
+                           <graphic>
+                              <ImageView fx:id="imgBtnAdd" fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true" />
+                           </graphic>
+                        </Button>
+                        <Button fx:id="btnEdit" maxWidth="95.0" mnemonicParsing="false" prefWidth="95.0" text="Edit">
+                           <graphic>
+                              <ImageView fx:id="imgBtnEdit" fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true" />
+                           </graphic></Button>
+                        <Button fx:id="btnDelete" maxWidth="95.0" mnemonicParsing="false" prefWidth="95.0" text="Delete">
+                           <graphic>
+                              <ImageView fx:id="imgBtnDelete" fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true" />
+                           </graphic>
+                        </Button>
                     </items>
                   </ToolBar>
                   <GridPane>
