@@ -5,6 +5,8 @@
  */
 package com.terp.main;
 
+import com.terp.data.DatabaseFactoryImpl;
+import com.terp.gui.IconFactoryImpl;
 import com.terp.gui.controllers.LoginFormController;
 import com.terp.gui.controllers.TerpMainFormController;
 import com.terp.plugin.TerpApplication;
@@ -43,6 +45,9 @@ public class TerpMainApplication extends Application {
 
     // properties of all application
     TerpProperties terpProp = TerpProperties.getInstance();
+    
+    // terp main application holder
+    TerpApplication app = TerpApplication.getInstance();   
 
     /**
      * logger
@@ -118,7 +123,6 @@ public class TerpMainApplication extends Application {
      */
     @Override
     public void start(Stage stage) throws Exception {
-
         // stage
         this.stage = stage;
         this.stage.setOnCloseRequest(onCloseRequest);
@@ -136,6 +140,12 @@ public class TerpMainApplication extends Application {
         //load plugins
         loadPlugins();
 
+        //create database factory
+        app.setDatabaseFactory(new DatabaseFactoryImpl());
+        
+        //create icon factory
+        app.setIconFactory(new IconFactoryImpl());
+        
         //load main frame
         try {
             

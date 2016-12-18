@@ -40,20 +40,37 @@ import javax.persistence.UniqueConstraint;
 )
 public  class Employee extends CommonFields implements Serializable, IEmployee {
 
+    @Id
+    @GeneratedValue(strategy=IDENTITY)
+    @Column(name="ref_num", nullable = false)
     private Long rowid;
+    
+    @Column(name = "kullanici_adi", nullable = false, length = 50)
     private String userName;
-    private String password;    
+    
+    @Column(name = "sifre", nullable = false, length = 128)
+    private String password;
+    
+    @Column(name = "isim", nullable = false, length = 20)
     private String name;
+
+    @Column(name = "tip", nullable = false)
     private int type;    
+
+    @Column(name="durum", nullable = false)
     private int status;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(
+            name="grup_ref",
+            nullable=false,
+            referencedColumnName="ref_num",
+            foreignKey = @ForeignKey(name="fk_kul_grup"))
     private EmployeeGroup group;
 
     public Employee(){
     }
 
-    @Id
-    @GeneratedValue(strategy=IDENTITY)
-    @Column(name="ref_num", nullable = false)
     public Long getRowid() {
         return this.rowid;
     }
@@ -61,8 +78,7 @@ public  class Employee extends CommonFields implements Serializable, IEmployee {
     public void setRowid (Long rowid) {
         this.rowid = rowid;
     }
-    
-    @Column(name = "kullanici_adi", nullable = false, length = 50)
+        
     public String getUserName() {
         return this.userName;
     }
@@ -72,7 +88,6 @@ public  class Employee extends CommonFields implements Serializable, IEmployee {
     }
     
     
-    @Column(name = "sifre", nullable = false, length = 128)
     public String getPassword() {
         return this.password;
     }
@@ -81,7 +96,6 @@ public  class Employee extends CommonFields implements Serializable, IEmployee {
         this.password = password;
     }
     
-    @Column(name = "isim", nullable = false, length = 20)
     public String getName() {
         return this.name;
     }
@@ -90,7 +104,6 @@ public  class Employee extends CommonFields implements Serializable, IEmployee {
         this.name = name;
     }
     
-    @Column(name = "tip", nullable = false)
     public int getType() {
         return this.type;
     }
@@ -99,7 +112,6 @@ public  class Employee extends CommonFields implements Serializable, IEmployee {
         this.type = type;
     }
     
-    @Column(name="durum", nullable = false)
     public int getStatus() {
         return this.status;
     }
@@ -108,12 +120,6 @@ public  class Employee extends CommonFields implements Serializable, IEmployee {
         this.status = status;
     }
     
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(
-            name="grup_ref",
-            nullable=false, 
-            referencedColumnName="ref_num",
-            foreignKey = @ForeignKey(name="fk_kul_grup"))
     public EmployeeGroup getGroup() {
         return this.group;
     }

@@ -58,8 +58,50 @@ public class Branch extends CommonFields implements Serializable, IBranch{
     @Column(name = "sube_aciklama", nullable = false, length = 50)
     private String branchLongName;
     
+    /**
+     * branchType 1=headoffice, 0=normal branch
+     */
+    @Column(name = "sube_tipi", nullable = false)
+    private int branchType;
+    
     @Column(name = "durum", nullable = false)
-    private int status;    
+    private int status;
+
+    @Column(name = "adres1", nullable = false, length = 50)
+    private String address1;
+    
+    @Column(name = "adres2", nullable = false, length = 50)
+    private String address2;
+    
+    @Column(name = "adres3", nullable = false, length = 50)
+    private String address3;
+    
+    @Column(name = "ilce", nullable = false, length = 50)
+    private String city;
+    
+    @Column(name = "sehir", nullable = false, length = 50)
+    private String state;
+    
+    @Column(name = "posta_kodu", nullable = false, length = 10)
+    private String zip;
+    
+    @Column(name = "ulke", nullable = false, length = 20)
+    private String country;
+    
+    @Column(name = "sube_tel_no1", nullable = false, length = 20)
+    private String phoneNum1;
+    
+    @Column(name = "sube_tel_no2", nullable = false, length = 20)
+    private String phoneNum2;
+    
+    @Column(name = "sube_bg_no", nullable = false, length = 20)
+    private String faxNum;
+    
+    @Column(name = "sube_email1", nullable = false, length = 100)
+    private String email1;
+    
+    @Column(name = "sube_email2", nullable = false, length = 100)
+    private String email2;
     
     public Company getCompany(){
         return this.company;
@@ -91,6 +133,110 @@ public class Branch extends CommonFields implements Serializable, IBranch{
 
     public void setStatus(int status) {
         this.status = status;
+    }
+
+    public int getBranchType() {
+        return branchType;
+    }
+
+    public void setBranchType(int branchType) {
+        this.branchType = branchType;
+    }
+
+    public String getAddress1() {
+        return address1;
+    }
+
+    public void setAddress1(String address1) {
+        this.address1 = address1;
+    }
+
+    public String getAddress2() {
+        return address2;
+    }
+
+    public void setAddress2(String address2) {
+        this.address2 = address2;
+    }
+
+    public String getAddress3() {
+        return address3;
+    }
+
+    public void setAddress3(String address3) {
+        this.address3 = address3;
+    }
+
+    public String getCity() {
+        return city;
+    }
+
+    public void setCity(String city) {
+        this.city = city;
+    }
+
+    public String getState() {
+        return state;
+    }
+
+    public void setState(String state) {
+        this.state = state;
+    }
+
+    public String getZip() {
+        return zip;
+    }
+
+    public void setZip(String zip) {
+        this.zip = zip;
+    }
+
+    public String getCountry() {
+        return country;
+    }
+
+    public void setCountry(String country) {
+        this.country = country;
+    }
+
+    public String getPhoneNum1() {
+        return phoneNum1;
+    }
+
+    public void setPhoneNum1(String phoneNum1) {
+        this.phoneNum1 = phoneNum1;
+    }
+
+    public String getPhoneNum2() {
+        return phoneNum2;
+    }
+
+    public void setPhoneNum2(String phoneNum2) {
+        this.phoneNum2 = phoneNum2;
+    }
+
+    public String getFaxNum() {
+        return faxNum;
+    }
+
+    public void setFaxNum(String faxNum) {
+        this.faxNum = faxNum;
+    }
+
+    public String getEmail1() {
+        return email1;
+    }
+
+    public void setEmail1(String email1) {
+        this.email1 = email1;
+    }
+
+    public String getEmail2() {
+        return email2;
+    }
+
+    public void setEmail2(String email2) {
+        this.email2 = email2;
     }
 
 }
