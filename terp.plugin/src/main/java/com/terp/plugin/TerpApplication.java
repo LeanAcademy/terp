@@ -18,6 +18,8 @@
 
 package com.terp.plugin;
 
+import com.terp.plugin.gui.IIconFactory;
+
 /**
  *
  * @author ilknur
@@ -28,9 +30,10 @@ public class TerpApplication {
     private IMenuManager menuManager;
     private IUser user;
     private IDesktopManager desktop;
-    private IDatabase database;
     private IStatusbarManager statusbar;
     private IPluginFactory pluginFactory;
+    private IDatabaseFactory databaseFactory;
+    private IIconFactory iconFactory;
     
     private TerpApplication(){
         
@@ -95,22 +98,6 @@ public class TerpApplication {
     public void setDesktop(IDesktopManager desktop){
         this.desktop = desktop;
     }
-    
-    /**
-     * get database
-     * @return 
-     */
-    public synchronized IDatabase getDatabase(){
-        return this.database;
-    }
-    
-    /**
-     * set database
-     * @param database 
-     */
-    public void setDatabase(IDatabase database){
-        this.database = database;
-    }
 
     public IStatusbarManager getStatusbar() {
         return statusbar;
@@ -126,6 +113,22 @@ public class TerpApplication {
 
     public void setPluginFactory(IPluginFactory pluginFactory) {
         this.pluginFactory = pluginFactory;
+    }
+
+    public IDatabaseFactory getDatabaseFactory() {
+        return databaseFactory;
+    }
+
+    public void setDatabaseFactory(IDatabaseFactory databaseFactory) {
+        this.databaseFactory = databaseFactory;
+    }
+
+    public IIconFactory getIconFactory() {
+        return iconFactory;
+    }
+
+    public void setIconFactory(IIconFactory iconFactory) {
+        this.iconFactory = iconFactory;
     }
     
 }
