@@ -18,6 +18,9 @@
 
 package com.terp.plugin;
 
+import com.terp.plugin.data.IDatabaseFactory;
+import com.terp.plugin.gui.IDesktopManager;
+import com.terp.plugin.gui.IMenuManager;
 import com.terp.plugin.gui.IIconFactory;
 
 /**

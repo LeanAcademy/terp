@@ -15,16 +15,27 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package com.terp.plugin;
+package com.terp.plugin.data.model;
 
-import com.terp.common.ICommonMethods;
-
+import com.terp.plugin.data.ICommonFields;
 
 /**
  *
  * @author cevdet
  */
-
-
-public interface ICompany extends ICommonMethods {
+public interface IEmployee extends ICommonFields {
+    public Long getRowid();
+    public void setRowid (Long rowid);
+    public String getUserName();
+    public void setUserName (String userName);
+    public String getPassword();
+    public void setPassword (String password);
+    public String getName();
+    public void setName (String name);
+    public int getType();
+    public void setType (int type);
+    public int getStatus();
+    public void setStatus (int status);
+    public IEmployeeGroup getGroup();
+    public void setGroup (IEmployeeGroup employeeGroup);
 }

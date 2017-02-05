@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.terp.plugin;
+package com.terp.plugin.gui;
 
 import javafx.scene.Node;
 

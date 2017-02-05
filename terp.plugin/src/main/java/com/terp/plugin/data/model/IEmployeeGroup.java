@@ -15,18 +15,20 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package com.terp.common;
+package com.terp.plugin.data.model;
 
-import java.util.List;
+import com.terp.plugin.data.ICommonFields;
+import java.util.Set;
 
 /**
  *
  * @author cevdet
  */
-public interface ICommonMethods {
-    public List<Object> findAll();
-    public Object firstOrDefault(long key);
-    public Object firstOrDefault(String sql);
-    public Object addOrUpdate(Object row);
-    public void delete(long rowId);
+public interface IEmployeeGroup extends ICommonFields {
+    public String getGroupName();
+    public void setGroupName (String groupName);
+    public int getStatus();    
+    public void setStatus(int status);    
+    public Set<IEmployee> getEmployeeSet();    
+    public void setEmployeeId(Set<IEmployee> employeeSet);
 }
