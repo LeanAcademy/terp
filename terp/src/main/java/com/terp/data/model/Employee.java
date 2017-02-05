@@ -18,7 +18,8 @@
 package com.terp.data.model;
 
 import com.terp.data.CommonFields;
-import com.terp.plugin.IEmployee;
+import com.terp.plugin.data.model.IEmployee;
+import com.terp.plugin.data.model.IEmployeeGroup;
 import java.io.Serializable;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -71,62 +72,75 @@ public  class Employee extends CommonFields implements Serializable, IEmployee {
     public Employee(){
     }
 
+    @Override
     public Long getRowid() {
         return this.rowid;
     }
 
+    @Override
     public void setRowid (Long rowid) {
         this.rowid = rowid;
     }
         
+    @Override
     public String getUserName() {
         return this.userName;
     }
 
+    @Override
     public void setUserName (String userName) {
         this.userName = userName;
     }
     
     
+    @Override
     public String getPassword() {
         return this.password;
     }
 
+    @Override
     public void setPassword (String password) {
         this.password = password;
     }
     
+    @Override
     public String getName() {
         return this.name;
     }
 
+    @Override
     public void setName (String name) {
         this.name = name;
     }
     
+    @Override
     public int getType() {
         return this.type;
     }
 
+    @Override
     public void setType (int type) {
         this.type = type;
     }
     
+    @Override
     public int getStatus() {
         return this.status;
     }
 
+    @Override
     public void setStatus (int status) {
         this.status = status;
     }
     
-    public EmployeeGroup getGroup() {
+    @Override
+    public IEmployeeGroup getGroup() {
         return this.group;
     }
 
-    public void setGroup (EmployeeGroup employeeGroup) {
-        this.group = employeeGroup;
+    @Override
+    public void setGroup (IEmployeeGroup employeeGroup) {
+        this.group = (EmployeeGroup)employeeGroup;
     }
-
 }
 

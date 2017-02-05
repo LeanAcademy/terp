@@ -5,6 +5,9 @@
  */
 package com.terp.gui.controllers;
 
+import com.terp.data.dao.MenuSourceDao;
+import com.terp.plugin.gui.IDesktopManager;
+import com.terp.plugin.gui.IMenuManager;
 import com.terp.data.model.MenuSource;
 import com.terp.gui.MenuItem;
 import com.terp.plugin.*;
@@ -17,8 +20,6 @@ import java.util.ResourceBundle;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.logging.*;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
@@ -116,15 +117,15 @@ public class TerpMainFormController implements Initializable,
         String programName = menuText[0];
         
         //find program data
-        MenuSource menuSource = new MenuSource();
+        MenuSourceDao menuSourceDao = new MenuSourceDao();
         String sql = "from MenuSource e where e.menuId = '" + programName + "'"; 
-        Object prog = menuSource.firstOrDefault(sql);
+        MenuSource prog = menuSourceDao.firstOrDefault(sql);
         
         //check if program is found
         assert(prog != null);
         
         //run program
-        menuSource = (MenuSource)prog;
+        MenuSource menuSource = (MenuSource)prog;
         if(menuSource.getIsPlugin() == 0){
             loadProgram(menuSource.getProgramName());
         }else if (menuSource.getIsPlugin() == 1) {
@@ -264,9 +265,9 @@ public class TerpMainFormController implements Initializable,
         rootNode.setExpanded(true);
 
         // read menu records
-        MenuSource menuSource = new MenuSource();
+        MenuSourceDao menuSourceDao = new MenuSourceDao();
         String sql = "from MenuSource e where e.menuType=0";        
-        List<Object> list = menuSource.findAll(sql);
+        List<MenuSource> list = menuSourceDao.findAll(sql);
 
         //build tree menu
         for (Object item : list) {
@@ -282,10 +283,10 @@ public class TerpMainFormController implements Initializable,
 
         // load all programs for search text field
         String sql2 = "from MenuSource e where e.programName is not null";
-        List<Object> list2 = menuSource.findAll(sql2);
-        for (Object item2 : list2) {
-            this.entries.add(((MenuSource) item2).getMenuId() + " - "
-                    + ((MenuSource) item2).getMenuName());
+        List<MenuSource> list2 = menuSourceDao.findAll(sql2);
+        for (MenuSource item2 : list2) {
+            this.entries.add((item2).getMenuId() + " - "
+                    + (item2).getMenuName());
         }
 
         // update status

@@ -18,8 +18,9 @@
 
 package com.terp.users;
 
+import com.terp.data.dao.EmployeeDaoImpl;
 import com.terp.data.model.Employee;
-import com.terp.plugin.IEmployee;
+import com.terp.plugin.data.model.IEmployee;
 import com.terp.plugin.IUser;
 
 /**
@@ -35,6 +36,7 @@ public final class User implements IUser {
     private boolean authenticated;
     private boolean administrator;
     private IEmployee employee;
+    private EmployeeDaoImpl employeeDao; 
     private Object password;
     
     public User(){
@@ -44,7 +46,7 @@ public final class User implements IUser {
         this.administrator = false;
         
         //create eployee dao
-        this.employee = new Employee();
+        this.employeeDao = new EmployeeDaoImpl();
         
     }    
     
@@ -55,7 +57,7 @@ public final class User implements IUser {
         this.administrator = false;
         
         //create eployee dao
-        this.employee = new Employee();
+        this.employeeDao = new EmployeeDaoImpl();
         
         //set user name and password
         this.userName = name;
@@ -107,7 +109,7 @@ public final class User implements IUser {
         String sql = "from Employee e "
                 + "where e.userName = '" + this.userName + "' and "
                 + "e.type = 1";
-        Employee emp = (Employee) employee.firstOrDefault(sql);
+        IEmployee emp = employeeDao.firstOrDefault(sql);
         
         if(emp == null)
             return;
@@ -116,7 +118,7 @@ public final class User implements IUser {
                 emp.getPassword().equals(this.password)){
             
             this.authenticated = true;
-            this.groupId = emp.getGroup().getRowid();
+            this.groupId = emp.getGroup().getRowId();
             this.administrator = (emp.getGroup().getGroupName()
                     .equals("Administrators"));            
         } else {

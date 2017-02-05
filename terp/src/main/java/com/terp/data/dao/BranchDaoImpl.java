@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 Lean Danışmanlık Cevdet Dal
+ * Copyright (C) 2016 Your Organisation
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,32 +14,18 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.terp.data;
+package com.terp.data.dao;
 
-import com.terp.data.dao.BranchDaoImpl;
-import com.terp.data.dao.CompanyDaoImpl;
-import com.terp.data.model.Branch;
-import com.terp.data.model.Company;
-import com.terp.plugin.data.model.IBranch;
-import com.terp.plugin.data.model.ICompany;
-import com.terp.plugin.data.IDatabaseFactory;
+import com.terp.data.CommonDaoImpl;
 import com.terp.plugin.data.dao.IBranchDao;
-import com.terp.plugin.data.dao.ICompanyDao;
+import com.terp.plugin.data.model.IBranch;
 
 /**
  *
  * @author cevdet
  */
-public class DatabaseFactoryImpl implements IDatabaseFactory {
-
-    @Override
-    public ICompanyDao getCompanyDao() {
-        return new CompanyDaoImpl();
+public class BranchDaoImpl extends CommonDaoImpl<IBranch> implements IBranchDao {
+    public BranchDaoImpl(){
+        super(IBranch.class);
     }
-
-    @Override
-    public IBranchDao getBranchDao() {
-        return new BranchDaoImpl();
-    }
-    
 }

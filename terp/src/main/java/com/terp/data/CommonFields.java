@@ -16,10 +16,9 @@
  */
 package com.terp.data;
 
-import com.terp.util.HibernateUtil;
+import com.terp.plugin.data.ICommonFields;
 import java.io.Serializable;
 import java.util.Date;
-import java.util.List;
 import javax.persistence.Column;
 import javax.persistence.GeneratedValue;
 import static javax.persistence.GenerationType.IDENTITY;
@@ -27,15 +26,14 @@ import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
-import org.hibernate.Query;
-import org.hibernate.Session;
 
 /**
  *
  * @author cevdet
+ * @param <T>
  */
 @MappedSuperclass
-public abstract class CommonFields implements Serializable {
+public abstract class CommonFields implements Serializable, ICommonFields {
     
     @Id
     @GeneratedValue(strategy=IDENTITY)
@@ -56,219 +54,54 @@ public abstract class CommonFields implements Serializable {
     @Column(name="ekl_kul_id", nullable = true)
     private Long addedByUserId;
 
+    @Override
     public Long getRowId() {
         return rowId;
     }
 
+    @Override
     public void setRowId(Long rowId) {
         this.rowId = rowId;
     }
 
+    @Override
     public Date getLastUpdateDate() {
         return lastUpdateDate;
     }
 
+    @Override
     public void setLastUpdateDate(Date lastUpdateDate) {
         this.lastUpdateDate = lastUpdateDate;
     }
 
+    @Override
     public Date getAddedDate() {
         return addedDate;
     }
 
+    @Override
     public void setAddedDate(Date addedDate) {
         this.addedDate = addedDate;
     }
 
+    @Override
     public Long getUpdatedByUserId() {
         return updatedByUserId;
     }
 
+    @Override
     public void setUpdatedByUserId(Long updatedByUserId) {
         this.updatedByUserId = updatedByUserId;
     }
 
+    @Override
     public Long getAddedByUserId() {
         return addedByUserId;
     }
 
+    @Override
     public void setAddedByUserId(Long addedByUserId) {
         this.addedByUserId = addedByUserId;
-    }
-    
-    //////////////////////////////////////////////////////////////////////////
-    // abstract methods
-    //////////////////////////////////////////////////////////////////////////
-    
-    /**
-     * gets all list of declared fields.
-     * use this method to get field list to fill up tableview, listview etc.
-     * and convert data into meaningfull list
-     * @return 
-     */
-    public List<String> fieldList(){
-        return null;
-    }
-    
-    /**
-     * gets all list of classes related to fields.
-     * use this method to contevert data to java data type
-     * @return 
-     */
-    public List<Class> fieldClasses(){
-        return null;
-    }
-    
-    /**
-     * find all records in subclass.
-     * it can not be used for this clas. 
-     * @return 
-     */
-    public List<Object> findAll(){
-        
-        // get current session
-        Session session = HibernateUtil.getSessionFactory().openSession();
-        
-        // check session
-        if(session == null){
-            return null;
-        }
-        
-        // begin transaction
-        session.getTransaction().begin();
-        
-        // get all rows
-        List<Object> list = session.createCriteria(this.getClass()
-                .asSubclass(CommonFields.class)).list();
-        
-        // commint transaction
-        session.getTransaction().commit();
-        
-        // return list
-        return list;        
-    }
-    
-    public List<Object> findAll(String sql){
-        // get current session
-        Session session = HibernateUtil.getSessionFactory().openSession();
-        
-        // check session
-        if(session == null){
-            return null;
-        }
-        
-        // begin transaction
-        session.getTransaction().begin();
-        
-        // find by primary key
-        Query qry = session.createQuery(sql);
-        List<Object> list = qry.list();
-        
-        // commint transaction
-        session.getTransaction().commit();
-        
-        // return object
-        return list;
-    }
-    
-    public Object firstOrDefault(long key) {
-        
-        // get current session
-        Session session = HibernateUtil.getSessionFactory().openSession();
-        
-        // check session
-        if(session == null){
-            return null;
-        }
-        
-        // begin transaction
-        session.getTransaction().begin();
-        
-        // find by primary key
-        Object obj = (Object) session.get(this.getClass()
-                .asSubclass(CommonFields.class), key);
-        
-        
-        // commint transaction
-        session.getTransaction().commit();
-        
-        // return object
-        return obj;
-    }
-    
-    public Object firstOrDefault(String sql) {
-        
-        // get current session
-        Session session = HibernateUtil.getSessionFactory().openSession();
-        
-        // check session
-        if(session == null){
-            return null;
-        }
-        
-        // begin transaction
-        session.getTransaction().begin();
-        
-        // find by primary key
-        Query qry = session.createQuery(sql);
-        Object obj = qry.uniqueResult();
-        
-        // commint transaction
-        session.getTransaction().commit();
-        
-        // return object
-        return obj;
-    }
-
-    public Object addOrUpdate(Object row) {
-        
-        // get current session
-        Session session = HibernateUtil.getSessionFactory().openSession();
-        
-        // check session
-        if(session == null){
-            return null;
-        }
-        
-        // begin transaction
-        session.getTransaction().begin();
-        
-        // update object
-        Object obj = (Object) session.merge(this.getClass()
-                .asSubclass(CommonFields.class).toString(), row);
-        
-        
-        // commint transaction
-        session.getTransaction().commit();
-        
-        // return object
-        return obj;
-    }
-
-    public void delete(long rowId) {
-        
-        // get current session
-        Session session = HibernateUtil.getSessionFactory().openSession();
-        
-        // check session
-        if(session == null){
-            return;
-        }
-        
-        // begin transaction
-        session.getTransaction().begin();
-        
-        // find by primary key
-        Object obj = (Object) session.get(this.getClass()
-                .asSubclass(CommonFields.class).toString(), rowId);
-        
-        // delete it
-        session.delete(obj);
-        
-        
-        // commint transaction
-        session.getTransaction().commit();
-
     }
     
 }

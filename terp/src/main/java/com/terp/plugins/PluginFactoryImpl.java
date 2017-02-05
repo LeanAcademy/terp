@@ -18,6 +18,7 @@
 
 package com.terp.plugins;
 
+import com.terp.data.dao.PluginSourceDao;
 import com.terp.util.TerpClassLoader;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -59,8 +60,9 @@ public class PluginFactoryImpl implements IPluginFactory {
         URL url = null;
         
         // get plugin details
-        PluginSource pluginSource = new PluginSource();
-        pluginSource = (PluginSource) pluginSource.firstOrDefault(pluginId);
+        //PluginSource pluginSource = new PluginSource();
+        PluginSourceDao pluginSourceDao = new PluginSourceDao();
+        PluginSource pluginSource = (PluginSource) pluginSourceDao.firstOrDefault(pluginId);
         
         String jarName = pluginSource.getPluginName() + ".jar";
         
@@ -113,10 +115,10 @@ public class PluginFactoryImpl implements IPluginFactory {
         int count = 0;
         
         //create database connection
-        PluginSource db = new PluginSource();
+        PluginSourceDao db = new PluginSourceDao();
         
         // load installed pluginList
-        List<Object> plgList = db.findAll();
+        List<PluginSource> plgList = db.findAll();
         
         for(Object plg : plgList){
             

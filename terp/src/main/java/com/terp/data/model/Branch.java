@@ -19,7 +19,8 @@
 package com.terp.data.model;
 
 import com.terp.data.CommonFields;
-import com.terp.plugin.IBranch;
+import com.terp.plugin.data.model.IBranch;
+import com.terp.plugin.data.model.ICompany;
 import java.io.Serializable;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -103,138 +104,172 @@ public class Branch extends CommonFields implements Serializable, IBranch{
     @Column(name = "sube_email2", nullable = false, length = 100)
     private String email2;
     
-    public Company getCompany(){
+    @Override
+    public ICompany getCompany(){
         return this.company;
     }
     
-    public void setCompany(Company company){
-        this.company = company;
+    @Override
+    public void setCompany(ICompany company){
+        this.company = (Company) company;
     }    
         
+    @Override
     public String getBranchName() {
         return this.branchName;
     }
 
+    @Override
     public void setBranchName(String  branchName) {
         this.branchName = branchName;
     }    
     
+    @Override
     public String getBranchLongName() {
         return this.branchLongName;
     }
 
+    @Override
     public void setBranchLongName(String  branchLongName) {
         this.branchLongName = branchLongName;
     }    
     
+    @Override
     public long getStatus() {
         return this.status;
     }
 
+    @Override
     public void setStatus(int status) {
         this.status = status;
     }
 
+    @Override
     public int getBranchType() {
         return branchType;
     }
 
+    @Override
     public void setBranchType(int branchType) {
         this.branchType = branchType;
     }
 
+    @Override
     public String getAddress1() {
         return address1;
     }
 
+    @Override
     public void setAddress1(String address1) {
         this.address1 = address1;
     }
 
+    @Override
     public String getAddress2() {
         return address2;
     }
 
+    @Override
     public void setAddress2(String address2) {
         this.address2 = address2;
     }
 
+    @Override
     public String getAddress3() {
         return address3;
     }
 
+    @Override
     public void setAddress3(String address3) {
         this.address3 = address3;
     }
 
+    @Override
     public String getCity() {
         return city;
     }
 
+    @Override
     public void setCity(String city) {
         this.city = city;
     }
 
+    @Override
     public String getState() {
         return state;
     }
 
+    @Override
     public void setState(String state) {
         this.state = state;
     }
 
+    @Override
     public String getZip() {
         return zip;
     }
 
+    @Override
     public void setZip(String zip) {
         this.zip = zip;
     }
 
+    @Override
     public String getCountry() {
         return country;
     }
 
+    @Override
     public void setCountry(String country) {
         this.country = country;
     }
 
+    @Override
     public String getPhoneNum1() {
         return phoneNum1;
     }
 
+    @Override
     public void setPhoneNum1(String phoneNum1) {
         this.phoneNum1 = phoneNum1;
     }
 
+    @Override
     public String getPhoneNum2() {
         return phoneNum2;
     }
 
+    @Override
     public void setPhoneNum2(String phoneNum2) {
         this.phoneNum2 = phoneNum2;
     }
 
+    @Override
     public String getFaxNum() {
         return faxNum;
     }
 
+    @Override
     public void setFaxNum(String faxNum) {
         this.faxNum = faxNum;
     }
 
+    @Override
     public String getEmail1() {
         return email1;
     }
 
+    @Override
     public void setEmail1(String email1) {
         this.email1 = email1;
     }
 
+    @Override
     public String getEmail2() {
         return email2;
     }
 
+    @Override
     public void setEmail2(String email2) {
         this.email2 = email2;
     }

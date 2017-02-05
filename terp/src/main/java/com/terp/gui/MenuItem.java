@@ -16,6 +16,7 @@
  */
 package com.terp.gui;
 
+import com.terp.data.dao.MenuSourceDao;
 import com.terp.data.model.MenuSource;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -38,7 +39,7 @@ public class MenuItem extends TreeItem<String> {
     public void setCurrentItem(MenuSource currentItem) {
         this.currentItem = currentItem;
     }
-    private final MenuSource menuSource = new MenuSource();
+    private final MenuSourceDao menuSourceDao = new MenuSourceDao();
     
     
     private final ChangeListener<Boolean> expandedPropertyListener = new ChangeListener<Boolean>(){
@@ -80,7 +81,7 @@ public class MenuItem extends TreeItem<String> {
             // check if there is child to load
             String sql = "from MenuSource e where e.menuType=1 and e.menuParent=" 
                 + this.currentItem.getRowId();
-            return menuSource.findAll(sql).isEmpty();
+            return menuSourceDao.findAll(sql).isEmpty();
         }
     }    
 
@@ -89,7 +90,7 @@ public class MenuItem extends TreeItem<String> {
         
         String sql = "from MenuSource e where e.menuType=1 and e.menuParent=" 
                 + this.currentItem.getRowId();
-        for(Object menuItem : menuSource.findAll(sql)){
+        for(Object menuItem : menuSourceDao.findAll(sql)){
             MenuItem subitem = new MenuItem((MenuSource)menuItem);
             
             // add to children

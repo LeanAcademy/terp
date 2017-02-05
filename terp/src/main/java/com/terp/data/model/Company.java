@@ -18,7 +18,7 @@
 package com.terp.data.model;
 
 import com.terp.data.CommonFields;
-import com.terp.plugin.ICompany;
+import com.terp.plugin.data.model.ICompany;
 import java.io.Serializable;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -33,15 +33,15 @@ import javax.persistence.UniqueConstraint;
 @Entity
 @Table(name="firma", catalog="terp",
         uniqueConstraints = {
-            @UniqueConstraint(name="ix_firma", columnNames="firma_adi")
+            @UniqueConstraint(name="ix_firma", columnNames="firma_unv")
         }
 )
 public class Company extends CommonFields implements Serializable, ICompany {
 
-    @Column(name="firma_adi", nullable = false, length=50)
+    @Column(name="firma_unv", nullable = false, length=50)
     private String companyName;
     
-    @Column(name="firma_unv", nullable = false, length=128 )
+    @Column(name="firma_adi", nullable = false, length=128 )
     private String companyLongName;
     
     @Column(name="aciklama", nullable = true, length=256 )
@@ -54,52 +54,64 @@ public class Company extends CommonFields implements Serializable, ICompany {
     private String stateTaxCode;
 
     @Column(name="vergi_dairesi", nullable = false, length=20 )
-    private String stateTaxRegion;   
-        
+    private String stateTaxRegion;    
+    
+    @Override
     public String getCompanyName() {
         return this.companyName;
     }
     
+    @Override
     public void setCompanyName(String companyName){
         this.companyName = companyName;
     }
     
+    @Override
     public String getCompanyLongName() {
         return this.companyLongName;
     }
     
+    @Override
     public void setCompanyLongName(String companyLongName){
         this.companyLongName = companyLongName;
     }    
     
+    @Override
     public int getStatus() {
         return this.status;
     }
     
+    @Override
     public void setStatus(int status){
         this.status = status;
     }
 
+    @Override
     public String getNotes() {
         return notes;
     }
 
+    @Override
     public void setNotes(String notes) {
         this.notes = notes;
     }
 
+    @Override
     public String getStateTaxCode() {
         return stateTaxCode;
     }
 
+    @Override
     public void setStateTaxCode(String stateTaxCode) {
         this.stateTaxCode = stateTaxCode;
     }
 
+    @Override
     public String getStateTaxRegion() {
         return stateTaxRegion;
     }
 
+    @Override
     public void setStateTaxRegion(String stateTaxRegion) {
         this.stateTaxRegion = stateTaxRegion;
     }

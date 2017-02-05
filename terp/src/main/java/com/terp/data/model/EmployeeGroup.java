@@ -18,20 +18,17 @@
 package com.terp.data.model;
 
 import com.terp.data.CommonFields;
-import com.terp.plugin.IEmployeeGroup;
+import com.terp.plugin.data.model.IEmployee;
+import com.terp.plugin.data.model.IEmployeeGroup;
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 import javax.persistence.UniqueConstraint;
 
 /**
@@ -43,61 +40,80 @@ import javax.persistence.UniqueConstraint;
         @UniqueConstraint(name="pk_grup", columnNames="ref_num"),
         @UniqueConstraint(name="ix_grup", columnNames="grup_adi")
     })
-@NamedQueries ({
-    @NamedQuery(name="EMPLOYEEGROUP_FIND_ALL", 
-            query="from EmployeeGroup eg"),
-    @NamedQuery(name="EMPLOYEEGROUP_FIND_BY_PK", 
-            query="from EmployeeGroup eg "
-            + "where eg.rowid = :id")
-})
 public  class EmployeeGroup extends CommonFields implements Serializable, IEmployeeGroup {
 
-    private Long rowid;
+    @Column(name="grup_adi",nullable=false,length=50)
     private String groupName;
+    
+    @Column(name="durum")
     private int status;
-    private Set<Employee> employee = new HashSet<>();
+    
+    @OneToMany(fetch=FetchType.LAZY, mappedBy="group")
+    private Set<Employee> employee;
     
     public EmployeeGroup(){
     }
     
-    
-    @Id
-    @Column(name="ref_num", nullable=false)
-    @GeneratedValue(strategy=GenerationType.IDENTITY)
-    public Long getRowid() {
-        return this.rowid;
-    }
-
-    public void setRowid (Long rowid) {
-        this.rowid = rowid;
-    }
-    
-    @Column(name="grup_adi",nullable=false,length=50)
+    @Override
     public String getGroupName() {
         return this.groupName;
     }
 
+    @Override
     public void setGroupName (String groupName) {
         this.groupName = groupName;
     }
 
-    @Column(name="durum")
+    @Override
     public int getStatus(){
         return this.status;
     }
     
+    @Override
     public void setStatus(int status){
         this.status = status;
-    }
+    }    
     
-    @OneToMany(fetch=FetchType.LAZY, mappedBy="group")
     public Set<Employee> getEmployee(){
         return this.employee;
     }
     
-    public void setEmployee(Set<Employee> employee){
+    public void setEmployee (Set<Employee> employee){
         this.employee = employee;
     }
 
+    @Override
+    @Transient
+    public Set<IEmployee> getEmployeeSet() {
+        Set<IEmployee> setIEmployee = new HashSet<>();
+        for(Employee emp : this.employee){
+            setIEmployee.add((IEmployee)emp);
+        }
+        return setIEmployee;
+    }
+
+    @Override
+    @Transient
+    public void setEmployeeId(Set<IEmployee> employeeSet) {
+        
+        for(IEmployee item : employeeSet){
+            Employee emp = new Employee();
+            
+            emp.setRowid(item.getRowid());
+            emp.setUserName(item.getUserName());
+            emp.setName(item.getName());            
+            emp.setGroup(item.getGroup());            
+            emp.setPassword(item.getPassword());
+            emp.setStatus(item.getStatus());
+            emp.setType(item.getType());
+            emp.setAddedByUserId(item.getAddedByUserId());
+            emp.setUpdatedByUserId(item.getUpdatedByUserId());
+            emp.setAddedDate(item.getAddedDate());
+            emp.setLastUpdateDate(item.getLastUpdateDate());
+            
+            this.employee.remove(emp);
+            this.employee.add(emp);
+        }
+    }
 }
 
