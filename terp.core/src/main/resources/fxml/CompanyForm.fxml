@@ -13,60 +13,80 @@
     <stylesheets>
         <URL value="@/styles/companyform.css" />
     </stylesheets>
-   <children>
-      <VBox layoutX="118.0" layoutY="23.0" prefHeight="483.0" prefWidth="674.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
-      <BorderPane prefHeight="483.0" prefWidth="674.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-         <top>
-            <VBox prefHeight="76.0" prefWidth="674.0" BorderPane.alignment="CENTER">
-               <children>
-                  <ToolBar prefHeight="40.0" prefWidth="200.0">
-                    <items>
-                      <Button fx:id="btnSearch" defaultButton="true" maxWidth="95.0" mnemonicParsing="false" prefWidth="95.0" text="Search">
-                           <graphic>
-                              <ImageView fx:id="imgBtnSearch" fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true" />
-                           </graphic></Button>
-                        <Button fx:id="btnAdd" maxWidth="95.0" mnemonicParsing="false" prefWidth="95.0" text="Add">
-                           <graphic>
-                              <ImageView fx:id="imgBtnAdd" fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true" />
-                           </graphic>
-                        </Button>
-                        <Button fx:id="btnEdit" maxWidth="95.0" mnemonicParsing="false" prefWidth="95.0" text="Edit">
-                           <graphic>
-                              <ImageView fx:id="imgBtnEdit" fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true" />
-                           </graphic></Button>
-                        <Button fx:id="btnDelete" maxWidth="95.0" mnemonicParsing="false" prefWidth="95.0" text="Delete">
-                           <graphic>
-                              <ImageView fx:id="imgBtnDelete" fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true" />
-                           </graphic>
-                        </Button>
-                    </items>
-                  </ToolBar>
-                  <GridPane>
-                     <columnConstraints>
-                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
-                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
-                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
-                     </columnConstraints>
-                     <rowConstraints>
-                        <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
-                     </rowConstraints>
-                     <children>
-                        <TextField layoutX="14.0" layoutY="14.0" prefHeight="30.0" prefWidth="19.0" promptText="Row Id" />
-                        <TextField layoutX="127.0" layoutY="13.0" prefHeight="30.0" prefWidth="120.0" promptText="Company name" AnchorPane.leftAnchor="127.0" GridPane.columnIndex="1" />
-                        <TextField layoutX="262.0" layoutY="13.0" prefHeight="30.0" prefWidth="185.0" promptText="Long name" GridPane.columnIndex="2" />
-                     </children>
-                  </GridPane>
-               </children>
-            </VBox>
-         </top>
-         <center>
-            <TableView editable="true" prefHeight="408.0" prefWidth="674.0" tableMenuButtonVisible="true" BorderPane.alignment="CENTER">
-              <columns>
-                <TableColumn prefWidth="75.0" text="C1" />
-                <TableColumn prefWidth="75.0" text="C2" />
-              </columns>
-            </TableView>
-         </center>
-      </BorderPane>
-   </children>
+    <children>
+        <VBox layoutX="118.0" layoutY="23.0" prefHeight="483.0" prefWidth="674.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+        <BorderPane prefHeight="483.0" prefWidth="674.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <top>
+                <VBox prefHeight="66.0" prefWidth="674.0" BorderPane.alignment="CENTER">
+                    <children>
+                        <ToolBar prefHeight="40.0" prefWidth="200.0">
+                            <items>
+                                <Button fx:id="btnSearch" defaultButton="true" maxWidth="95.0" mnemonicParsing="false" onAction="#onActionBtnSearch" prefWidth="95.0" text="Search">
+                                    <graphic>
+                                        <ImageView fx:id="imgBtnSearch" fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true" />
+                                    </graphic>
+                                </Button>
+                                <Button fx:id="btnAdd" maxWidth="95.0" mnemonicParsing="false" onAction="#onActionBtnAdd" prefWidth="95.0" text="Add">
+                                    <graphic>
+                                        <ImageView fx:id="imgBtnAdd" fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true" />
+                                    </graphic>
+                                </Button>
+                                <Button fx:id="btnEdit" maxWidth="95.0" mnemonicParsing="false" onAction="#onActionBtnEdit" prefWidth="95.0" text="Edit">
+                                    <graphic>
+                                        <ImageView fx:id="imgBtnEdit" fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true" />
+                                    </graphic>
+                                </Button>
+                                <Button fx:id="btnDelete" maxWidth="95.0" mnemonicParsing="false" onAction="#onActionBtnDelete" prefWidth="95.0" text="Delete">
+                                    <graphic>
+                                        <ImageView fx:id="imgBtnDelete" fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true" />
+                                    </graphic>
+                                </Button>
+                            </items>
+                        </ToolBar>
+                        <GridPane>
+                            <columnConstraints>
+                                <ColumnConstraints hgrow="SOMETIMES" maxWidth="114.0" minWidth="10.0" prefWidth="114.0" />
+                                <ColumnConstraints hgrow="SOMETIMES" maxWidth="231.0" minWidth="10.0" prefWidth="165.0" />
+                                <ColumnConstraints hgrow="SOMETIMES" maxWidth="410.0" minWidth="10.0" prefWidth="263.0" />
+                                <ColumnConstraints hgrow="SOMETIMES" maxWidth="341.0" minWidth="10.0" prefWidth="134.0" />
+                            </columnConstraints>
+                            <rowConstraints>
+                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+                            </rowConstraints>
+                            <children>
+                                <TextField fx:id="txtRefNum" layoutX="14.0" layoutY="14.0" prefHeight="20.0" prefWidth="19.0" promptText="Reference" />
+                                <TextField fx:id="txtCompanyName" layoutX="127.0" layoutY="13.0" prefHeight="20.0" prefWidth="120.0" promptText="Company name" AnchorPane.leftAnchor="127.0" GridPane.columnIndex="1" />
+                                <TextField fx:id="txtCompanyLongName" layoutX="262.0" layoutY="13.0" prefHeight="20.0" prefWidth="185.0" promptText="Long name" GridPane.columnIndex="2" />
+                                <CheckBox fx:id="cbStatusSearch" mnemonicParsing="false" text="Active" GridPane.columnIndex="3">
+                                    <GridPane.margin>
+                                        <Insets left="10.0" />
+                                    </GridPane.margin>
+                                </CheckBox>
+                            </children>
+                        </GridPane>
+                    </children>
+                </VBox>
+            </top>
+            <bottom>
+                <Pagination fx:id="pgnCompanyData" BorderPane.alignment="CENTER" />
+            </bottom>
+            <center>
+                <TableView fx:id="tblvCompanyView" editable="true" prefHeight="353.0" prefWidth="674.0" tableMenuButtonVisible="true" BorderPane.alignment="CENTER">
+                    <columns>
+                        <TableColumn fx:id="tcRefNum" editable="false" prefWidth="92.0" text="Ref. Num." />
+                        <TableColumn fx:id="tcCompanyName" editable="false" prefWidth="127.0" text="Company Name" />
+                        <TableColumn fx:id="tcCompanyLongName" editable="false" prefWidth="243.0" text="Company Long Name" />
+                        <TableColumn fx:id="tcNotes" editable="false" prefWidth="140.0" text="Notes" />
+                        <TableColumn fx:id="tcStateTaxCode" editable="false" prefWidth="75.0" text="State Tax Code" />
+                        <TableColumn fx:id="tcStateTaxRegion" editable="false" prefWidth="75.0" text="State Tax Region" />
+                        <TableColumn fx:id="tcStatus" editable="false" prefWidth="75.0" text="Status" />
+                  <TableColumn fx:id="tcLastUpdateDate" prefWidth="75.0" text="Last Update Date" />
+                  <TableColumn fx:id="tcAddedDate" prefWidth="75.0" text="Added Date" />
+                  <TableColumn fx:id="tcAddedById" prefWidth="75.0" text="Added By" />
+                  <TableColumn fx:id="tcUpdatedById" prefWidth="75.0" text="Updated By" />
+                    </columns>
+                </TableView>
+            </center>
+        </BorderPane>
+    </children>
 </AnchorPane>

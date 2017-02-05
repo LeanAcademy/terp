@@ -19,8 +19,8 @@ package com.terp.core.plugin;
 
 import java.util.logging.Logger;
 import com.terp.plugin.TerpApplication;
-import com.terp.plugin.IDesktopManager;
-import com.terp.plugin.IMenuManager;
+import com.terp.plugin.gui.IDesktopManager;
+import com.terp.plugin.gui.IMenuManager;
 import com.terp.plugin.IPlugin;
 import java.io.IOException;
 import java.util.logging.Level;
