@@ -64,6 +64,13 @@
                         <TableColumn fx:id="tcStateTaxCode" editable="false" prefWidth="75.0" text="State Tax Code" />
                         <TableColumn fx:id="tcStateTaxRegion" editable="false" prefWidth="75.0" text="State Tax Region" />
                         <TableColumn fx:id="tcStatus" editable="false" prefWidth="75.0" text="Status" />
+                  <TableColumn fx:id="tcCountry" prefWidth="75.0" text="Country" />
+                  <TableColumn fx:id="tcRegion" prefWidth="75.0" text="Region" />
+                  <TableColumn fx:id="tcCity" prefWidth="75.0" text="City" />
+                  <TableColumn fx:id="tcAddress" prefWidth="75.0" text="Address" />
+                  <TableColumn fx:id="tcPhone" prefWidth="75.0" text="Phone" />
+                  <TableColumn fx:id="tcFax" prefWidth="75.0" text="Fax" />
+                  <TableColumn fx:id="tcEmail" prefWidth="75.0" text="Email" />
                   <TableColumn fx:id="tcLastUpdateDate" prefWidth="75.0" text="Last Update Date" />
                   <TableColumn fx:id="tcAddedDate" prefWidth="75.0" text="Added Date" />
                   <TableColumn fx:id="tcAddedById" prefWidth="75.0" text="Added By" />

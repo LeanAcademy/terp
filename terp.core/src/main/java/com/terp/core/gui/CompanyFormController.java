@@ -106,6 +106,27 @@ public class CompanyFormController implements Initializable {
 
     @FXML
     private TableColumn<ICompany, Long> tcLastUpdateDate;
+    
+    @FXML
+    private TableColumn<ICompany, Long> tcCountry;
+    
+    @FXML
+    private TableColumn<ICompany, Long> tcRegion;
+    
+    @FXML
+    private TableColumn<ICompany, Long> tcCity;
+    
+    @FXML
+    private TableColumn<ICompany, Long> tcAddress;
+    
+    @FXML
+    private TableColumn<ICompany, Long> tcPhone;
+    
+    @FXML
+    private TableColumn<ICompany, Long> tcFax;
+    
+    @FXML
+    private TableColumn<ICompany, Long> tcEmail;
     // </editor-fold>
 
     //<editor-fold defaultstate="collapsed" desc="private variables">
@@ -180,7 +201,6 @@ public class CompanyFormController implements Initializable {
 
     @FXML
     public void onActionBtnAdd(ActionEvent event) {
-        // TODO : implement action event for add
         //open add new form
         try{
             FXMLLoader loader = new FXMLLoader(getClass().getResource(
@@ -256,6 +276,15 @@ public class CompanyFormController implements Initializable {
         this.tcStatus.setCellValueFactory(new PropertyValueFactory("status"));
         this.tcStateTaxCode.setCellValueFactory(new PropertyValueFactory("stateTaxCode"));
         this.tcStateTaxRegion.setCellValueFactory(new PropertyValueFactory("stateTaxRegion"));
+        this.tcCountry.setCellValueFactory(new PropertyValueFactory("country"));
+        this.tcRegion.setCellValueFactory(new PropertyValueFactory("region"));
+        this.tcCity.setCellValueFactory(new PropertyValueFactory("city"));
+        this.tcAddress.setCellValueFactory(new PropertyValueFactory("address"));
+        this.tcPhone.setCellValueFactory(new PropertyValueFactory("phone"));
+        this.tcFax.setCellValueFactory(new PropertyValueFactory("fax"));
+        this.tcEmail.setCellValueFactory(new PropertyValueFactory("email"));
+        
+        //auto fields
         this.tcAddedById.setCellValueFactory(new PropertyValueFactory("addedById"));
         this.tcUpdatedById.setCellValueFactory(new PropertyValueFactory("updatedById"));
         this.tcAddedDate.setCellValueFactory(new PropertyValueFactory("addedDate"));
@@ -331,16 +360,6 @@ public class CompanyFormController implements Initializable {
             );
         }
         return list;
-    }
-
-    /**
-     * adds or upadate given row
-     *
-     * @param row
-     */
-    private void addOrUpdate(ICompany row) {
-        assert (this.companyDao != null) : "Database connection not setup";
-        this.companyDao.addOrUpdate(row);
     }
 
     /**
