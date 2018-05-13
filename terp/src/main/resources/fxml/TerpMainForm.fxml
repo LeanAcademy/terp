@@ -9,100 +9,89 @@
 <?import javafx.scene.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import org.controlsfx.glyphfont.*?>
 
 <AnchorPane id="AnchorPane" fx:id="apMainFrame" prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.terp.gui.controllers.TerpMainFormController">
-    <stylesheets>
-        <URL value="@/styles/globalstyle.css" />
-        <URL value="@/styles/mainformstyle.css" />
-    </stylesheets>
-    <children>
-      <SplitPane fx:id="spMainPane" dividerPositions="0.3057644110275689" layoutX="47.0" layoutY="98.0" prefHeight="313.0" prefWidth="445.0" AnchorPane.bottomAnchor="25.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="42.0">
-        <items>
-          <AnchorPane fx:id="apMainMenu" maxWidth="600.0" minHeight="0.0" minWidth="200.0" prefHeight="160.0" prefWidth="100.0">
-               <children>
-                  <TreeView fx:id="tvMainMenu" onMouseClicked="#tvMainMenuOnMouseClicked" prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
-               </children></AnchorPane>
-          <AnchorPane fx:id="apMainContent" minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
-               <children>
-                  <TabPane fx:id="tpDesktopContainer" layoutY="78.0" tabClosingPolicy="ALL_TABS" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
-               </children></AnchorPane>
-        </items>
-      </SplitPane>
-      <GridPane layoutY="541.0" prefHeight="25.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
-        <columnConstraints>
-          <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-          <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-        </columnConstraints>
-        <rowConstraints>
-          <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-        </rowConstraints>
-         <children>
-            <HBox prefHeight="100.0" prefWidth="200.0">
-               <children>
-                  <ImageView fx:id="imgStatus" fitHeight="24.0" fitWidth="24.0" pickOnBounds="true" preserveRatio="true">
-                     <viewport>
-                        <Rectangle2D />
-                     </viewport>
-                  </ImageView>
-                  <Label fx:id="lblStatusText" prefHeight="24.0" prefWidth="219.0" text="System">
-                     <font>
-                        <Font size="11.0" />
-                     </font>
-                  </Label>
-               </children>
-            </HBox>
-         </children>
-      </GridPane>
-      <ToolBar fx:id="tbMainToolBar" prefHeight="40.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-        <items>
-            <TextField fx:id="txtSearchMenuItem" prefHeight="24.0" promptText="Program">
-               <font>
-                  <Font size="11.0" />
-               </font>
-            </TextField>
-            <Button fx:id="btnRunProgram" disable="true" onAction="#btnRunProgramOnAction" prefHeight="24.0" text="Run">
-               <font>
-                  <Font size="11.0" />
-               </font>
-               <graphic>
-                  <ImageView fitHeight="16.0" fitWidth="16.0" pickOnBounds="true" preserveRatio="true">
-                     <viewport>
-                        <Rectangle2D />
-                     </viewport>
-                     <image>
-                        <Image url="@../images/glyphicons-224-chevron-right.png" />
-                     </image>
-                  </ImageView>
-               </graphic>
-            </Button>
-            <Separator orientation="VERTICAL" prefHeight="24.0" />
-            <ToggleButton fx:id="tbtnShowHideMenu" onAction="#tbtnShowHideMenuOnAction" prefHeight="24.0" selected="true" text="Show menu">
-               <font>
-                  <Font size="11.0" />
-               </font>
-               <graphic>
-                  <ImageView fitHeight="16.0" fitWidth="16.0" pickOnBounds="true" preserveRatio="true">
-                     <image>
-                        <Image url="@../images/glyphicons-115-list.png" />
-                     </image>
-                  </ImageView>
-               </graphic>
-            </ToggleButton>
-            <Separator />
-            <AnchorPane HBox.hgrow="ALWAYS">
-               <children>
-                  <ToggleButton fx:id="tbtnPopupMenu" mnemonicParsing="false" onAction="#tbPopupMenuOnAction" AnchorPane.bottomAnchor="1.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="1.0">
-                     <graphic>
-                        <ImageView fitHeight="16.0" fitWidth="16.0" pickOnBounds="true" preserveRatio="true">
-                           <image>
-                              <Image url="@../images/glyphicons-517-menu-hamburger.png" />
-                           </image>
-                        </ImageView>
-                     </graphic>
-                  </ToggleButton>
-               </children></AnchorPane>
-        </items>
-      </ToolBar>
-   </children>
-</AnchorPane>
+        <stylesheets>
+            <URL value="@/styles/globalstyle.css" />
+            <URL value="@/styles/mainformstyle.css" />
+        </stylesheets>
+        <children>
+            <SplitPane fx:id="spMainPane" dividerPositions="0.3057644110275689" layoutX="47.0" layoutY="98.0" prefHeight="313.0" prefWidth="445.0" AnchorPane.bottomAnchor="25.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="42.0">
+                <items>
+                    <AnchorPane fx:id="apMainMenu" maxWidth="600.0" minHeight="0.0" minWidth="200.0" prefHeight="160.0" prefWidth="100.0">
+                        <children>
+                            <TreeView fx:id="tvMainMenu" onMouseClicked="#tvMainMenuOnMouseClicked" prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                        </children>
+                    </AnchorPane>
+                    <AnchorPane fx:id="apMainContent" minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
+                        <children>
+                            <TabPane fx:id="tpDesktopContainer" layoutY="78.0" tabClosingPolicy="ALL_TABS" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                        </children>
+                    </AnchorPane>
+                </items>
+            </SplitPane>
+            <GridPane layoutY="541.0" prefHeight="25.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
+                <columnConstraints>
+                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                </columnConstraints>
+                <rowConstraints>
+                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                </rowConstraints>
+                <children>
+                    <HBox prefHeight="100.0" prefWidth="200.0">
+                        <children>
+                            <ImageView fx:id="imgStatus" fitHeight="24.0" fitWidth="24.0" pickOnBounds="true" preserveRatio="true">
+                                <viewport>
+                                    <Rectangle2D />
+                                </viewport>
+                            </ImageView>
+                            <Label fx:id="lblStatusText" prefHeight="24.0" prefWidth="219.0" text="System">
+                                <font>
+                                    <Font size="11.0" />
+                                </font>
+                            </Label>
+                        </children>
+                    </HBox>
+                </children>
+            </GridPane>
+            <ToolBar fx:id="tbMainToolBar" prefHeight="40.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                <items>
+                    <TextField fx:id="txtSearchMenuItem" prefHeight="24.0" promptText="Program">
+                        <font>
+                            <Font size="11.0" />
+                        </font>
+                    </TextField>
+                    <Button fx:id="btnRunProgram" disable="true" onAction="#btnRunProgramOnAction" prefHeight="24.0" text="Run">
+                        <font>
+                            <Font size="11.0" />
+                        </font>
+                        <graphic>
+                            <Glyph fontFamily="FontAwesome" icon="CHEVRON_RIGHT" /> 
+                        </graphic>
+                    </Button>
+                    <Separator orientation="VERTICAL" prefHeight="24.0" />
+                    <ToggleButton fx:id="tbtnShowHideMenu" onAction="#tbtnShowHideMenuOnAction" prefHeight="24.0" selected="true" text="Show menu">
+                        <font>
+                            <Font size="11.0" />
+                        </font>
+                        <graphic>
+                            <Glyph fontFamily="FontAwesome" icon="TH_LIST" /> 
+                        </graphic>
+                    </ToggleButton>
+                    <Separator />
+                    <AnchorPane HBox.hgrow="ALWAYS">
+                        <children>
+                            <ToggleButton fx:id="tbtnPopupMenu" mnemonicParsing="false" onAction="#tbPopupMenuOnAction" AnchorPane.bottomAnchor="1.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="1.0">
+                                <graphic>
+                                    <Glyph fontFamily="FontAwesome" icon="BARS" />
+                                </graphic>
+                            </ToggleButton>
+                        </children>
+                    </AnchorPane>
+                </items>
+            </ToolBar>
+        </children>
+    </AnchorPane>

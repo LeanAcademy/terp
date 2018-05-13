@@ -17,14 +17,16 @@
 package com.terp.data;
 
 import com.terp.data.dao.BranchDaoImpl;
+import com.terp.data.dao.CitiesDaoImpl;
 import com.terp.data.dao.CompanyDaoImpl;
-import com.terp.data.model.Branch;
-import com.terp.data.model.Company;
-import com.terp.plugin.data.model.IBranch;
-import com.terp.plugin.data.model.ICompany;
+import com.terp.data.dao.CountriesDaoImpl;
+import com.terp.data.dao.RegionsDaoImpl;
 import com.terp.plugin.data.IDatabaseFactory;
 import com.terp.plugin.data.dao.IBranchDao;
+import com.terp.plugin.data.dao.ICitiesDao;
 import com.terp.plugin.data.dao.ICompanyDao;
+import com.terp.plugin.data.dao.ICountriesDao;
+import com.terp.plugin.data.dao.IRegionsDao;
 
 /**
  *
@@ -40,6 +42,21 @@ public class DatabaseFactoryImpl implements IDatabaseFactory {
     @Override
     public IBranchDao getBranchDao() {
         return new BranchDaoImpl();
+    }
+
+    @Override
+    public ICountriesDao getCountriesDao() {
+        return new CountriesDaoImpl();
+    }
+
+    @Override
+    public IRegionsDao getRegionsDao() {
+        return new RegionsDaoImpl();
+    }
+
+    @Override
+    public ICitiesDao getCitiesDao() {
+        return new CitiesDaoImpl();
     }
     
 }

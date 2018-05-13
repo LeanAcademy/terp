@@ -17,13 +17,16 @@
 package com.terp.util;
 
 import com.terp.data.model.Branch;
+import com.terp.data.model.Cities;
 import com.terp.data.model.Company;
+import com.terp.data.model.Country;
 import com.terp.data.model.Employee;
 import com.terp.data.model.EmployeeGroup;
 import com.terp.data.model.Item;
 import com.terp.data.model.MenuSource;
 import com.terp.data.model.MenuTranslations;
 import com.terp.data.model.PluginSource;
+import com.terp.data.model.Regions;
 import java.util.Properties;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;

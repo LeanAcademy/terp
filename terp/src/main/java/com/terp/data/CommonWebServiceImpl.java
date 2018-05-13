@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 Lean Academy - Cevdet Dal
+ * Copyright (C) 2017 Cevdet Dal
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,21 +14,38 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.terp.gui;
+package com.terp.data;
 
-import com.terp.plugin.gui.IIconFactory;
-import javafx.scene.Node;
-import org.controlsfx.glyphfont.FontAwesome;
+import com.terp.plugin.data.ICommonWebService;
 
 /**
  *
- * @author cevdet
+ * @author Cevdet Dal
+ * @param <T>
  */
-public class IconFactoryImpl implements IIconFactory {
+public class CommonWebServiceImpl<T> implements ICommonWebService<T> {
+
+    private final Class<T> instance;
     
-    @Override
-    public Node getIcon(String iconName) {
-        FontAwesome fontAwesome = new FontAwesome();
-        return fontAwesome.create(iconName);
+    private String errorText;
+
+    public CommonWebServiceImpl(Class<T> instance) {
+        this.instance = instance;
+        this.errorText = "";
     }
+
+    @Override
+    public String getError() {
+        return this.errorText;
+    }
+
+    @Override
+    public Boolean isFailed() {
+        return (this.errorText == "");
+    }
+    
+    public void setError(String err){
+        this.errorText = err;
+    }
+    
 }

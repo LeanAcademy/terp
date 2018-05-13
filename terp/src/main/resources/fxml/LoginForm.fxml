@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import org.controlsfx.glyphfont.*?>
 <?import java.lang.*?>
 <?import java.net.*?>
 <?import java.util.*?>
@@ -15,5 +16,7 @@
       <TextField fx:id="txtUserName" layoutX="44.0" layoutY="34.0" promptText="User name" />
       <PasswordField fx:id="txtPassword" layoutX="44.0" layoutY="85.0" promptText="Password" />
       <Button fx:id="btnSubmit" defaultButton="true" layoutX="99.0" layoutY="134.0" mnemonicParsing="false" onAction="#btnSubmitOnAction" text="Submit" />
+      <Glyph fontFamily="FontAwesome" icon="USER" layoutX="19.0" layoutY="34.0" prefHeight="25.0" prefWidth="28.0" />
+      <Glyph fontFamily="FontAwesome" icon="KEY" layoutX="19.0" layoutY="85.0" prefHeight="25.0" prefWidth="28.0" />
    </children>
 </AnchorPane>

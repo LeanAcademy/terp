@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 Lean Academy - Cevdet Dal
+ * Copyright (C) 2017 Lean Danışmanlık www.leanacademy.com.tr
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,21 +14,19 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.terp.gui;
+package com.terp.data.dao;
 
-import com.terp.plugin.gui.IIconFactory;
-import javafx.scene.Node;
-import org.controlsfx.glyphfont.FontAwesome;
+import com.terp.data.CommonDaoImpl;
+import com.terp.plugin.data.dao.ICitiesDao;
+import com.terp.plugin.data.model.ICities;
 
 /**
  *
- * @author cevdet
+ * @author Cevdet Dal
  */
-public class IconFactoryImpl implements IIconFactory {
+public class CitiesDaoImpl extends CommonDaoImpl<ICities> implements ICitiesDao{
     
-    @Override
-    public Node getIcon(String iconName) {
-        FontAwesome fontAwesome = new FontAwesome();
-        return fontAwesome.create(iconName);
+    public CitiesDaoImpl() {
+        super(ICities.class);
     }
 }

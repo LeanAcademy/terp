@@ -8,6 +8,7 @@
 <?import javafx.scene.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import org.controlsfx.glyphfont.*?>
 
 <AnchorPane id="AnchorPane" fx:id="apPopupContainer" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.terp.gui.controllers.PopupMenuController">
     <stylesheets>
@@ -21,17 +22,13 @@
                <children>
                   <Button fx:id="btnUserSettings" contentDisplay="TOP" mnemonicParsing="false" prefHeight="80.0" prefWidth="80.0" text="User" textAlignment="CENTER" wrapText="true">
                      <tooltip>
-                        <Tooltip text="User settings" />
+                        <Tooltip text="User settings"/>
                      </tooltip>
                      <FlowPane.margin>
                         <Insets bottom="5.0" left="2.5" right="2.5" top="5.0" />
                      </FlowPane.margin>
                      <graphic>
-                        <ImageView pickOnBounds="true" preserveRatio="true">
-                           <image>
-                              <Image url="@../images/glyphicons-4-user.png" />
-                           </image>
-                        </ImageView>
+                        <Glyph fontFamily="FontAwesome"  fontSize="16.0" icon="USER" />
                      </graphic>
                   </Button>
                   <Button fx:id="btnCompnay" contentDisplay="TOP" mnemonicParsing="false" prefHeight="80.0" prefWidth="80.0" text="Company">
@@ -42,11 +39,7 @@
                         <Insets bottom="5.0" left="2.5" right="2.5" top="5.0" />
                      </FlowPane.margin>
                      <graphic>
-                        <ImageView pickOnBounds="true" preserveRatio="true">
-                           <image>
-                              <Image url="@../images/glyphicons-619-mixed-buildings.png" />
-                           </image>
-                        </ImageView>
+                        <Glyph fontFamily="FontAwesome"  fontSize="16.0" icon="BUILDING_ALT" />
                      </graphic>
                   </Button>
                   <Button contentDisplay="TOP" mnemonicParsing="false" prefHeight="80.0" prefWidth="80.0" text="Branch">
@@ -57,10 +50,7 @@
                         <Insets bottom="5.0" left="2.5" right="2.5" top="5.0" />
                      </FlowPane.margin>
                      <graphic>
-                        <ImageView pickOnBounds="true" preserveRatio="true">
-                           <image>
-                              <Image url="@../images/glyphicons-90-building.png" />
-                           </image></ImageView>
+                        <Glyph fontFamily="FontAwesome"  fontSize="16.0" icon="BUILDING" />
                      </graphic>
                   </Button>
                   <Button contentDisplay="TOP" mnemonicParsing="false" prefHeight="80.0" prefWidth="80.0" text="Period">
@@ -71,10 +61,7 @@
                         <Insets bottom="5.0" left="2.5" right="2.5" top="5.0" />
                      </FlowPane.margin>
                      <graphic>
-                        <ImageView pickOnBounds="true" preserveRatio="true">
-                           <image>
-                              <Image url="@../images/glyphicons-649-important-day.png" />
-                           </image></ImageView>
+                        <Glyph fontFamily="FontAwesome"  fontSize="16.0" icon="CALENDAR_ALT" />
                      </graphic>
                   </Button>
                </children>
@@ -84,10 +71,7 @@
                <children>
                   <Button fx:id="btnServerSetup" contentDisplay="TOP" mnemonicParsing="false" onAction="#btnServerOnAction" prefHeight="80.0" prefWidth="80.0" text="Server">
                      <graphic>
-                        <ImageView pickOnBounds="true" preserveRatio="true">
-                           <image>
-                              <Image url="@../images/glyphicons-464-server.png" />
-                           </image></ImageView>
+                        <Glyph fontFamily="FontAwesome"  fontSize="16.0" icon="SERVER" />
                      </graphic>
                      <tooltip>
                         <Tooltip text="Empty Tooltip" />
@@ -98,11 +82,7 @@
                   </Button>
                   <Button fx:id="btnSqlEditor" contentDisplay="TOP" mnemonicParsing="false" prefHeight="80.0" prefWidth="80.0" text="SQL">
                      <graphic>
-                        <ImageView pickOnBounds="true" preserveRatio="true">
-                           <image>
-                              <Image url="@../images/glyphicons-547-quote.png" />
-                           </image>
-                        </ImageView>
+                        <Glyph fontFamily="FontAwesome"  fontSize="16.0" icon="EDIT" />
                      </graphic>
                      <tooltip>
                         <Tooltip text="Empty Tooltip" />
@@ -115,11 +95,7 @@
                   </Separator>
                   <Button fx:id="btnProgramSettings" contentDisplay="TOP" mnemonicParsing="false" onAction="#btnProgramSettingsOnAction" prefHeight="80.0" prefWidth="80.0" text="Settings">
                      <graphic>
-                        <ImageView pickOnBounds="true" preserveRatio="true">
-                           <image>
-                              <Image url="@../images/glyphicons-137-cogwheel.png" />
-                           </image>
-                        </ImageView>
+                        <Glyph fontFamily="FontAwesome"  fontSize="16.0" icon="GEAR" />
                      </graphic>
                      <tooltip>
                         <Tooltip text="Empty Tooltip" />
@@ -135,11 +111,7 @@
                <children>
                   <Button fx:id="btnExitProgram" mnemonicParsing="false" onAction="#btnExitProgramOnAction" text="Exit program">
                      <graphic>
-                        <ImageView pickOnBounds="true" preserveRatio="true">
-                           <image>
-                              <Image url="@../images/glyphicons-389-exit.png" />
-                           </image>
-                        </ImageView>
+                        <Glyph fontFamily="FontAwesome"  fontSize="16.0" icon="SIGN_OUT" />
                      </graphic>
                      <HBox.margin>
                         <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
