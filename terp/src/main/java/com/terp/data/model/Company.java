@@ -38,23 +38,66 @@ import javax.persistence.UniqueConstraint;
 )
 public class Company extends CommonFields implements Serializable, ICompany {
 
+    /* address */
+    @Column(name="merkez_adresi", nullable = false, length=256 )
+    private String address; 
+    
+    @Override
+    public String getAddress() {
+        return address;
+    }
+
+    @Override
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    /* country */
+    @Column(name="merkez_ulke", nullable = false, length=128 )
+    private String country;
+    
+    @Override
+    public String getCountry() {
+        return country;
+    }
+
+    @Override
+    public void setCountry(String country) {
+        this.country = country;
+    }
+
+    /* region */
+    
+    @Column(name="merkez_sehir", nullable = false, length=128 )
+    private String region;
+    
+    @Override
+    public String getRegion() {
+        return region;
+    }    
+    
+    @Override
+    public void setRegion(String region) {
+        this.region = region;
+    }
+    
+    /* city */
+    @Column(name="merkez_ilce", nullable = false, length=128 )
+    private String city;
+    
+    @Override
+    public String getCity() {
+        return city;
+    }
+
+    @Override
+    public void setCity(String city) {
+        this.city = city;
+    }
+    
+    /* company name */
     @Column(name="firma_unv", nullable = false, length=50)
     private String companyName;
-    
-    @Column(name="firma_adi", nullable = false, length=128 )
-    private String companyLongName;
-    
-    @Column(name="aciklama", nullable = true, length=256 )
-    private String notes;
-    
-    @Column(name="durum", nullable = false )
-    private int status;
-    
-    @Column(name="vergi_no", nullable = false, length=20 )
-    private String stateTaxCode;
-
-    @Column(name="vergi_dairesi", nullable = false, length=20 )
-    private String stateTaxRegion;    
     
     @Override
     public String getCompanyName() {
@@ -66,6 +109,10 @@ public class Company extends CommonFields implements Serializable, ICompany {
         this.companyName = companyName;
     }
     
+    /* company long name */
+    @Column(name="firma_adi", nullable = false, length=128 )
+    private String companyLongName;
+    
     @Override
     public String getCompanyLongName() {
         return this.companyLongName;
@@ -75,6 +122,10 @@ public class Company extends CommonFields implements Serializable, ICompany {
     public void setCompanyLongName(String companyLongName){
         this.companyLongName = companyLongName;
     }    
+    
+    /* status */
+    @Column(name="durum", nullable = false )
+    private int status;
     
     @Override
     public int getStatus() {
@@ -86,6 +137,10 @@ public class Company extends CommonFields implements Serializable, ICompany {
         this.status = status;
     }
 
+    /* notes */
+    @Column(name="aciklama", nullable = true, length=256 )
+    private String notes;
+    
     @Override
     public String getNotes() {
         return notes;
@@ -96,6 +151,10 @@ public class Company extends CommonFields implements Serializable, ICompany {
         this.notes = notes;
     }
 
+    /* tax code */
+    @Column(name="vergi_no", nullable = false, length=20 )
+    private String stateTaxCode;
+    
     @Override
     public String getStateTaxCode() {
         return stateTaxCode;
@@ -106,14 +165,60 @@ public class Company extends CommonFields implements Serializable, ICompany {
         this.stateTaxCode = stateTaxCode;
     }
 
+    /* tax region */
+    @Column(name="vergi_dairesi", nullable = false, length=20 )
+    private String stateTaxRegion;
+    
     @Override
     public String getStateTaxRegion() {
         return stateTaxRegion;
     }
-
+    
     @Override
     public void setStateTaxRegion(String stateTaxRegion) {
         this.stateTaxRegion = stateTaxRegion;
+    }
+
+    /* phone */
+    @Column(name="telefon", nullable = true, length=15 )
+    private String phone;
+            
+    @Override
+    public String getPhone() {
+        return this.phone;
+    }
+
+    @Override
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    /* fax */
+    @Column(name="faks", nullable = true, length=15 )
+    private String fax;
+    
+    @Override
+    public String getFax() {
+        return this.fax;
+    }
+
+    @Override
+    public void setFax(String fax) {
+        this.fax = fax;
+    }
+
+    /* email */
+    @Column(name="email", nullable = false, length=126 )
+    private String email;
+    
+    @Override
+    public String getEmail() {
+        return this.email;
+    }
+
+    @Override
+    public void setEmail(String email) {
+        this.email = email;
     }
     
 }
