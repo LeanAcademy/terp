@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 cevdet
+ * Copyright (C) 2017 Cevdet Dal 
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,20 +16,12 @@
  */
 package com.terp.plugin.data;
 
-import com.terp.plugin.data.dao.IBranchDao;
-import com.terp.plugin.data.dao.ICitiesDao;
-import com.terp.plugin.data.dao.ICompanyDao;
-import com.terp.plugin.data.dao.ICountriesDao;
-import com.terp.plugin.data.dao.IRegionsDao;
-
 /**
  *
- * @author cevdet
+ * @author Cevdet Dal
+ * @param <T>
  */
-public interface IDatabaseFactory {
-    public ICompanyDao getCompanyDao();
-    public IBranchDao getBranchDao();
-    public ICountriesDao getCountriesDao();
-    public IRegionsDao getRegionsDao();
-    public ICitiesDao getCitiesDao();
+public interface ICommonWebService<T> {
+    public String getError();
+    public Boolean isFailed();
 }

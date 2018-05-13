@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 cevdet
+ * Copyright (C) 2017 cevdet
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,22 +14,25 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.terp.plugin.data;
-
-import com.terp.plugin.data.dao.IBranchDao;
-import com.terp.plugin.data.dao.ICitiesDao;
-import com.terp.plugin.data.dao.ICompanyDao;
-import com.terp.plugin.data.dao.ICountriesDao;
-import com.terp.plugin.data.dao.IRegionsDao;
+package com.terp.plugin.data.model;
 
 /**
  *
  * @author cevdet
  */
-public interface IDatabaseFactory {
-    public ICompanyDao getCompanyDao();
-    public IBranchDao getBranchDao();
-    public ICountriesDao getCountriesDao();
-    public IRegionsDao getRegionsDao();
-    public ICitiesDao getCitiesDao();
+public interface ICountry {
+    public Long getId();
+    public void setId(Long id);
+    public String getIso();
+    public void setIso(String iso);
+    public String getName();
+    public void setName(String name);
+    public String getNiceName();
+    public void setNiceName(String niceName);
+    public String getIso3();
+    public void setIso3(String iso3);
+    public String getNumCode();
+    public void setNumCode(String numCode);
+    public String getPhoneCode();
+    public void setPhoneCode(String phoneCode);
 }

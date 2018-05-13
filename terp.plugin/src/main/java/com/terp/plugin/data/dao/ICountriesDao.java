@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 cevdet
+ * Copyright (C) 2017 cevdet
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,22 +14,17 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.terp.plugin.data;
+package com.terp.plugin.data.dao;
 
-import com.terp.plugin.data.dao.IBranchDao;
-import com.terp.plugin.data.dao.ICitiesDao;
-import com.terp.plugin.data.dao.ICompanyDao;
-import com.terp.plugin.data.dao.ICountriesDao;
-import com.terp.plugin.data.dao.IRegionsDao;
+import com.terp.plugin.data.ICommonWebService;
+import java.util.List;
+import com.terp.plugin.data.model.ICountry;
 
 /**
  *
  * @author cevdet
  */
-public interface IDatabaseFactory {
-    public ICompanyDao getCompanyDao();
-    public IBranchDao getBranchDao();
-    public ICountriesDao getCountriesDao();
-    public IRegionsDao getRegionsDao();
-    public ICitiesDao getCitiesDao();
+public interface ICountriesDao extends ICommonWebService<ICountry>{
+    public List<ICountry> findAll();
+    public List<ICountry> find(String sql);
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 cevdet
+ * Copyright (C) 2017 Lean Danışmanlık
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,22 +14,25 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.terp.plugin.data;
-
-import com.terp.plugin.data.dao.IBranchDao;
-import com.terp.plugin.data.dao.ICitiesDao;
-import com.terp.plugin.data.dao.ICompanyDao;
-import com.terp.plugin.data.dao.ICountriesDao;
-import com.terp.plugin.data.dao.IRegionsDao;
+package com.terp.plugin.data.model;
 
 /**
  *
  * @author cevdet
  */
-public interface IDatabaseFactory {
-    public ICompanyDao getCompanyDao();
-    public IBranchDao getBranchDao();
-    public ICountriesDao getCountriesDao();
-    public IRegionsDao getRegionsDao();
-    public ICitiesDao getCitiesDao();
+public interface IRegions {
+    public Long getId();
+    public void setId(Long id);
+    public String getCountry();
+    public void setCountry(String country);
+    public String getCode();
+    public void setCode(String code);
+    public String getName();
+    public void setName(String name);
+    public Double getLatitude();
+    public void setLatitude(Double latitude);
+    public Double getLongitude();
+    public void setLongitude(Double longitude);
+    public int getCities();
+    public void setCities(int cities);
 }

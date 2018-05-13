@@ -20,44 +20,11 @@
  */
 package com.terp.plugin.gui;
 
-import javafx.scene.image.Image;
-
+import javafx.scene.Node;
 /**
  *
  * @author cevdet
  */
 public interface IIconFactory {
-    public Image getIconList();
-    public Image getIconCogWheel();
-    public Image getIconBin();
-    public Image getIconStepBackward();
-    public Image getIconFastBackward();
-    public Image getIconFastForward();
-    public Image getIconStepForward();
-    public Image getIconQuestionSign();
-    public Image getIconInfoSign();
-    public Image getIconOkCircle();
-    public Image getIconOk();
-    public Image getIconRemove();
-    public Image getIconChevronRight();
-    public Image getIconChevronLeft();
-    public Image getIconFileImport();
-    public Image getIconFileExport();
-    public Image getIconLogin();
-    public Image getIconExit();
-    public Image getIconUser();
-    public Image getIconSortByAlphabet();
-    public Image getIconSortByOrder();
-    public Image getIcondDiskSave();
-    public Image getIconPlus();
-    public Image getIconServer();
-    public Image getIconMenuHamburger();
-    public Image getIconQuote();
-    public Image getIconClock();
-    public Image getIconMixedBuildings();
-    public Image getIconImportantDay();
-    public Image getIconBuilding();
-    public Image getIconSearch();
-    public Image getIconPencil();
-
+    public Node getIcon(String iconName);
 }

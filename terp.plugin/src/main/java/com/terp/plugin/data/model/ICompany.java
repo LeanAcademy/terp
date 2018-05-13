@@ -18,7 +18,6 @@
 package com.terp.plugin.data.model;
 
 import com.terp.plugin.data.ICommonFields;
-import javafx.beans.property.StringProperty;
 
 
 /**
