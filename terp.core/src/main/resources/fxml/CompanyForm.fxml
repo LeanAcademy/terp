@@ -21,26 +21,10 @@
                     <children>
                         <ToolBar prefHeight="40.0" prefWidth="200.0">
                             <items>
-                                <Button fx:id="btnSearch" defaultButton="true" maxWidth="95.0" mnemonicParsing="false" onAction="#onActionBtnSearch" prefWidth="95.0" text="Search">
-                                    <graphic>
-                                        <ImageView fx:id="imgBtnSearch" fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true" />
-                                    </graphic>
-                                </Button>
-                                <Button fx:id="btnAdd" maxWidth="95.0" mnemonicParsing="false" onAction="#onActionBtnAdd" prefWidth="95.0" text="Add">
-                                    <graphic>
-                                        <ImageView fx:id="imgBtnAdd" fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true" />
-                                    </graphic>
-                                </Button>
-                                <Button fx:id="btnEdit" maxWidth="95.0" mnemonicParsing="false" onAction="#onActionBtnEdit" prefWidth="95.0" text="Edit">
-                                    <graphic>
-                                        <ImageView fx:id="imgBtnEdit" fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true" />
-                                    </graphic>
-                                </Button>
-                                <Button fx:id="btnDelete" maxWidth="95.0" mnemonicParsing="false" onAction="#onActionBtnDelete" prefWidth="95.0" text="Delete">
-                                    <graphic>
-                                        <ImageView fx:id="imgBtnDelete" fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true" />
-                                    </graphic>
-                                </Button>
+                                <Button fx:id="btnSearch" defaultButton="true" maxWidth="95.0" mnemonicParsing="false" onAction="#onActionBtnSearch" prefWidth="95.0" text="Search" />
+                                <Button fx:id="btnAdd" maxWidth="95.0" mnemonicParsing="false" onAction="#onActionBtnAdd" prefWidth="95.0" text="Add" />
+                                <Button fx:id="btnEdit" maxWidth="95.0" mnemonicParsing="false" onAction="#onActionBtnEdit" prefWidth="95.0" text="Edit" />
+                                <Button fx:id="btnDelete" maxWidth="95.0" mnemonicParsing="false" onAction="#onActionBtnDelete" prefWidth="95.0" text="Delete" />
                             </items>
                         </ToolBar>
                         <GridPane>

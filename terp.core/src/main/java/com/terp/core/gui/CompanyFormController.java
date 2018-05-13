@@ -33,7 +33,6 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.image.ImageView;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
@@ -46,12 +45,6 @@ public class CompanyFormController implements Initializable {
 
     // <editor-fold defaultstate="collapsed" desc="FXML variables ">
     @FXML
-    private ImageView imgBtnAdd;
-
-    @FXML
-    private ImageView imgBtnSearch;
-
-    @FXML
     private Button btnSearch;
 
     @FXML
@@ -62,12 +55,6 @@ public class CompanyFormController implements Initializable {
 
     @FXML
     private Button btnEdit;
-
-    @FXML
-    private ImageView imgBtnEdit;
-
-    @FXML
-    private ImageView imgBtnDelete;
 
     @FXML
     private TextField txtCompanyLongName;
@@ -236,13 +223,13 @@ public class CompanyFormController implements Initializable {
 
         // set button images
         // delete button
-        this.imgBtnDelete.setImage(this.iconFactory.getIconBin());
+        this.btnDelete.setGraphic(this.iconFactory.getIcon("SEARCH"));
         //add button
-        this.imgBtnAdd.setImage(this.iconFactory.getIconPlus());
+        this.btnAdd.setGraphic(this.iconFactory.getIcon("PLUS"));
         //search button
-        this.imgBtnSearch.setImage(this.iconFactory.getIconSearch());
+        this.btnSearch.setGraphic(this.iconFactory.getIcon("SEARCH"));
         //edit button
-        this.imgBtnEdit.setImage(this.iconFactory.getIconPencil());
+        this.btnEdit.setGraphic(this.iconFactory.getIcon("EDIT"));
 
         //get record count
         this.recordCount = this.getRecordCount();

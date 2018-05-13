@@ -16,14 +16,22 @@
  */
 package com.terp.core.gui;
 
+import com.terp.core.model.CompanyTableModel;
+import com.terp.plugin.IUser;
+import com.terp.plugin.TerpApplication;
+import com.terp.plugin.data.IDatabaseFactory;
 import java.net.URL;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ResourceBundle;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.stage.Stage;
 
 /**
  * FXML Controller class
@@ -65,13 +73,75 @@ public class AddCompanyFormController implements Initializable {
     
     @FXML
     private TextField txtFax;
+    
+    @FXML
+    private TextField txtPhone;
+    
+    @FXML
+    private Button btnCancel;
+    
+    @FXML
+    private Button btnSubmit;
+    
+    @FXML
+    private TextField txtRowId;
+    
+    @FXML
+    private TextField txtCountry;
+    
+    @FXML
+    private TextField txtRegion;
+    
+    @FXML
+    private TextField txtCity;
+    
 //</editor-fold>
+    
+    // Data base factory object
+    IDatabaseFactory db;
+    
+    // Active user
+    IUser user;
+    
+    @FXML
+    private void onActionBtnCancel(){
+        //unload form and exit
+        Stage stage = (Stage) btnCancel.getScene().getWindow();
+        stage.close();
+    }
+    
+    @FXML
+    private void onActionBtnSubmit(){
+        //save and commit
+    }
+    
     /**
      * Initializes the controller class.
+     * @param url
+     * @param rb
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        // TODO
-    }    
-    
+        
+        // create model
+        CompanyTableModel tableModel = new CompanyTableModel();
+        
+        // TODO : create data from database
+        this.db = TerpApplication.getInstance().getDatabaseFactory();
+        
+        // get active user
+        this.user = TerpApplication.getInstance().getUser();
+        
+        // set user information
+        LocalDateTime date = LocalDateTime.now();
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy.MM.dd");
+        
+        String strAddedByAtDate = "Added by " + this.user.getUserName() + " at "
+                + dtf.format(date);
+        this.lblAddedByAtDate.setText(strAddedByAtDate);
+        
+        String strChangedByAtDate = "Changed by " + this.user.getUserName() + " at "
+                + dtf.format(date);
+        this.lblChangedByAtDate.setText(strChangedByAtDate);
+    }
 }
