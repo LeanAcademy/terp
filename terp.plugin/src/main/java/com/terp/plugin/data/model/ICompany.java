@@ -39,4 +39,18 @@ public interface ICompany extends ICommonFields{
     public void setStateTaxCode(String stateTaxCode);
     public String getStateTaxRegion();
     public void setStateTaxRegion(String stateTaxRegion);
+    public String getAddress();
+    public void setAddress(String address);
+    public String getCountry();
+    public void setCountry(String country);
+    public String getRegion();
+    public void setRegion(String region);
+    public String getCity();
+    public void setCity(String city);
+    public String getPhone();
+    public void setPhone(String phone);
+    public String getFax();
+    public void setFax(String fax);
+    public String getEmail();
+    public void setEmail(String email);
 }
