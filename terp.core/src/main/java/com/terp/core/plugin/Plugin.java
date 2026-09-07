@@ -85,19 +85,20 @@ public class Plugin implements IPlugin{
 
     @Override
     public void install() {
-        // TODO : install routine implementation
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        // Core plugin ships with the host; nothing to copy.
     }
 
     @Override
     public boolean isInstalled() {
-        // TODO : isInstalled routine implementation
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return true;
     }
     
     @Override
     public void loadProgram(String program) {
         
+        if (this.app == null) {
+            this.app = TerpApplication.getInstance();
+        }
         if (this.desktopManager == null) {
             this.desktopManager = this.app.getDesktopManager();
         }
@@ -105,7 +106,7 @@ public class Plugin implements IPlugin{
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource(
                     "/fxml/" + program + ".fxml"));
-            //loader.setController( new CompanyFormController());
+            loader.setClassLoader(getClass().getClassLoader());
             Node node = loader.load();
             this.desktopManager.addToDesktop(node, name + "-" + program);
         } catch (IOException ex) {

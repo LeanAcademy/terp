@@ -30,9 +30,9 @@ public interface ICommonDao<T> {
     public List<T> findAll(String sql);
     public List<T> findPage(int pageNum, int rowsPerPage);
     public List<T> findPage(int pageNum, int rowsPerPage, String sql);
-    public Object firstOrDefault(long key);
-    public Object firstOrDefault(String sql);
-    public Object addOrUpdate(T row);
+    public T firstOrDefault(long key);
+    public T firstOrDefault(String sql);
+    public T addOrUpdate(T row);
     public void delete(long rowId);
     public long getRecordCount();
     public T getEmpty();

@@ -25,6 +25,7 @@ import com.terp.data.model.MenuSource;
 import com.terp.data.model.MenuTranslations;
 import com.terp.data.model.PluginSource;
 import java.util.Properties;
+import org.hibernate.HibernateException;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.Configuration;
@@ -34,7 +35,7 @@ import org.hibernate.service.ServiceRegistry;
 
 public class HibernateUtil {
 
-    private static SessionFactory sessionFactory = buildSessionFactory();
+    private static final SessionFactory sessionFactory = buildSessionFactory();
     private static ServiceRegistry serviceRegistry;
         
     private static SessionFactory buildSessionFactory() {
@@ -56,6 +57,7 @@ public class HibernateUtil {
                     .addAnnotatedClass(MenuTranslations.class)
                     .addAnnotatedClass(Item.class);
             
+            
             serviceRegistry = new StandardServiceRegistryBuilder()
                     .applySettings(configuration.getProperties())
                     .build();
@@ -68,7 +70,7 @@ public class HibernateUtil {
             
             return configuration.buildSessionFactory(serviceRegistry);
         }
-        catch (Throwable ex) {
+        catch (HibernateException ex) {
             // Make sure you log the exception, as it might be swallowed
             System.err.println("Initial SessionFactory creation failed." + ex);
             throw new ExceptionInInitializerError(ex);

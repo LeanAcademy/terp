@@ -8,8 +8,16 @@
     </parent>
     <artifactId>terp.plugin</artifactId>
     <packaging>jar</packaging>
-    <properties>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
-    </properties>
+    <name>TERP Plugin API</name>
+    <description>Public SPI for TERP plugins (IPlugin, desktop, menu, DAO contracts)</description>
+    <dependencies>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-controls</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-fxml</artifactId>
+        </dependency>
+    </dependencies>
 </project>

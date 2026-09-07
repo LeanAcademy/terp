@@ -37,7 +37,6 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 import org.controlsfx.control.PopOver;
-import org.controlsfx.control.textfield.TextFields;
 
 /**
  *
@@ -324,6 +323,10 @@ public class TerpMainFormController implements Initializable,
         // load program from plugin related to menu
         TerpApplication terpApp = TerpApplication.getInstance();
         IPlugin plg = terpApp.getPluginFactory().getPlugin(pluginId);
+        if (plg == null) {
+            LOG.log(Level.SEVERE, "Plugin id {0} is not loaded", pluginId);
+            return;
+        }
         plg.loadProgram(program);
         
     }
@@ -422,7 +425,7 @@ public class TerpMainFormController implements Initializable,
         loadMenu();
 
         // create context menu for auto complete
-        TextFields.bindAutoCompletion(txtSearchMenuItem, entries);
+        //TextFields.bindAutoCompletion(txtSearchMenuItem, entries);
 
         // create popup menu
         createPopup();

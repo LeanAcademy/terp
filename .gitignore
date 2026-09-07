@@ -1,17 +1,32 @@
 *.class
-
-# Mobile Tools for Java (J2ME)
-.mtj.tmp/
-
-# Package Files #
-*.jar
+hs_err_pid*
 *.war
 *.ear
+*.jar
 
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
-hs_err_pid*
-/terp.plugin/target_1/
-/autocompletetextfiled/target/
-/JavaFXApplication12/nbproject/private/
-/JavaFXApplication12/dist/
-/JavaFXApplication12/build/
+# Maven
+**/target/
+
+# Plugin JARs copied by the terp.core build
+terp/plugins/*.jar
+
+# Local Hibernate config (use hibernate.properties.example)
+terp/etc/hibernate.properties
+
+# Embedded Derby database and logs
+derby.log
+**/derby.log
+terp/etc/terp/
+
+# IDE
+.idea/
+*.iml
+**/.settings/
+**/.classpath
+**/.project
+*.nb-configuration.xml
+**/nbproject/private/
+
+# OS
+.DS_Store
+Thumbs.db

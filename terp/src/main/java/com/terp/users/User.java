@@ -19,7 +19,6 @@
 package com.terp.users;
 
 import com.terp.data.dao.EmployeeDaoImpl;
-import com.terp.data.model.Employee;
 import com.terp.plugin.data.model.IEmployee;
 import com.terp.plugin.IUser;
 

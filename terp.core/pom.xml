@@ -8,31 +8,34 @@
     </parent>
     <artifactId>terp.core</artifactId>
     <packaging>jar</packaging>
+    <name>TERP Core Plugin</name>
+    <description>Reference plugin: company screens loaded from plugins/terp.core.jar</description>
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>terp.plugin</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.controlsfx</groupId>
             <artifactId>controlsfx</artifactId>
-            <version>9.0.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-controls</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-fxml</artifactId>
         </dependency>
     </dependencies>
-    <properties>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
-    </properties>
     <build>
         <plugins>
-            <!-- copy jar to dist file -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
-                <version>2.3.1</version>
                 <configuration>
-                  <outputDirectory>../terp/plugins</outputDirectory>
+                    <outputDirectory>${project.parent.basedir}/terp/plugins</outputDirectory>
+                    <finalName>terp.core</finalName>
                 </configuration>
             </plugin>
         </plugins>

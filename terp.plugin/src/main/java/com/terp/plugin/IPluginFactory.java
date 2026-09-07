@@ -23,4 +23,5 @@ package com.terp.plugin;
  */
 public interface IPluginFactory {
     public IPlugin getPlugin(final Long pluginId);
+    public IPlugin getPlugin(final String pluginName);
 }
