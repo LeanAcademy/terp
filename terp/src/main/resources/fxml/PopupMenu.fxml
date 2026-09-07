@@ -12,8 +12,8 @@
 
 <AnchorPane id="AnchorPane" fx:id="apPopupContainer" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.terp.gui.controllers.PopupMenuController">
     <stylesheets>
-        <URL value="@/styles/globalstyle.css" />
-        <URL value="@/styles/popupmenu.css" />
+        <URL value="@../styles/globalstyle.css" />
+        <URL value="@../styles/popupmenu.css" />
     </stylesheets>
    <children>
       <VBox prefHeight="205.0" prefWidth="360.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">

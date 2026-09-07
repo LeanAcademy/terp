@@ -112,6 +112,8 @@ public class EditCompanyFormController implements Initializable {
     
     // Company data access object
     ICompanyDao companyDao;
+
+    private ICompany currentRow;
     
     // field validation support
     ValidationSupport validationSupport;
@@ -151,7 +153,17 @@ public class EditCompanyFormController implements Initializable {
         // save and commit
         
         // create new company object
-        ICompany newCompany = this.companyDao.getEmpty();
+        ICompany newCompany = this.currentRow;
+        if (newCompany == null) {
+            newCompany = this.companyDao.getEmpty();
+        }
+        if (newCompany == null) {
+            Alert alert = new Alert(AlertType.ERROR);
+            alert.setTitle("Save error");
+            alert.setHeaderText("Could not update company record");
+            alert.show();
+            return;
+        }
         
         // check company name and set it
         if(!this.txtCompanyName.getText().isEmpty()){
@@ -207,9 +219,14 @@ public class EditCompanyFormController implements Initializable {
         if(!this.txtEmail.getText().isEmpty()){
             newCompany.setEmail(this.txtEmail.getText());
         }
+
+        newCompany.setNotes(this.txtNotes.getText());
+        newCompany.setStatus(this.chkActive.isSelected() ? 0 : 1);
         
         // save and commit
         this.companyDao.addOrUpdate(newCompany);
+        Stage stage = (Stage) btnSubmit.getScene().getWindow();
+        stage.close();
     }
     
     /**
@@ -268,6 +285,7 @@ public class EditCompanyFormController implements Initializable {
     }
 
     public void initializeForm(ICompany row) {
+        this.currentRow = row;
         // update form
         this.txtAddress.setText(row.getAddress());
         this.txtCity.setText(row.getCity());
@@ -282,5 +300,6 @@ public class EditCompanyFormController implements Initializable {
         this.txtRowId.setText(row.getRowId().toString());
         this.txtStateTaxId.setText(row.getStateTaxCode());
         this.txtStateTaxRegion.setText(row.getStateTaxRegion());
+        this.chkActive.setSelected(row.getStatus() == 0);
     }
 }

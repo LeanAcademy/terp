@@ -22,7 +22,7 @@
             <artifactId>controlsfx</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.hibernate</groupId>
+            <groupId>org.hibernate.orm</groupId>
             <artifactId>hibernate-core</artifactId>
         </dependency>
         <dependency>
@@ -58,6 +58,9 @@
                 <configuration>
                     <mainClass>com.terp.main.TerpMainApplication</mainClass>
                     <workingDirectory>${project.basedir}</workingDirectory>
+                    <options>
+                        <option>@${project.basedir}/jpms.args</option>
+                    </options>
                 </configuration>
                 <executions>
                     <execution>
@@ -67,6 +70,7 @@
                         <id>debug</id>
                         <configuration>
                             <options>
+                                <option>@${project.basedir}/jpms.args</option>
                                 <option>-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=localhost:8000</option>
                             </options>
                         </configuration>
@@ -75,6 +79,7 @@
                         <id>ide-debug</id>
                         <configuration>
                             <options>
+                                <option>@${project.basedir}/jpms.args</option>
                                 <option>-agentlib:jdwp=transport=dt_socket,server=n,address=${jpda.address}</option>
                             </options>
                         </configuration>
@@ -83,6 +88,7 @@
                         <id>ide-profile</id>
                         <configuration>
                             <options>
+                                <option>@${project.basedir}/jpms.args</option>
                                 <option>${profiler.jvmargs.arg1}</option>
                                 <option>${profiler.jvmargs.arg2}</option>
                                 <option>${profiler.jvmargs.arg3}</option>

@@ -13,8 +13,8 @@
 
 <AnchorPane id="AnchorPane" fx:id="apMainFrame" prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.terp.gui.controllers.TerpMainFormController">
         <stylesheets>
-            <URL value="@/styles/globalstyle.css" />
-            <URL value="@/styles/mainformstyle.css" />
+            <URL value="@../styles/globalstyle.css" />
+            <URL value="@../styles/mainformstyle.css" />
         </stylesheets>
         <children>
             <SplitPane fx:id="spMainPane" dividerPositions="0.3057644110275689" layoutX="47.0" layoutY="98.0" prefHeight="313.0" prefWidth="445.0" AnchorPane.bottomAnchor="25.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="42.0">

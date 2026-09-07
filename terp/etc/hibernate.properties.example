@@ -6,15 +6,56 @@
 # (at your option) any later version.
 #
 # Copy this file to hibernate.properties and adjust as needed.
-# Derby is provided as a Maven dependency; no external JDBC JAR is required.
+# Any database with a Java JDBC driver is supported. TERP loads:
+#   1) JDBC 4 drivers already on the module path (Derby is bundled)
+#   2) *.jar files in terp/lib/
+#   3) extra JARs listed in terp.jdbc.driver.jars (comma-separated)
+# Optional: hibernate.connection.driver_class for older drivers without SPI.
 
-hibernate.dialect org.hibernate.dialect.DerbyTenFiveDialect
-hibernate.connection.driver_class org.apache.derby.jdbc.EmbeddedDriver
+######################
+### Default: Derby ###
+######################
+hibernate.dialect org.hibernate.dialect.DerbyDialect
 hibernate.connection.username app
 hibernate.connection.password app
 hibernate.connection.url jdbc:derby:etc/terp;create=true
+
+# terp.jdbc.driver.jars lib/postgresql.jar
+# hibernate.connection.driver_class org.postgresql.Driver
+
+######################
+### PostgreSQL     ###
+######################
+# hibernate.dialect org.hibernate.dialect.PostgreSQLDialect
+# hibernate.connection.url jdbc:postgresql://localhost:5432/terp
+# hibernate.connection.username terp
+# hibernate.connection.password terp
+
+######################
+### MySQL / MariaDB###
+######################
+# hibernate.dialect org.hibernate.dialect.MySQLDialect
+# hibernate.connection.url jdbc:mysql://localhost:3306/terp
+# hibernate.connection.username terp
+# hibernate.connection.password terp
+
+######################
+### SQL Server     ###
+######################
+# hibernate.dialect org.hibernate.dialect.SQLServerDialect
+# hibernate.connection.url jdbc:sqlserver://localhost:1433;databaseName=terp
+# hibernate.connection.username terp
+# hibernate.connection.password terp
+
+######################
+### Oracle         ###
+######################
+# hibernate.dialect org.hibernate.dialect.OracleDialect
+# hibernate.connection.url jdbc:oracle:thin:@localhost:1521:orcl
+# hibernate.connection.username terp
+# hibernate.connection.password terp
+
 hibernate.connection.pool_size 10
-hibernate.connection.provider_class org.hibernate.connection.DriverManagerConnectionProvider
 hibernate.show_sql false
 hibernate.hbm2ddl.auto update
 hibernate.max_fetch_depth 1

@@ -1,0 +1,18 @@
+# JVM flags for javafx:run (Java 17+ module path).
+# Hibernate needs Derby readable; ControlsFX validation uses reflection on JavaFX internals.
+
+--add-reads=org.hibernate.orm.core=org.apache.derby.engine
+
+--add-opens=javafx.graphics/javafx.scene=org.controlsfx.controls
+--add-opens=javafx.graphics/javafx.scene.layout=org.controlsfx.controls
+--add-opens=javafx.graphics/com.sun.javafx.scene=org.controlsfx.controls
+--add-opens=javafx.graphics/com.sun.javafx.scene.traversal=org.controlsfx.controls
+--add-opens=javafx.graphics/com.sun.javafx.css=org.controlsfx.controls
+--add-opens=javafx.base/com.sun.javafx.event=org.controlsfx.controls
+--add-opens=javafx.base/com.sun.javafx.runtime=org.controlsfx.controls
+--add-opens=javafx.base/com.sun.javafx.collections=org.controlsfx.controls
+--add-opens=javafx.controls/javafx.scene.control=org.controlsfx.controls
+--add-opens=javafx.controls/com.sun.javafx.scene.control=org.controlsfx.controls
+--add-opens=javafx.controls/com.sun.javafx.scene.control.behavior=org.controlsfx.controls
+--add-opens=javafx.controls/com.sun.javafx.scene.control.inputmap=org.controlsfx.controls
+--add-opens=javafx.controls/com.sun.javafx.scene.control.skin=org.controlsfx.controls

@@ -88,6 +88,7 @@ public class TerpMainApplication extends Application {
         terpProp.setViewProps(guiProps);
 
         Files.createDirectories(TerpHome.pluginsDir());
+        Files.createDirectories(TerpHome.libDir());
     }
 
     /**
@@ -191,6 +192,7 @@ public class TerpMainApplication extends Application {
 
             FXMLLoader loader = new FXMLLoader(getClass()
                     .getResource("/fxml/TerpMainForm.fxml"));
+            loader.setClassLoader(getClass().getClassLoader());
 
             Parent root = loader.load();
 
@@ -240,6 +242,7 @@ public class TerpMainApplication extends Application {
         try {
             FXMLLoader loader = new FXMLLoader(getClass()
                     .getResource("/fxml/LoginForm.fxml"));
+            loader.setClassLoader(getClass().getClassLoader());
             Parent root = (Parent) loader.load();
 
             LoginFormController controller = loader.<LoginFormController>getController();

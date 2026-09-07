@@ -146,9 +146,9 @@ public class CompanyFormController implements Initializable {
     
     private int pageCount;
     
-    private int currentPageNum;
+    private int currentPageNum = 1;
     
-    private String searchSqlStatement;
+    private String searchSqlStatement = "";
     
     //private ObjectProperty<ObservableList<CompanyModel>> currentPageProperty;
     private ObjectProperty<ObservableList<ICompany>> currentPage;
@@ -207,8 +207,7 @@ public class CompanyFormController implements Initializable {
     public void onActionBtnAdd(ActionEvent event) {
         //open add new form
         try{
-            FXMLLoader loader = new FXMLLoader(getClass().getResource(
-                "/fxml/AddCompanyForm.fxml"));
+            FXMLLoader loader = pluginFxmlLoader("/fxml/AddCompanyForm.fxml");
             Node node = loader.load();
             Scene scene = new Scene((Parent)node);
             Stage stage = new Stage();
@@ -217,6 +216,7 @@ public class CompanyFormController implements Initializable {
                     .getDesktopManager().getPrimaryStage());
             stage.setScene(scene);
             stage.showAndWait();
+            this.companyViewUpdate();
         }catch(IOException e){
             LOG.log(Level.SEVERE,null,e);
             
@@ -239,8 +239,7 @@ public class CompanyFormController implements Initializable {
 
         // open edit form
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource(
-                    "/fxml/EditCompanyForm.fxml"));
+            FXMLLoader loader = pluginFxmlLoader("/fxml/EditCompanyForm.fxml");
             Node node = loader.load();
             Scene scene = new Scene((Parent)node);
             Stage stage = new Stage();
@@ -255,6 +254,7 @@ public class CompanyFormController implements Initializable {
             
             // show form
             stage.showAndWait();
+            this.companyViewUpdate();
             
         }catch(IOException e){
             LOG.log(Level.SEVERE,null,e);
@@ -327,7 +327,7 @@ public class CompanyFormController implements Initializable {
                     @Override
                     public void changed(ObservableValue observable, Object oldValue,
                             Object newValue) {
-                        setCurrentPageNum((int) newValue);
+                        setCurrentPageNum(((int) newValue) + 1);
                         companyViewUpdate();
                     }
                 });
@@ -352,8 +352,8 @@ public class CompanyFormController implements Initializable {
         this.tcEmail.setCellValueFactory(new PropertyValueFactory("email"));
         
         //auto fields
-        this.tcAddedById.setCellValueFactory(new PropertyValueFactory("addedById"));
-        this.tcUpdatedById.setCellValueFactory(new PropertyValueFactory("updatedById"));
+        this.tcAddedById.setCellValueFactory(new PropertyValueFactory("addedByUserId"));
+        this.tcUpdatedById.setCellValueFactory(new PropertyValueFactory("updatedByUserId"));
         this.tcAddedDate.setCellValueFactory(new PropertyValueFactory("addedDate"));
         this.tcLastUpdateDate.setCellValueFactory(new PropertyValueFactory("lastUpdateDate"));
 
@@ -366,12 +366,11 @@ public class CompanyFormController implements Initializable {
         
         // update buttons
         this.updateButtons(true, true);
+        this.companyViewUpdate();
     }
 
     private void companyViewUpdate() {
-        // TODO implement table view
-
-        //get page count and set table view data source
+        this.pgnCompanyData.setPageCount(this.getPageCount());
         this.tblvCompanyView.setItems(this.getCurrentPage());
     }
 
@@ -404,7 +403,7 @@ public class CompanyFormController implements Initializable {
     }
 
     private String getSearchSqlStatement() {
-        return this.searchSqlStatement;
+        return this.searchSqlStatement == null ? "" : this.searchSqlStatement;
     }
 
     private void setSearchSqlStatement(String value) {
@@ -421,18 +420,16 @@ public class CompanyFormController implements Initializable {
         assert (this.getCurrentPageNum() != -1) : "Current page num is not set";
 
         ObservableList<ICompany> list;
+        int pageNum = Math.max(1, this.getCurrentPageNum());
+        String filter = this.getSearchSqlStatement();
+        java.util.List<ICompany> rows;
 
-        if (!this.getSearchSqlStatement().isEmpty()) {
-            list = FXCollections.observableArrayList(
-                    this.companyDao.findPage(this.getCurrentPageNum(),
-                            this.getRowsPerPage(), this.getSearchSqlStatement())
-            );
+        if (!filter.isEmpty()) {
+            rows = this.companyDao.findPage(pageNum, this.getRowsPerPage(), filter);
         } else {
-            list = FXCollections.observableArrayList(
-                    this.companyDao.findPage(this.getCurrentPageNum(), 
-                            this.getRowsPerPage())
-            );
+            rows = this.companyDao.findPage(pageNum, this.getRowsPerPage());
         }
+        list = FXCollections.observableArrayList(rows == null ? java.util.List.of() : rows);
         return list;
     }
 
@@ -467,5 +464,11 @@ public class CompanyFormController implements Initializable {
     private void updateButtons(boolean edit, boolean delete){
         this.btnDelete.setDisable(delete);
         this.btnEdit.setDisable(edit);
+    }
+
+    private static FXMLLoader pluginFxmlLoader(String fxml) {
+        FXMLLoader loader = new FXMLLoader(CompanyFormController.class.getResource(fxml));
+        loader.setClassLoader(CompanyFormController.class.getClassLoader());
+        return loader;
     }
 }

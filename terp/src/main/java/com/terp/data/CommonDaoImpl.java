@@ -33,9 +33,9 @@ import org.hibernate.Session;
  */
 public class CommonDaoImpl<T> implements ICommonDao<T>{
 
-    private final Class<T> instance;
+    private final Class<? extends T> instance;
     
-    public CommonDaoImpl(Class<T> instance){
+    public CommonDaoImpl(Class<? extends T> instance){
         this.instance = instance; 
     }
     //////////////////////////////////////////////////////////////////////////
@@ -62,7 +62,7 @@ public class CommonDaoImpl<T> implements ICommonDao<T>{
         
         // get all rows
         //List<T> list = session.createCriteria(this.instance).list();
-        CriteriaQuery<T> criteriaQuery = session.getCriteriaBuilder().createQuery(this.instance);
+        CriteriaQuery<T> criteriaQuery = session.getCriteriaBuilder().createQuery(resultType());
         criteriaQuery.from(this.instance);
         List<T> list = session.createQuery(criteriaQuery).getResultList();
         
@@ -123,7 +123,7 @@ public class CommonDaoImpl<T> implements ICommonDao<T>{
         session.getTransaction().begin();
         
         // find by page num
-        CriteriaQuery<T> criteriaQuery = session.getCriteriaBuilder().createQuery(this.instance);
+        CriteriaQuery<T> criteriaQuery = session.getCriteriaBuilder().createQuery(resultType());
         criteriaQuery.from(this.instance);
 
         List<T> list = session.createQuery(criteriaQuery)
@@ -252,7 +252,7 @@ public class CommonDaoImpl<T> implements ICommonDao<T>{
         session.getTransaction().begin();
         
         // update object
-        T obj = (T) session.merge(this.instance.toString(), row);
+        T obj = session.merge(row);
         
         
         // commint transaction
@@ -281,10 +281,10 @@ public class CommonDaoImpl<T> implements ICommonDao<T>{
         session.getTransaction().begin();
         
         // find by primary key
-        Object obj = (Object) session.get(this.instance.toString(), rowId);
-        
-        // delete it
-        session.delete(obj);
+        Object obj = session.get(this.instance, rowId);
+        if (obj != null) {
+            session.remove(obj);
+        }
         
         
         // commint transaction
@@ -313,8 +313,9 @@ public class CommonDaoImpl<T> implements ICommonDao<T>{
         session.getTransaction().begin();
         
         // find record count
-        Query query = session.createQuery("select count(*) from " + this.instance.getName());
-        recordCount = (long)query.uniqueResult();
+        Query<Long> query = session.createQuery(
+                "select count(*) from " + this.instance.getName(), Long.class);
+        recordCount = query.uniqueResult();
         
         // commint transaction
         session.getTransaction().commit();
@@ -328,9 +329,8 @@ public class CommonDaoImpl<T> implements ICommonDao<T>{
      */
     @Override
     public T getEmpty() {
-        
         try {
-            return (T)((Class<T>)this.instance.getDeclaredConstructor().newInstance());
+            return this.instance.getDeclaredConstructor().newInstance();
         } catch (InstantiationException 
                 | IllegalAccessException 
                 | NoSuchMethodException 
@@ -341,5 +341,10 @@ public class CommonDaoImpl<T> implements ICommonDao<T>{
         }
         
         return null;
-    }    
+    }
+
+    @SuppressWarnings("unchecked")
+    private Class<T> resultType() {
+        return (Class<T>) this.instance;
+    }
 }

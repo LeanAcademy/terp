@@ -25,9 +25,6 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.ForeignKey;
-import jakarta.persistence.GeneratedValue;
-import static jakarta.persistence.GenerationType.IDENTITY;
-import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
@@ -41,11 +38,6 @@ import jakarta.persistence.UniqueConstraint;
 )
 public  class Employee extends CommonFields implements Serializable, IEmployee {
 
-    @Id
-    @GeneratedValue(strategy=IDENTITY)
-    @Column(name="ref_num", nullable = false)
-    private Long rowid;
-    
     @Column(name = "kullanici_adi", nullable = false, length = 50)
     private String userName;
     
@@ -74,12 +66,12 @@ public  class Employee extends CommonFields implements Serializable, IEmployee {
 
     @Override
     public Long getRowid() {
-        return this.rowid;
+        return getRowId();
     }
 
     @Override
     public void setRowid (Long rowid) {
-        this.rowid = rowid;
+        setRowId(rowid);
     }
         
     @Override

@@ -17,6 +17,7 @@
 package com.terp.data.dao;
 
 import com.terp.data.CommonDaoImpl;
+import com.terp.data.model.Cities;
 import com.terp.plugin.data.dao.ICitiesDao;
 import com.terp.plugin.data.model.ICities;
 
@@ -27,6 +28,6 @@ import com.terp.plugin.data.model.ICities;
 public class CitiesDaoImpl extends CommonDaoImpl<ICities> implements ICitiesDao{
     
     public CitiesDaoImpl() {
-        super(ICities.class);
+        super(Cities.class);
     }
 }

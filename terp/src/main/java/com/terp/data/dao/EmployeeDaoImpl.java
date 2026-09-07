@@ -17,6 +17,7 @@
 package com.terp.data.dao;
 
 import com.terp.data.CommonDaoImpl;
+import com.terp.data.model.Employee;
 import com.terp.plugin.data.dao.IEmployeeDao;
 import com.terp.plugin.data.model.IEmployee;
 
@@ -26,6 +27,6 @@ import com.terp.plugin.data.model.IEmployee;
  */
 public class EmployeeDaoImpl extends CommonDaoImpl<IEmployee> implements IEmployeeDao{
     public EmployeeDaoImpl(){
-        super(IEmployee.class);
+        super(Employee.class);
     }
 }

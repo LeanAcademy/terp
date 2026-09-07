@@ -11,7 +11,7 @@
 
 <AnchorPane id="AnchorPane" prefHeight="483.0" prefWidth="674.0" styleClass="mainFxmlClass" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.terp.core.gui.CompanyFormController">
     <stylesheets>
-        <URL value="@/styles/companyform.css" />
+        <URL value="@../styles/companyform.css" />
     </stylesheets>
     <children>
         <VBox layoutX="118.0" layoutY="23.0" prefHeight="483.0" prefWidth="674.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />

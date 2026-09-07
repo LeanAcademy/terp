@@ -17,6 +17,7 @@
 package com.terp.data.dao;
 
 import com.terp.data.CommonDaoImpl;
+import com.terp.data.model.Regions;
 import com.terp.plugin.data.dao.IRegionsDao;
 import com.terp.plugin.data.model.IRegions;
 
@@ -26,6 +27,6 @@ import com.terp.plugin.data.model.IRegions;
  */
 public class RegionsDaoImpl extends CommonDaoImpl<IRegions> implements IRegionsDao {    
     public RegionsDaoImpl() {
-        super(IRegions.class);
+        super(Regions.class);
     }    
 }

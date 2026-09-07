@@ -16,11 +16,14 @@ module terp {
     requires org.apache.derby.commons;
 
     uses com.terp.plugin.IPlugin;
+    uses java.sql.Driver;
 
     opens com.terp.main to javafx.fxml, org.controlsfx.controls;
     opens com.terp.gui.controllers to javafx.fxml;
-    opens com.terp.data.model to org.hibernate.orm.core;
-    opens com.terp.data to org.hibernate.orm.core;
+    opens com.terp.data.model to org.hibernate.orm.core, javafx.base, javafx.fxml;
+    opens com.terp.data to org.hibernate.orm.core, javafx.base, javafx.fxml;
+    opens fxml;
+    opens styles;
 
     exports com.terp.main;
 }

@@ -27,5 +27,7 @@ mvn -pl terp javafx:run
 
 1. Branch from `master`.
 2. Keep changes focused (platform vs a single plugin).
-3. Do not commit `target/`, Derby data under `terp/etc/terp/`, or a local `hibernate.properties`.
+3. Do not commit `target/`, Derby data under `terp/etc/terp/`, vendor JARs in `terp/lib/`, or a local `hibernate.properties`.
 4. Open a PR against [LeanAcademy/terp](https://github.com/LeanAcademy/terp).
+
+The host is database-agnostic: JDBC drivers are loaded from the module path, `terp/lib/`, or `terp.jdbc.driver.jars`.

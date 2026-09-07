@@ -31,7 +31,16 @@ mvn -pl terp javafx:run
 
 The host uses `terp/` as the application home (`etc/` and `plugins/`). Override with `-Dterp.home=/path/to/terp`.
 
-Default database is **Apache Derby** embedded at `terp/etc/terp`. The Derby JDBC driver comes from Maven; no `/opt/derby` install is required. `hibernate.hbm2ddl.auto` is `update` so the schema is not wiped on each start.
+Any database with a **Java JDBC driver** can be used. Configure URL, dialect, user and password in `terp/etc/hibernate.properties`.
+
+Drivers are discovered in this order:
+
+1. JDBC 4 drivers already on the module path (Apache Derby is bundled for a local default)
+2. `*.jar` files in `terp/lib/`
+3. Extra JARs in `terp.jdbc.driver.jars` (comma-separated, also accepts the old `driver.jarfile.name` key)
+4. Optional `hibernate.connection.driver_class` for older drivers without a JDBC 4 service file
+
+Default sample setup is embedded Derby at `terp/etc/terp`. `hibernate.hbm2ddl.auto` is `update` so the schema is not wiped on each start. See `terp/etc/hibernate.properties.example` for PostgreSQL, MySQL, SQL Server and Oracle.
 
 ## Writing a plugin
 
@@ -49,4 +58,4 @@ The host scans `plugins/*.jar` with `URLClassLoader` + `ServiceLoader`. It does 
 
 ## Türkçe
 
-T, eklenti tabanlı açık kaynak bir ERP iskeletidir. Java 17 ve Maven ile `mvn package` ardından `mvn -pl terp javafx:run` yeterlidir. Eklenti JAR dosyalarını `terp/plugins/` altına koyun.
+T, eklenti tabanlı açık kaynak bir ERP iskeletidir. Java 17 ve Maven ile `mvn package` ardından `mvn -pl terp javafx:run` yeterlidir. Eklenti JAR dosyalarını `terp/plugins/` altına koyun. JDBC sürücü JAR dosyalarını `terp/lib/` altına koyup `hibernate.properties` içinde URL ve dialect ayarlayın; herhangi bir Java sürücülü veritabanı kullanılabilir.

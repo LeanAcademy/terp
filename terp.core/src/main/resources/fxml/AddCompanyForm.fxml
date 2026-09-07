@@ -10,7 +10,7 @@
 
 <AnchorPane id="AnchorPane" prefHeight="574.0" prefWidth="900.0" styleClass="mainFxmlClass" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.terp.core.gui.AddCompanyFormController">
     <stylesheets>
-        <URL value="@/styles/addcompanyform.css" />
+        <URL value="@../styles/addcompanyform.css" />
     </stylesheets>
    <children>
       <TabPane layoutY="117.0" prefHeight="417.0" prefWidth="900.0" tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="40.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="117.0">

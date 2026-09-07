@@ -17,6 +17,7 @@
 package com.terp.data.dao;
 
 import com.terp.data.CommonDaoImpl;
+import com.terp.data.model.Company;
 import com.terp.plugin.data.dao.ICompanyDao;
 import com.terp.plugin.data.model.ICompany;
 
@@ -26,6 +27,6 @@ import com.terp.plugin.data.model.ICompany;
  */
 public class CompanyDaoImpl extends CommonDaoImpl<ICompany> implements ICompanyDao {
     public CompanyDaoImpl(){
-        super(ICompany.class);
+        super(Company.class);
     }
 }

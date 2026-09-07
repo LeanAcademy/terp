@@ -62,6 +62,10 @@ public final class TerpHome {
         return get().resolve("plugins");
     }
 
+    public static Path libDir() {
+        return get().resolve("lib");
+    }
+
     private static boolean looksLikeHome(Path dir) {
         return Files.isDirectory(dir.resolve("etc"))
                 || Files.isDirectory(dir.resolve("plugins"));

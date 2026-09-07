@@ -152,6 +152,14 @@ public class AddCompanyFormController implements Initializable {
         
         // create new company object
         ICompany newCompany = this.companyDao.getEmpty();
+        if (newCompany == null) {
+            Alert alert = new Alert(AlertType.ERROR);
+            alert.setTitle("Save error");
+            alert.setHeaderText("Could not create company record");
+            alert.setContentText("The company entity could not be created.");
+            alert.show();
+            return;
+        }
         
         // check company name and set it
         if(!this.txtCompanyName.getText().isEmpty()){
@@ -207,9 +215,14 @@ public class AddCompanyFormController implements Initializable {
         if(!this.txtEmail.getText().isEmpty()){
             newCompany.setEmail(this.txtEmail.getText());
         }
+
+        newCompany.setNotes(this.txtNotes.getText());
+        newCompany.setStatus(this.chkActive.isSelected() ? 0 : 1);
         
         // save and commit
         this.companyDao.addOrUpdate(newCompany);
+        Stage stage = (Stage) btnSubmit.getScene().getWindow();
+        stage.close();
     }
     
     /**

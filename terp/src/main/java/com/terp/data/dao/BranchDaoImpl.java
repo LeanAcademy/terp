@@ -17,6 +17,7 @@
 package com.terp.data.dao;
 
 import com.terp.data.CommonDaoImpl;
+import com.terp.data.model.Branch;
 import com.terp.plugin.data.dao.IBranchDao;
 import com.terp.plugin.data.model.IBranch;
 
@@ -26,6 +27,6 @@ import com.terp.plugin.data.model.IBranch;
  */
 public class BranchDaoImpl extends CommonDaoImpl<IBranch> implements IBranchDao {
     public BranchDaoImpl(){
-        super(IBranch.class);
+        super(Branch.class);
     }
 }

@@ -20,7 +20,7 @@
         <maven.compiler.release>17</maven.compiler.release>
         <javafx.version>17.0.12</javafx.version>
         <controlsfx.version>11.2.1</controlsfx.version>
-        <hibernate.version>6.0.0.Final</hibernate.version>
+        <hibernate.version>6.6.11.Final</hibernate.version>
         <jakarta.persistence.version>3.1.0</jakarta.persistence.version>
         <derby.version>10.16.1.1</derby.version>
         <terp.system.version>1.0</terp.system.version>
@@ -63,7 +63,7 @@
                 <version>${controlsfx.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.hibernate</groupId>
+                <groupId>org.hibernate.orm</groupId>
                 <artifactId>hibernate-core</artifactId>
                 <version>${hibernate.version}</version>
             </dependency>

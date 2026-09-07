@@ -24,6 +24,8 @@ import com.terp.data.model.Item;
 import com.terp.data.model.MenuSource;
 import com.terp.data.model.MenuTranslations;
 import com.terp.data.model.PluginSource;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 import org.hibernate.HibernateException;
 import org.hibernate.SessionFactory;
@@ -40,11 +42,12 @@ public class HibernateUtil {
         
     private static SessionFactory buildSessionFactory() {
         try {
-            // Create the SessionFactory from hibernate.cfg.xml
-            //Configuration configuration = new Configuration().configure();
             Configuration configuration = new Configuration();
-            Properties props = TerpProperties.getInstance().getHibernateProps();
-            
+            Properties props = new Properties();
+            props.putAll(TerpProperties.getInstance().getHibernateProps());
+            JdbcDriverSupport.install(props);
+            migrateJpaPropertyNames(configuration.getProperties());
+
             configuration
                     .addProperties(props)
                     .addPackage("com.terp.data.model")
@@ -56,27 +59,43 @@ public class HibernateUtil {
                     .addAnnotatedClass(MenuSource.class)
                     .addAnnotatedClass(MenuTranslations.class)
                     .addAnnotatedClass(Item.class);
-            
-            
+
+            migrateJpaPropertyNames(configuration.getProperties());
             serviceRegistry = new StandardServiceRegistryBuilder()
                     .applySettings(configuration.getProperties())
                     .build();
-            
-            /*
-            serviceRegistry = new ServiceRegistryBuilder()
-                    .applySettings(configuration.getProperties())
-                    .buildServiceRegistry();
-            */
-            
+
             return configuration.buildSessionFactory(serviceRegistry);
         }
         catch (HibernateException ex) {
-            // Make sure you log the exception, as it might be swallowed
             System.err.println("Initial SessionFactory creation failed." + ex);
             throw new ExceptionInInitializerError(ex);
         }
     }
-    
+
+    /**
+     * Hibernate 6 still seeds javax.persistence.* aliases; rewrite them so
+     * HHH90000021 is not logged for every query.
+     */
+    private static void migrateJpaPropertyNames(Properties props) {
+        List<String> oldKeys = new ArrayList<>();
+        for (String name : props.stringPropertyNames()) {
+            if (name.startsWith("javax.persistence.")) {
+                oldKeys.add(name);
+            }
+        }
+        for (String oldKey : oldKeys) {
+            String newKey = "jakarta.persistence." + oldKey.substring("javax.persistence.".length());
+            if (!props.containsKey(newKey)) {
+                Object value = props.get(oldKey);
+                if (value != null) {
+                    props.put(newKey, value);
+                }
+            }
+            props.remove(oldKey);
+        }
+    }
+
     public static SessionFactory getSessionFactory() {
         return sessionFactory;
     }

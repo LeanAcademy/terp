@@ -69,6 +69,10 @@ public class PluginFactoryImpl implements IPluginFactory {
 
     @Override
     public IPlugin getPlugin(final Long pluginId) {
+        if (pluginId == null) {
+            return null;
+        }
+
         IPlugin plugin = pluginsById.get(pluginId);
         if (plugin != null) {
             return plugin;
@@ -77,17 +81,16 @@ public class PluginFactoryImpl implements IPluginFactory {
         try {
             PluginSourceDao dao = new PluginSourceDao();
             PluginSource source = dao.firstOrDefault(pluginId);
-            if (source != null && source.getPluginName() != null) {
-                plugin = pluginsByName.get(source.getPluginName());
-                if (plugin != null) {
-                    pluginsById.put(pluginId, plugin);
-                }
+            plugin = findLoadedPlugin(source);
+            if (plugin != null) {
+                pluginsById.put(pluginId, plugin);
+                return plugin;
             }
         } catch (RuntimeException ex) {
             LOG.log(Level.WARNING, "Could not resolve plugin id " + pluginId, ex);
         }
 
-        return plugin;
+        return fallbackLoadedPlugin();
     }
 
     @Override
@@ -95,7 +98,16 @@ public class PluginFactoryImpl implements IPluginFactory {
         if (pluginName == null) {
             return null;
         }
-        return pluginsByName.get(pluginName);
+        IPlugin plugin = pluginsByName.get(pluginName);
+        if (plugin != null) {
+            return plugin;
+        }
+        for (Map.Entry<String, IPlugin> entry : pluginsByName.entrySet()) {
+            if (namesMatch(entry.getKey(), pluginName)) {
+                return entry.getValue();
+            }
+        }
+        return null;
     }
 
     private Map<String, PluginSource> loadRegistryByName() {
@@ -149,9 +161,17 @@ public class PluginFactoryImpl implements IPluginFactory {
         }
 
         pluginsByName.put(plugin.getName(), plugin);
-        PluginSource registered = registryByName.get(plugin.getName());
+        PluginSource registered = findRegistry(plugin, registryByName);
+        if (registered == null) {
+            registered = persistRegistry(plugin);
+            if (registered != null && registered.getPluginName() != null) {
+                registryByName.put(registered.getPluginName(), registered);
+            }
+        }
         if (registered != null && registered.getRowId() != null) {
             pluginsById.put(registered.getRowId(), plugin);
+            LOG.log(Level.INFO, "Plugin {0} mapped to registry id {1}",
+                    new Object[]{plugin.getName(), registered.getRowId()});
         }
 
         try {
@@ -160,5 +180,81 @@ public class PluginFactoryImpl implements IPluginFactory {
         } catch (RuntimeException ex) {
             LOG.log(Level.SEVERE, "Plugin " + plugin.getName() + " failed during run()", ex);
         }
+    }
+
+    private PluginSource findRegistry(IPlugin plugin, Map<String, PluginSource> registryByName) {
+        PluginSource exact = registryByName.get(plugin.getName());
+        if (exact != null) {
+            return exact;
+        }
+        String pluginClass = plugin.getClass().getName();
+        for (PluginSource source : registryByName.values()) {
+            if (namesMatch(plugin.getName(), source.getPluginName())
+                    || pluginClass.equals(source.getMainClassName())) {
+                return source;
+            }
+        }
+        return null;
+    }
+
+    private PluginSource persistRegistry(IPlugin plugin) {
+        try {
+            PluginSource source = new PluginSource();
+            source.setPluginName(plugin.getName());
+            source.setType(plugin.getType());
+            source.setMainClassName(plugin.getClass().getName());
+            PluginSource saved = new PluginSourceDao().addOrUpdate(source);
+            if (saved != null && saved.getRowId() != null) {
+                LOG.log(Level.INFO, "Registered plugin {0} as eklenti id {1}",
+                        new Object[]{plugin.getName(), saved.getRowId()});
+            }
+            return saved;
+        } catch (RuntimeException ex) {
+            LOG.log(Level.WARNING, "Could not register plugin " + plugin.getName() + " in eklenti table", ex);
+            return null;
+        }
+    }
+
+    private IPlugin findLoadedPlugin(PluginSource source) {
+        if (source == null) {
+            return null;
+        }
+        IPlugin plugin = getPlugin(source.getPluginName());
+        if (plugin != null) {
+            return plugin;
+        }
+        if (source.getMainClassName() != null) {
+            for (IPlugin loaded : pluginsByName.values()) {
+                if (source.getMainClassName().equals(loaded.getClass().getName())) {
+                    return loaded;
+                }
+            }
+        }
+        return null;
+    }
+
+    private IPlugin fallbackLoadedPlugin() {
+        if (pluginsByName.size() == 1) {
+            return pluginsByName.values().iterator().next();
+        }
+        return pluginsByName.get("terp.core");
+    }
+
+    static boolean namesMatch(String pluginName, String registeredName) {
+        if (pluginName == null || registeredName == null) {
+            return false;
+        }
+        if (pluginName.equals(registeredName)) {
+            return true;
+        }
+        String left = canonicalPluginName(pluginName);
+        String right = canonicalPluginName(registeredName);
+        return left.equals(right)
+                || registeredName.startsWith(pluginName + "-")
+                || pluginName.startsWith(registeredName + "-");
+    }
+
+    static String canonicalPluginName(String name) {
+        return name.replaceAll("-(?:\\d+(?:\\.\\d+)*).*$", "");
     }
 }

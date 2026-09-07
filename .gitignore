@@ -10,6 +10,9 @@ hs_err_pid*
 # Plugin JARs copied by the terp.core build
 terp/plugins/*.jar
 
+# Vendor JDBC drivers dropped in by the operator
+terp/lib/*.jar
+
 # Local Hibernate config (use hibernate.properties.example)
 terp/etc/hibernate.properties
 
