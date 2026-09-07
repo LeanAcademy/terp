@@ -36,7 +36,7 @@ public final class User implements IUser {
     private boolean authenticated;
     private boolean administrator;
     private IEmployee employee;
-    private EmployeeDaoImpl employeeDao; 
+    private final EmployeeDaoImpl employeeDao; 
     private Object password;
     
     public User(){

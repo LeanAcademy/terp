@@ -34,7 +34,7 @@ import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 
 @Entity
-@Table(name="kullanici", catalog="terp", 
+@Table(name="kullanici", catalog="terp", schema="terp",
         uniqueConstraints = {
             @UniqueConstraint(name="ix_kullanici", columnNames="kullanici_adi")
         }

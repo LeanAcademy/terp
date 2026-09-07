@@ -37,7 +37,7 @@ public class TerpClassLoader {
     }//end method
     
     public static void addFile(File f) throws IOException {
-        addURL(f.toURL());
+        addURL(f.toURI().toURL());
     }//end method
     
     public static void addURL(URL u) throws IOException {
@@ -48,7 +48,7 @@ public class TerpClassLoader {
             throw new IOException("Error, file not found");
         }
         
-        URLClassLoader sysloader = (URLClassLoader) ClassLoader.getSystemClassLoader();
+        URLClassLoader sysloader = new URLClassLoader(new URL[]{u});
         Class sysclass = URLClassLoader.class;
 
         try {
@@ -60,7 +60,6 @@ public class TerpClassLoader {
                 | IllegalAccessException 
                 | IllegalArgumentException 
                 | InvocationTargetException t) {
-           t.printStackTrace();
            throw new IOException("Error, could not add URL to system classloader");
         }
 

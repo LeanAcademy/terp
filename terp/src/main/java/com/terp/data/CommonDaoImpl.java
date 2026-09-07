@@ -18,11 +18,12 @@ package com.terp.data;
 
 import com.terp.plugin.data.ICommonDao;
 import com.terp.util.HibernateUtil;
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.hibernate.Criteria;
-import org.hibernate.Query;
+import javax.persistence.criteria.CriteriaQuery;
+import org.hibernate.query.Query;
 import org.hibernate.Session;
 
 /**
@@ -43,7 +44,7 @@ public class CommonDaoImpl<T> implements ICommonDao<T>{
     
     /**
      * find all records 
-     * @return 
+     * @return list
      */
     @Override
     public List<T> findAll(){
@@ -60,7 +61,10 @@ public class CommonDaoImpl<T> implements ICommonDao<T>{
         session.getTransaction().begin();
         
         // get all rows
-        List<T> list = session.createCriteria(this.instance).list();
+        //List<T> list = session.createCriteria(this.instance).list();
+        CriteriaQuery<T> criteriaQuery = session.getCriteriaBuilder().createQuery(this.instance);
+        criteriaQuery.from(this.instance);
+        List<T> list = session.createQuery(criteriaQuery).getResultList();
         
         // commint transaction
         session.getTransaction().commit();
@@ -119,10 +123,13 @@ public class CommonDaoImpl<T> implements ICommonDao<T>{
         session.getTransaction().begin();
         
         // find by page num
-        Criteria query = session.createCriteria(this.instance);
-        query.setFirstResult(pageNum-1);
-        query.setMaxResults(rowsPerPage);
-        List<T> list = query.list();
+        CriteriaQuery<T> criteriaQuery = session.getCriteriaBuilder().createQuery(this.instance);
+        criteriaQuery.from(this.instance);
+
+        List<T> list = session.createQuery(criteriaQuery)
+                .setFirstResult(pageNum-1)
+                .setMaxResults(rowsPerPage)
+                .getResultList();
         
         // commint transaction
         session.getTransaction().commit();
@@ -323,8 +330,13 @@ public class CommonDaoImpl<T> implements ICommonDao<T>{
     public T getEmpty() {
         
         try {
-            return this.instance.newInstance();
-        } catch (InstantiationException | IllegalAccessException ex) {
+            return (T)((Class<T>)this.instance.getDeclaredConstructor().newInstance());
+        } catch (InstantiationException 
+                | IllegalAccessException 
+                | NoSuchMethodException 
+                | SecurityException 
+                | IllegalArgumentException 
+                | InvocationTargetException ex) {
             Logger.getLogger(CommonDaoImpl.class.getName()).log(Level.SEVERE, null, ex);
         }
         

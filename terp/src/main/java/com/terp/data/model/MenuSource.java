@@ -28,7 +28,7 @@ import javax.persistence.UniqueConstraint;
  * @author cevdet
  */
 @Entity
-@Table(name="menu", catalog="terp",
+@Table(name="menu", catalog="terp", schema="terp",
         uniqueConstraints = {
             @UniqueConstraint(name = "ix_menu", 
                     columnNames = {"menu_kodu"})

@@ -28,7 +28,7 @@ import javax.persistence.Table;
  * @author cevdet
  */
 @Entity
-@Table(name="sehirler", catalog="terp")
+@Table(name="sehirler", catalog="terp", schema="terp")
 public class Regions implements Serializable, IRegions {
 
     @Id

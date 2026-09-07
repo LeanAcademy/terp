@@ -30,7 +30,7 @@ import javax.persistence.UniqueConstraint;
  * @author ilknur
  */
 @Entity
-@Table(name = "malzeme", catalog="terp",
+@Table(name = "malzeme", catalog="terp", schema="terp",
         uniqueConstraints = {
             @UniqueConstraint(name = "ix_malzeme", columnNames="mlz_kodu")
         }

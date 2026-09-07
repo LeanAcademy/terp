@@ -224,7 +224,7 @@ public class TerpMainFormController implements Initializable,
         }
     };
     
-    private final ChangeListener<Number> splitDividerPostionListener 
+    private final ChangeListener<Number> splitDividerPositionListener 
             = new ChangeListener<Number>(){
         @Override
         public void changed(ObservableValue<? extends Number> observable, 
@@ -407,7 +407,7 @@ public class TerpMainFormController implements Initializable,
         this.apMainFrame.widthProperty().addListener(this.paneWidthChangeListener);
         this.txtSearchMenuItem.textProperty().addListener(txtSearchChangeListener);
         this.spMainPane.getDividers().get(0).positionProperty()
-                .addListener(splitDividerPostionListener);
+                .addListener(splitDividerPositionListener);
 
         // setting desktop manager to give plugins access
         terpApp.setDesktop(this);

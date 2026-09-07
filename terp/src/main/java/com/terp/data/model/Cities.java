@@ -28,7 +28,7 @@ import javax.persistence.Table;
  * @author cevdet
  */
 @Entity
-@Table(name="ilceler", catalog="terp")
+@Table(name="ilceler", catalog="terp", schema="terp")
 public class Cities implements Serializable, ICities {
 
     @Id
