@@ -37,9 +37,18 @@ public class TerpApplication {
     private IPluginFactory pluginFactory;
     private IDatabaseFactory databaseFactory;
     private IIconFactory iconFactory;
+    private ClassLoader loader;
     
     private TerpApplication(){
         
+    }
+    
+    public ClassLoader getClassLoader(){
+        return loader;
+    }
+    
+    public void setClassLoader(ClassLoader loader){
+        this.loader = loader;
     }
     
     /**

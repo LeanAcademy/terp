@@ -18,7 +18,6 @@
 
 package com.terp.plugin.gui;
 
-import java.util.Properties;
 import javafx.scene.Node;
 import javafx.stage.Stage;
 

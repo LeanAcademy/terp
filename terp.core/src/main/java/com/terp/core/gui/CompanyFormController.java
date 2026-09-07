@@ -18,6 +18,7 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -26,7 +27,10 @@ import javafx.fxml.Initializable;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Pagination;
 import javafx.scene.control.TableColumn;
@@ -209,22 +213,85 @@ public class CompanyFormController implements Initializable {
             Scene scene = new Scene((Parent)node);
             Stage stage = new Stage();
             stage.initModality(Modality.WINDOW_MODAL);
-            stage.initOwner(TerpApplication.getInstance().getDesktopManager().getPrimaryStage());
+            stage.initOwner(TerpApplication.getInstance()
+                    .getDesktopManager().getPrimaryStage());
             stage.setScene(scene);
             stage.showAndWait();
         }catch(IOException e){
             LOG.log(Level.SEVERE,null,e);
+            
+            // TODO : implement alert
         }
     }
 
     @FXML
     public void onActionBtnEdit(ActionEvent event) {
-        // TODO : implement action event for edit
+        
+        // check if there is selected row
+        if(this.tblvCompanyView.getSelectionModel().getSelectedItem() == null){
+            // TODO : alert about not selection
+            return;
+        }
+        
+        // get selected row as company
+        ICompany currentCompany;
+        currentCompany = this.tblvCompanyView.getSelectionModel().getSelectedItem();
+
+        // open edit form
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource(
+                    "/fxml/EditCompanyForm.fxml"));
+            Node node = loader.load();
+            Scene scene = new Scene((Parent)node);
+            Stage stage = new Stage();
+            stage.initModality(Modality.WINDOW_MODAL);
+            stage.initOwner(TerpApplication.getInstance()
+                    .getDesktopManager().getPrimaryStage());
+            stage.setScene(scene);
+            
+            // set transfer data
+            EditCompanyFormController controller = loader.getController();
+            controller.initializeForm(currentCompany);
+            
+            // show form
+            stage.showAndWait();
+            
+        }catch(IOException e){
+            LOG.log(Level.SEVERE,null,e);
+            // TODO : implement alert
+        }
     }
 
     @FXML
     public void onActionBtnDelete(ActionEvent event) {
-        // TODO : implement action event for delete
+        // get selected item
+        ICompany selectedCompany = this.tblvCompanyView.getSelectionModel()
+                .getSelectedItem();
+        
+        if(selectedCompany == null){
+            // TODO : alert
+            return;
+        }
+        
+        // get confirmation from user
+        Alert alert = new Alert(AlertType.CONFIRMATION, 
+                "Delete selected record : " 
+                        + selectedCompany.getCompanyName());
+        alert.showAndWait().ifPresent(response -> {
+            if (response == ButtonType.YES) {
+
+            }
+
+            // delete from database
+            try {
+                this.companyDao.delete(selectedCompany.getRowId());
+                this.companyViewUpdate();
+            } catch (Exception e) {
+                LOG.log(Level.SEVERE, null, e);
+
+                // TODO : implement alert
+            }
+        });
     }
     
 
@@ -292,6 +359,13 @@ public class CompanyFormController implements Initializable {
 
         //set page count
         this.pgnCompanyData.setPageCount(this.getPageCount());
+        
+        // set listener for selection change of table
+        this.tblvCompanyView.getSelectionModel()
+                .getSelectedItems().addListener(this::selectionChanged);
+        
+        // update buttons
+        this.updateButtons(true, true);
     }
 
     private void companyViewUpdate() {
@@ -370,5 +444,28 @@ public class CompanyFormController implements Initializable {
     public long getRecordCount() {
         assert (this.companyDao != null) : "Database connection not setup";
         return this.companyDao.getRecordCount();
+    }
+    
+    /**
+     * change menu buttons according to table selections
+     * @param change 
+     */
+    private void selectionChanged(Change<? extends ICompany> change){
+        if(change.getList().size() > 0){
+            // set edit and delete button
+            this.updateButtons(this.btnEdit.disableProperty().getValue(), false);
+            if(change.getList().size() == 1){
+                this.updateButtons(false, this.btnDelete.disableProperty().getValue());
+            } else {
+                this.updateButtons(true, this.btnDelete.disableProperty().getValue());
+            }
+        } else {
+            this.updateButtons(true, true);
+        }
+    }
+    
+    private void updateButtons(boolean edit, boolean delete){
+        this.btnDelete.setDisable(delete);
+        this.btnEdit.setDisable(edit);
     }
 }

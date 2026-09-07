@@ -28,6 +28,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.ResourceBundle;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
@@ -111,10 +113,17 @@ public class AddCompanyFormController implements Initializable {
     // Company data access object
     ICompanyDao companyDao;
     
+    // field validation support
+    ValidationSupport validationSupport;
+    
     // email regex
     private static final String EMAIL_REGEX = "^[_A-Za-z0-9-]+(\\.[_A-Za-z0-9-]"
             + "+)*@[A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)*(\\.[A-Za-z]{2,})$";
     
+    /**
+     * Cancel button click action handler
+     * close dialog and clear all data
+     */
     @FXML
     private void onActionBtnCancel(){
         //unload form and exit
@@ -122,9 +131,22 @@ public class AddCompanyFormController implements Initializable {
         stage.close();
     }
     
+    /**
+     * Submit button click action handler
+     * 
+     * Validate data and save them into database
+     */
     @FXML
     private void onActionBtnSubmit(){
         assert (this.companyDao != null) : "Database connetion not set";
+        if(this.validationSupport.isInvalid()){
+            Alert alert = new Alert(AlertType.ERROR);
+            alert.setTitle("Page error");
+            alert.setHeaderText("Form data error");
+            alert.setContentText("Form data has error. Please corect and try again");
+            alert.show();
+            return;
+        }
         
         // save and commit
         
@@ -223,24 +245,24 @@ public class AddCompanyFormController implements Initializable {
         this.lblChangedByAtDate.setText(strChangedByAtDate); 
         
         // set validation for text fields
-        ValidationSupport vs = new ValidationSupport();
-        vs.registerValidator(txtCompanyName, true, 
+        this.validationSupport = new ValidationSupport();
+        this.validationSupport.registerValidator(txtCompanyName, true, 
                 Validator.createEmptyValidator("Company name is required"));
-        vs.registerValidator(txtCompanyLongName, true, 
+        this.validationSupport.registerValidator(txtCompanyLongName, true, 
                 Validator.createEmptyValidator("Company long name is required"));
-        vs.registerValidator(txtStateTaxRegion, true, 
+        this.validationSupport.registerValidator(txtStateTaxRegion, true, 
                 Validator.createEmptyValidator("Tax region is required"));
-        vs.registerValidator(txtStateTaxId, true, 
+        this.validationSupport.registerValidator(txtStateTaxId, true, 
                 Validator.createEmptyValidator("Tax ID is required"));
-        vs.registerValidator(txtAddress, true, 
+        this.validationSupport.registerValidator(txtAddress, true, 
                 Validator.createEmptyValidator("Address is required"));
-        vs.registerValidator(txtCountry, true, 
+        this.validationSupport.registerValidator(txtCountry, true, 
                 Validator.createEmptyValidator("Country is required"));
-        vs.registerValidator(txtRegion, true, 
+        this.validationSupport.registerValidator(txtRegion, true, 
                 Validator.createEmptyValidator("Region is required"));
-        vs.registerValidator(txtCity, true, 
+        this.validationSupport.registerValidator(txtCity, true, 
                 Validator.createEmptyValidator("City is required"));
-        vs.registerValidator(txtEmail, true, 
+        this.validationSupport.registerValidator(txtEmail, true, 
                 Validator.createRegexValidator("Wrong email", EMAIL_REGEX, Severity.ERROR));
     }
 }
