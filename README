@@ -4,7 +4,7 @@ T is an open source ERP program
 To build this program:
 
 1- Checkout this repository
-2- Open with Netbeans 8.1
+2- Open with Netbeans
 3- Setup a Java DB sample database and connect to DB
 4- Change "../terp/etc/hibernate.properties" congiguration file
 5- Run terp program.
