@@ -8,6 +8,7 @@ module terp.plugin {
     requires javafx.controls;
     requires javafx.fxml;
     requires javafx.graphics;
+    requires jakarta.persistence;
     
     opens com.terp.plugin.data;
     opens com.terp.plugin.gui;

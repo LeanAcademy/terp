@@ -239,27 +239,23 @@ public class CommonDaoImpl<T> implements ICommonDao<T>{
      */
     @Override
     public T addOrUpdate(T row) {
-        
-        // get current session
         Session session = HibernateUtil.getSessionFactory().openSession();
-        
-        // check session
-        if(session == null){
+        if (session == null) {
             return null;
         }
-        
-        // begin transaction
-        session.getTransaction().begin();
-        
-        // update object
-        T obj = session.merge(row);
-        
-        
-        // commint transaction
-        session.getTransaction().commit();
-        
-        // return object
-        return obj;
+        try {
+            session.getTransaction().begin();
+            T obj = session.merge(row);
+            session.getTransaction().commit();
+            return obj;
+        } catch (RuntimeException ex) {
+            if (session.getTransaction().isActive()) {
+                session.getTransaction().rollback();
+            }
+            throw ex;
+        } finally {
+            session.close();
+        }
     }
 
     /**

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.net.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane id="AnchorPane" prefHeight="520.0" prefWidth="880.0" styleClass="mainFxmlClass" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.terp.stok.gui.WarehouseFormController">
+    <stylesheets>
+        <URL value="@../styles/itemform.css" />
+    </stylesheets>
+    <children>
+        <BorderPane AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <top>
+                <VBox BorderPane.alignment="CENTER">
+                    <children>
+                        <ToolBar prefHeight="40.0">
+                            <items>
+                                <Button fx:id="btnSearch" defaultButton="true" mnemonicParsing="false" onAction="#onActionBtnSearch" prefWidth="95.0" text="Ara" />
+                                <Button fx:id="btnAdd" mnemonicParsing="false" onAction="#onActionBtnAdd" prefWidth="95.0" text="Ekle" />
+                                <Button fx:id="btnEdit" mnemonicParsing="false" onAction="#onActionBtnEdit" prefWidth="95.0" text="Düzenle" />
+                                <Button fx:id="btnDelete" mnemonicParsing="false" onAction="#onActionBtnDelete" prefWidth="95.0" text="Sil" />
+                            </items>
+                        </ToolBar>
+                        <GridPane hgap="8.0" vgap="6.0">
+                            <padding>
+                                <Insets bottom="6.0" left="8.0" right="8.0" top="4.0" />
+                            </padding>
+                            <columnConstraints>
+                                <ColumnConstraints hgrow="SOMETIMES" prefWidth="140.0" />
+                                <ColumnConstraints hgrow="ALWAYS" prefWidth="220.0" />
+                                <ColumnConstraints prefWidth="160.0" />
+                            </columnConstraints>
+                            <children>
+                                <TextField fx:id="txtWarehouseCode" promptText="Kod" />
+                                <TextField fx:id="txtWarehouseName" promptText="Ad" GridPane.columnIndex="1" />
+                                <ComboBox fx:id="cmbSearchType" prefWidth="160.0" promptText="Tür" GridPane.columnIndex="2" />
+                            </children>
+                        </GridPane>
+                    </children>
+                </VBox>
+            </top>
+            <bottom>
+                <Pagination fx:id="pgnWarehouseData" BorderPane.alignment="CENTER" />
+            </bottom>
+            <center>
+                <TableView fx:id="tblvWarehouseView" tableMenuButtonVisible="true" BorderPane.alignment="CENTER">
+                    <columns>
+                        <TableColumn fx:id="tcWarehouseCode" prefWidth="110.0" text="Kod" />
+                        <TableColumn fx:id="tcWarehouseName" prefWidth="240.0" text="Ad" />
+                        <TableColumn fx:id="tcTypeLabel" prefWidth="120.0" text="Tür" />
+                        <TableColumn fx:id="tcCity" prefWidth="140.0" text="Şehir" />
+                        <TableColumn fx:id="tcStatusLabel" prefWidth="80.0" text="Durum" />
+                    </columns>
+                </TableView>
+            </center>
+        </BorderPane>
+    </children>
+</AnchorPane>

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.net.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane id="AnchorPane" prefHeight="520.0" prefWidth="760.0" styleClass="mainFxmlClass" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.terp.stok.gui.MovementEditFormController">
+    <stylesheets>
+        <URL value="@../styles/itemform.css" />
+    </stylesheets>
+    <children>
+        <ToolBar prefHeight="40.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <items>
+                <Button fx:id="btnSubmit" defaultButton="true" mnemonicParsing="false" onAction="#onActionBtnSubmit" text="Kaydet" />
+                <Button fx:id="btnCancel" cancelButton="true" mnemonicParsing="false" onAction="#onActionBtnCancel" text="Vazgeç" />
+            </items>
+        </ToolBar>
+        <GridPane hgap="10.0" vgap="8.0" AnchorPane.bottomAnchor="12.0" AnchorPane.leftAnchor="16.0" AnchorPane.rightAnchor="16.0" AnchorPane.topAnchor="48.0">
+            <columnConstraints>
+                <ColumnConstraints prefWidth="120.0" />
+                <ColumnConstraints hgrow="ALWAYS" />
+                <ColumnConstraints prefWidth="120.0" />
+                <ColumnConstraints hgrow="ALWAYS" />
+            </columnConstraints>
+            <padding>
+                <Insets bottom="8.0" top="8.0" />
+            </padding>
+            <children>
+                <Label text="Tarih" />
+                <DatePicker fx:id="dtMovementDate" maxWidth="Infinity" GridPane.columnIndex="1" />
+                <Label text="Tür" GridPane.columnIndex="2" />
+                <ComboBox fx:id="cmbMovementType" maxWidth="Infinity" GridPane.columnIndex="3" />
+                <Label text="Depo" GridPane.rowIndex="1" />
+                <ComboBox fx:id="cmbWarehouse" editable="true" maxWidth="Infinity" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                <Label text="Hedef depo" GridPane.columnIndex="2" GridPane.rowIndex="1" />
+                <ComboBox fx:id="cmbTargetWarehouse" editable="true" maxWidth="Infinity" GridPane.columnIndex="3" GridPane.rowIndex="1" />
+                <Label text="Malzeme" GridPane.rowIndex="2" />
+                <ComboBox fx:id="cmbItem" editable="true" maxWidth="Infinity" GridPane.columnIndex="1" GridPane.columnSpan="3" GridPane.rowIndex="2" />
+                <Label text="Miktar" GridPane.rowIndex="3" />
+                <TextField fx:id="txtQuantity" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                <Label text="Birim" GridPane.columnIndex="2" GridPane.rowIndex="3" />
+                <TextField fx:id="txtItemUnit" GridPane.columnIndex="3" GridPane.rowIndex="3" />
+                <Label text="Birim fiyat" GridPane.rowIndex="4" />
+                <TextField fx:id="txtUnitPrice" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+                <Label text="Cari" GridPane.columnIndex="2" GridPane.rowIndex="4" />
+                <ComboBox fx:id="cmbAccount" editable="true" maxWidth="Infinity" GridPane.columnIndex="3" GridPane.rowIndex="4" />
+                <Label text="Belge no" GridPane.rowIndex="5" />
+                <TextField fx:id="txtDocumentNo" GridPane.columnIndex="1" GridPane.rowIndex="5" />
+                <Label text="Lot no" GridPane.columnIndex="2" GridPane.rowIndex="5" />
+                <TextField fx:id="txtLotNo" GridPane.columnIndex="3" GridPane.rowIndex="5" />
+                <Label text="Seri no" GridPane.rowIndex="6" />
+                <TextField fx:id="txtSerialNo" GridPane.columnIndex="1" GridPane.rowIndex="6" />
+                <Label text="Notlar" GridPane.rowIndex="7" />
+                <TextArea fx:id="txtNotes" prefHeight="80.0" wrapText="true" GridPane.columnIndex="1" GridPane.columnSpan="3" GridPane.rowIndex="7" />
+            </children>
+        </GridPane>
+    </children>
+</AnchorPane>

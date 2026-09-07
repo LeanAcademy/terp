@@ -18,14 +18,19 @@
 package com.terp.core.plugin;
 
 import java.util.logging.Logger;
+import com.terp.core.data.Branch;
+import com.terp.core.data.Company;
 import com.terp.plugin.TerpApplication;
 import com.terp.plugin.gui.IDesktopManager;
+import com.terp.plugin.gui.IIconFactory;
 import com.terp.plugin.gui.IMenuManager;
 import com.terp.plugin.IPlugin;
 import java.io.IOException;
+import java.util.List;
 import java.util.logging.Level;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
+import javafx.scene.control.Button;
 
 /**
  *
@@ -58,8 +63,7 @@ public class Plugin implements IPlugin{
         
         // set menu manager
         this.menuManager = this.app.getMenuManager();
-
-        // load related menu
+        addProgramTool("Firma", "BUILDING", "CompanyForm");
         
     }
 
@@ -92,6 +96,11 @@ public class Plugin implements IPlugin{
     public boolean isInstalled() {
         return true;
     }
+
+    @Override
+    public List<Class<?>> getPersistentClasses() {
+        return List.of(Company.class, Branch.class);
+    }
     
     @Override
     public void loadProgram(String program) {
@@ -112,6 +121,25 @@ public class Plugin implements IPlugin{
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, null, ex);
         }
+    }
+
+    private void addProgramTool(String text, String iconName, String program) {
+        if (this.menuManager == null) {
+            return;
+        }
+        Button button = new Button(text);
+        button.setPrefHeight(24);
+        button.setMnemonicParsing(false);
+        IIconFactory icons = this.app.getIconFactory();
+        if (icons != null && iconName != null) {
+            try {
+                button.setGraphic(icons.getIcon(iconName));
+            } catch (RuntimeException ignored) {
+                // keep text-only if the glyph name is unknown
+            }
+        }
+        button.setOnAction(event -> loadProgram(program));
+        this.menuManager.addToolKit(button);
     }
     
     //logger

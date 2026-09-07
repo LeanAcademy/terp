@@ -18,7 +18,9 @@
 
 package com.terp.plugin;
 
+import com.terp.plugin.data.IAccountLookup;
 import com.terp.plugin.data.IDatabaseFactory;
+import com.terp.plugin.data.IPersistence;
 import com.terp.plugin.gui.IDesktopManager;
 import com.terp.plugin.gui.IMenuManager;
 import com.terp.plugin.gui.IIconFactory;
@@ -36,6 +38,8 @@ public class TerpApplication {
     private IStatusbarManager statusbar;
     private IPluginFactory pluginFactory;
     private IDatabaseFactory databaseFactory;
+    private IPersistence persistence;
+    private IAccountLookup accountLookup;
     private IIconFactory iconFactory;
     private ClassLoader loader;
     
@@ -133,6 +137,22 @@ public class TerpApplication {
 
     public void setDatabaseFactory(IDatabaseFactory databaseFactory) {
         this.databaseFactory = databaseFactory;
+    }
+
+    public IPersistence getPersistence() {
+        return persistence;
+    }
+
+    public void setPersistence(IPersistence persistence) {
+        this.persistence = persistence;
+    }
+
+    public IAccountLookup getAccountLookup() {
+        return accountLookup;
+    }
+
+    public void setAccountLookup(IAccountLookup accountLookup) {
+        this.accountLookup = accountLookup;
     }
 
     public IIconFactory getIconFactory() {

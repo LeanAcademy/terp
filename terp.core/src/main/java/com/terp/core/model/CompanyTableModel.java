@@ -18,7 +18,6 @@ package com.terp.core.model;
 
 import com.terp.plugin.TerpApplication;
 import com.terp.plugin.data.dao.ICitiesDao;
-import com.terp.plugin.data.dao.ICompanyDao;
 import com.terp.plugin.data.dao.ICountriesDao;
 import com.terp.plugin.data.dao.IRegionsDao;
 import com.terp.plugin.data.model.ICities;
@@ -35,8 +34,6 @@ import com.terp.plugin.data.model.ICountry;
  */
 public class CompanyTableModel {
     
-    private final ICompanyDao companyDao;
-    
     private final  ICountriesDao countriesDao;
     
     private IRegionsDao regionsDao;
@@ -44,9 +41,6 @@ public class CompanyTableModel {
     private ICitiesDao citiesDao;
     
     public CompanyTableModel(){
-        
-        this.companyDao = TerpApplication.getInstance()
-                .getDatabaseFactory().getCompanyDao();
         this.countriesDao = TerpApplication.getInstance()
                 .getDatabaseFactory().getCountriesDao();
     }

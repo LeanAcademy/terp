@@ -15,9 +15,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.terp.data.model;
+package com.terp.core.data;
 
-import com.terp.data.CommonFields;
+import com.terp.plugin.data.CommonFields;
 import com.terp.plugin.data.model.ICompany;
 import java.io.Serializable;
 import jakarta.persistence.Column;

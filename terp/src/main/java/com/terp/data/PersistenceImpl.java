@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 Your Organisation
+ * Copyright (C) 2026 LeanAcademy
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -12,21 +12,23 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
-package com.terp.data.dao;
+package com.terp.data;
 
-import com.terp.data.CommonDaoImpl;
-import com.terp.data.model.Branch;
-import com.terp.plugin.data.dao.IBranchDao;
-import com.terp.plugin.data.model.IBranch;
+import com.terp.plugin.data.ICommonDao;
+import com.terp.plugin.data.IPersistence;
 
 /**
- *
- * @author cevdet
+ * Host implementation of plugin-owned DAO creation.
  */
-public class BranchDaoImpl extends CommonDaoImpl<IBranch> implements IBranchDao {
-    public BranchDaoImpl(){
-        super(Branch.class);
+public class PersistenceImpl implements IPersistence {
+
+    @Override
+    public <T> ICommonDao<T> createDao(Class<? extends T> entityType) {
+        if (entityType == null) {
+            throw new IllegalArgumentException("entityType is required");
+        }
+        return new CommonDaoImpl<>(entityType);
     }
 }

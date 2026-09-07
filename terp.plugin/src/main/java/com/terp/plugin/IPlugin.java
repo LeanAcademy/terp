@@ -71,4 +71,20 @@ public interface IPlugin {
      * @param program 
      */
     public void loadProgram(String program);
+
+    /**
+     * Hibernate entity classes owned by this plugin. Host entities stay in the
+     * host module; return an empty list if the plugin has none.
+     */
+    default java.util.List<Class<?>> getPersistentClasses() {
+        return java.util.List.of();
+    }
+
+    /**
+     * Menu folders and programs owned by this plugin. The host inserts missing
+     * {@code menu} rows before {@link #run()}.
+     */
+    default java.util.List<PluginMenu> getMenus() {
+        return java.util.List.of();
+    }
 }

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.net.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane id="AnchorPane" prefHeight="520.0" prefWidth="920.0" styleClass="mainFxmlClass" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.terp.stok.gui.ItemFormController">
+    <stylesheets>
+        <URL value="@../styles/itemform.css" />
+    </stylesheets>
+    <children>
+        <BorderPane AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <top>
+                <VBox BorderPane.alignment="CENTER">
+                    <children>
+                        <ToolBar prefHeight="40.0">
+                            <items>
+                                <Button fx:id="btnSearch" defaultButton="true" mnemonicParsing="false" onAction="#onActionBtnSearch" prefWidth="95.0" text="Ara" />
+                                <Button fx:id="btnAdd" mnemonicParsing="false" onAction="#onActionBtnAdd" prefWidth="95.0" text="Ekle" />
+                                <Button fx:id="btnEdit" mnemonicParsing="false" onAction="#onActionBtnEdit" prefWidth="95.0" text="Düzenle" />
+                                <Button fx:id="btnDelete" mnemonicParsing="false" onAction="#onActionBtnDelete" prefWidth="95.0" text="Sil" />
+                            </items>
+                        </ToolBar>
+                        <GridPane hgap="8.0" vgap="6.0">
+                            <padding>
+                                <Insets bottom="6.0" left="8.0" right="8.0" top="4.0" />
+                            </padding>
+                            <columnConstraints>
+                                <ColumnConstraints hgrow="SOMETIMES" prefWidth="140.0" />
+                                <ColumnConstraints hgrow="SOMETIMES" prefWidth="220.0" />
+                                <ColumnConstraints hgrow="SOMETIMES" prefWidth="140.0" />
+                                <ColumnConstraints hgrow="SOMETIMES" prefWidth="160.0" />
+                                <ColumnConstraints hgrow="SOMETIMES" prefWidth="140.0" />
+                            </columnConstraints>
+                            <children>
+                                <TextField fx:id="txtItemId" promptText="Kod" />
+                                <TextField fx:id="txtItemDesc" promptText="Tanım" GridPane.columnIndex="1" />
+                                <TextField fx:id="txtItemGroup" promptText="Grup" GridPane.columnIndex="2" />
+                                <TextField fx:id="txtBarcode" promptText="Barkod" GridPane.columnIndex="3" />
+                                <ComboBox fx:id="cmbSearchType" prefWidth="140.0" promptText="Tür" GridPane.columnIndex="4" />
+                            </children>
+                        </GridPane>
+                    </children>
+                </VBox>
+            </top>
+            <bottom>
+                <Pagination fx:id="pgnItemData" BorderPane.alignment="CENTER" />
+            </bottom>
+            <center>
+                <TableView fx:id="tblvItemView" tableMenuButtonVisible="true" BorderPane.alignment="CENTER">
+                    <columns>
+                        <TableColumn fx:id="tcItemId" prefWidth="110.0" text="Kod" />
+                        <TableColumn fx:id="tcItemDesc" prefWidth="200.0" text="Tanım" />
+                        <TableColumn fx:id="tcTypeLabel" prefWidth="100.0" text="Tür" />
+                        <TableColumn fx:id="tcItemGroup" prefWidth="100.0" text="Grup" />
+                        <TableColumn fx:id="tcItemUnit" prefWidth="70.0" text="Birim" />
+                        <TableColumn fx:id="tcBarcode" prefWidth="120.0" text="Barkod" />
+                        <TableColumn fx:id="tcVatRate" prefWidth="60.0" text="KDV" />
+                        <TableColumn fx:id="tcSalesPrice" prefWidth="90.0" text="Satış" />
+                        <TableColumn fx:id="tcStatusLabel" prefWidth="70.0" text="Durum" />
+                    </columns>
+                </TableView>
+            </center>
+        </BorderPane>
+    </children>
+</AnchorPane>

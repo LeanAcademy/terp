@@ -13,6 +13,9 @@ terp/plugins/*.jar
 # Vendor JDBC drivers dropped in by the operator
 terp/lib/*.jar
 
+# JDBC JARs do not belong under etc/ (config + embedded DB only)
+terp/etc/*.jar
+
 # Local Hibernate config (use hibernate.properties.example)
 terp/etc/hibernate.properties
 

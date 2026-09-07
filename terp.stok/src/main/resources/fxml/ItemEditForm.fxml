@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.net.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane id="AnchorPane" prefHeight="680.0" prefWidth="980.0" styleClass="mainFxmlClass" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.terp.stok.gui.ItemEditFormController">
+    <stylesheets>
+        <URL value="@../styles/itemform.css" />
+    </stylesheets>
+    <children>
+        <ToolBar prefHeight="40.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <items>
+                <Button fx:id="btnSubmit" defaultButton="true" mnemonicParsing="false" onAction="#onActionBtnSubmit" text="Kaydet" />
+                <Button fx:id="btnCancel" cancelButton="true" mnemonicParsing="false" onAction="#onActionBtnCancel" text="Vazgeç" />
+            </items>
+        </ToolBar>
+        <GridPane hgap="10.0" vgap="6.0" AnchorPane.leftAnchor="16.0" AnchorPane.rightAnchor="16.0" AnchorPane.topAnchor="48.0">
+            <columnConstraints>
+                <ColumnConstraints prefWidth="90.0" />
+                <ColumnConstraints hgrow="ALWAYS" prefWidth="180.0" />
+                <ColumnConstraints prefWidth="90.0" />
+                <ColumnConstraints hgrow="ALWAYS" prefWidth="220.0" />
+                <ColumnConstraints prefWidth="80.0" />
+            </columnConstraints>
+            <children>
+                <Label text="Kod" />
+                <TextField fx:id="txtItemId" GridPane.columnIndex="1" />
+                <Label text="Tanım" GridPane.columnIndex="2" />
+                <TextField fx:id="txtItemDesc" GridPane.columnIndex="3" />
+                <CheckBox fx:id="chkActive" mnemonicParsing="false" selected="true" text="Aktif" GridPane.columnIndex="4" />
+            </children>
+        </GridPane>
+        <TabPane tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="8.0" AnchorPane.leftAnchor="8.0" AnchorPane.rightAnchor="8.0" AnchorPane.topAnchor="90.0">
+            <tabs>
+                <Tab text="Genel">
+                    <content>
+                        <GridPane hgap="10.0" vgap="8.0">
+                            <padding>
+                                <Insets bottom="12.0" left="12.0" right="12.0" top="12.0" />
+                            </padding>
+                            <columnConstraints>
+                                <ColumnConstraints prefWidth="130.0" />
+                                <ColumnConstraints hgrow="ALWAYS" />
+                                <ColumnConstraints prefWidth="130.0" />
+                                <ColumnConstraints hgrow="ALWAYS" />
+                            </columnConstraints>
+                            <children>
+                                <Label text="Uzun tanım" />
+                                <TextField fx:id="txtLongDesc" GridPane.columnIndex="1" GridPane.columnSpan="3" />
+                                <Label text="Tür" GridPane.rowIndex="1" />
+                                <ComboBox fx:id="cmbItemType" maxWidth="Infinity" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                                <Label text="Grup" GridPane.columnIndex="2" GridPane.rowIndex="1" />
+                                <TextField fx:id="txtItemGroup" GridPane.columnIndex="3" GridPane.rowIndex="1" />
+                                <Label text="Sınıf" GridPane.rowIndex="2" />
+                                <TextField fx:id="txtItemClass" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                                <Label text="Marka" GridPane.columnIndex="2" GridPane.rowIndex="2" />
+                                <TextField fx:id="txtBrand" GridPane.columnIndex="3" GridPane.rowIndex="2" />
+                                <Label text="Barkod" GridPane.rowIndex="3" />
+                                <TextField fx:id="txtBarcode" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                                <Label text="GTIN" GridPane.columnIndex="2" GridPane.rowIndex="3" />
+                                <TextField fx:id="txtGtin" GridPane.columnIndex="3" GridPane.rowIndex="3" />
+                                <Label text="Menşei" GridPane.rowIndex="4" />
+                                <TextField fx:id="txtOriginCountry" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+                                <Label text="Notlar" GridPane.rowIndex="5" />
+                                <TextArea fx:id="txtNotes" prefHeight="90.0" wrapText="true" GridPane.columnIndex="1" GridPane.columnSpan="3" GridPane.rowIndex="5" />
+                            </children>
+                        </GridPane>
+                    </content>
+                </Tab>
+                <Tab text="Tedarikçi kodları">
+                    <content>
+                        <VBox spacing="8.0">
+                            <padding>
+                                <Insets bottom="12.0" left="12.0" right="12.0" top="12.0" />
+                            </padding>
+                            <children>
+                                <GridPane hgap="8.0" vgap="6.0">
+                                    <columnConstraints>
+                                        <ColumnConstraints prefWidth="70.0" />
+                                        <ColumnConstraints hgrow="ALWAYS" prefWidth="200.0" />
+                                        <ColumnConstraints prefWidth="90.0" />
+                                        <ColumnConstraints prefWidth="140.0" />
+                                        <ColumnConstraints prefWidth="90.0" />
+                                        <ColumnConstraints hgrow="ALWAYS" prefWidth="180.0" />
+                                        <ColumnConstraints prefWidth="80.0" />
+                                        <ColumnConstraints prefWidth="80.0" />
+                                    </columnConstraints>
+                                    <children>
+                                        <Label text="Cari" />
+                                        <ComboBox fx:id="cmbSupplierAccount" editable="true" maxWidth="Infinity" GridPane.columnIndex="1" />
+                                        <Label text="Stok kodu" GridPane.columnIndex="2" />
+                                        <TextField fx:id="txtSupplierItemCode" GridPane.columnIndex="3" />
+                                        <Label text="Stok adı" GridPane.columnIndex="4" />
+                                        <TextField fx:id="txtSupplierItemName" GridPane.columnIndex="5" />
+                                        <Button fx:id="btnAddSupplierCode" mnemonicParsing="false" onAction="#onActionAddSupplierCode" text="Ekle" GridPane.columnIndex="6" />
+                                        <Button fx:id="btnRemoveSupplierCode" mnemonicParsing="false" onAction="#onActionRemoveSupplierCode" text="Sil" GridPane.columnIndex="7" />
+                                    </children>
+                                </GridPane>
+                                <TableView fx:id="tblSupplierCodes" prefHeight="320.0" tableMenuButtonVisible="true" VBox.vgrow="ALWAYS">
+                                    <columns>
+                                        <TableColumn fx:id="tcSupplierAccountCode" prefWidth="120.0" text="Cari kodu" />
+                                        <TableColumn fx:id="tcSupplierAccountName" prefWidth="200.0" text="Cari unvan" />
+                                        <TableColumn fx:id="tcSupplierItemCode" prefWidth="140.0" text="Tedarikçi stok kodu" />
+                                        <TableColumn fx:id="tcSupplierItemName" prefWidth="240.0" text="Tedarikçi stok adı" />
+                                    </columns>
+                                </TableView>
+                            </children>
+                        </VBox>
+                    </content>
+                </Tab>
+                <Tab text="Müşteri kodları">
+                    <content>
+                        <VBox spacing="8.0">
+                            <padding>
+                                <Insets bottom="12.0" left="12.0" right="12.0" top="12.0" />
+                            </padding>
+                            <children>
+                                <GridPane hgap="8.0" vgap="6.0">
+                                    <columnConstraints>
+                                        <ColumnConstraints prefWidth="70.0" />
+                                        <ColumnConstraints hgrow="ALWAYS" prefWidth="200.0" />
+                                        <ColumnConstraints prefWidth="90.0" />
+                                        <ColumnConstraints prefWidth="140.0" />
+                                        <ColumnConstraints prefWidth="90.0" />
+                                        <ColumnConstraints hgrow="ALWAYS" prefWidth="180.0" />
+                                        <ColumnConstraints prefWidth="80.0" />
+                                        <ColumnConstraints prefWidth="80.0" />
+                                    </columnConstraints>
+                                    <children>
+                                        <Label text="Cari" />
+                                        <ComboBox fx:id="cmbCustomerAccount" editable="true" maxWidth="Infinity" GridPane.columnIndex="1" />
+                                        <Label text="Stok kodu" GridPane.columnIndex="2" />
+                                        <TextField fx:id="txtCustomerItemCode" GridPane.columnIndex="3" />
+                                        <Label text="Stok adı" GridPane.columnIndex="4" />
+                                        <TextField fx:id="txtCustomerItemName" GridPane.columnIndex="5" />
+                                        <Button fx:id="btnAddCustomerCode" mnemonicParsing="false" onAction="#onActionAddCustomerCode" text="Ekle" GridPane.columnIndex="6" />
+                                        <Button fx:id="btnRemoveCustomerCode" mnemonicParsing="false" onAction="#onActionRemoveCustomerCode" text="Sil" GridPane.columnIndex="7" />
+                                    </children>
+                                </GridPane>
+                                <TableView fx:id="tblCustomerCodes" prefHeight="320.0" tableMenuButtonVisible="true" VBox.vgrow="ALWAYS">
+                                    <columns>
+                                        <TableColumn fx:id="tcCustomerAccountCode" prefWidth="120.0" text="Cari kodu" />
+                                        <TableColumn fx:id="tcCustomerAccountName" prefWidth="200.0" text="Cari unvan" />
+                                        <TableColumn fx:id="tcCustomerItemCode" prefWidth="140.0" text="Müşteri stok kodu" />
+                                        <TableColumn fx:id="tcCustomerItemName" prefWidth="240.0" text="Müşteri stok adı" />
+                                    </columns>
+                                </TableView>
+                            </children>
+                        </VBox>
+                    </content>
+                </Tab>
+                <Tab text="Ölçü">
+                    <content>
+                        <GridPane hgap="10.0" vgap="8.0">
+                            <padding>
+                                <Insets bottom="12.0" left="12.0" right="12.0" top="12.0" />
+                            </padding>
+                            <columnConstraints>
+                                <ColumnConstraints prefWidth="140.0" />
+                                <ColumnConstraints hgrow="ALWAYS" />
+                                <ColumnConstraints prefWidth="140.0" />
+                                <ColumnConstraints hgrow="ALWAYS" />
+                            </columnConstraints>
+                            <children>
+                                <Label text="Ana birim" />
+                                <TextField fx:id="txtItemUnit" GridPane.columnIndex="1" />
+                                <Label text="İkinci birim" GridPane.columnIndex="2" />
+                                <TextField fx:id="txtSecondUnit" GridPane.columnIndex="3" />
+                                <Label text="Çevrim katsayısı" GridPane.rowIndex="1" />
+                                <TextField fx:id="txtUnitFactor" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                                <Label text="Ağırlık" GridPane.columnIndex="2" GridPane.rowIndex="1" />
+                                <TextField fx:id="txtWeight" GridPane.columnIndex="3" GridPane.rowIndex="1" />
+                                <Label text="Hacim" GridPane.rowIndex="2" />
+                                <TextField fx:id="txtVolume" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                                <Label text="En" GridPane.columnIndex="2" GridPane.rowIndex="2" />
+                                <TextField fx:id="txtWidth" GridPane.columnIndex="3" GridPane.rowIndex="2" />
+                                <Label text="Boy" GridPane.rowIndex="3" />
+                                <TextField fx:id="txtLength" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                                <Label text="Yükseklik" GridPane.columnIndex="2" GridPane.rowIndex="3" />
+                                <TextField fx:id="txtHeight" GridPane.columnIndex="3" GridPane.rowIndex="3" />
+                            </children>
+                        </GridPane>
+                    </content>
+                </Tab>
+                <Tab text="Stok">
+                    <content>
+                        <GridPane hgap="10.0" vgap="8.0">
+                            <padding>
+                                <Insets bottom="12.0" left="12.0" right="12.0" top="12.0" />
+                            </padding>
+                            <columnConstraints>
+                                <ColumnConstraints prefWidth="140.0" />
+                                <ColumnConstraints hgrow="ALWAYS" />
+                                <ColumnConstraints prefWidth="140.0" />
+                                <ColumnConstraints hgrow="ALWAYS" />
+                            </columnConstraints>
+                            <children>
+                                <Label text="Min. stok" />
+                                <TextField fx:id="txtMinStock" GridPane.columnIndex="1" />
+                                <Label text="Max. stok" GridPane.columnIndex="2" />
+                                <TextField fx:id="txtMaxStock" GridPane.columnIndex="3" />
+                                <Label text="Emniyet stoğu" GridPane.rowIndex="1" />
+                                <TextField fx:id="txtSafetyStock" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                                <Label text="Raf ömrü (gün)" GridPane.columnIndex="2" GridPane.rowIndex="1" />
+                                <TextField fx:id="txtShelfLifeDays" GridPane.columnIndex="3" GridPane.rowIndex="1" />
+                                <CheckBox fx:id="chkLotTracked" mnemonicParsing="false" text="Lot takibi" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                                <CheckBox fx:id="chkSerialTracked" mnemonicParsing="false" text="Seri takibi" GridPane.columnIndex="3" GridPane.rowIndex="2" />
+                            </children>
+                        </GridPane>
+                    </content>
+                </Tab>
+                <Tab text="Ticari">
+                    <content>
+                        <GridPane hgap="10.0" vgap="8.0">
+                            <padding>
+                                <Insets bottom="12.0" left="12.0" right="12.0" top="12.0" />
+                            </padding>
+                            <columnConstraints>
+                                <ColumnConstraints prefWidth="140.0" />
+                                <ColumnConstraints hgrow="ALWAYS" />
+                                <ColumnConstraints prefWidth="140.0" />
+                                <ColumnConstraints hgrow="ALWAYS" />
+                            </columnConstraints>
+                            <children>
+                                <Label text="KDV %" />
+                                <TextField fx:id="txtVatRate" GridPane.columnIndex="1" />
+                                <Label text="Para birimi" GridPane.columnIndex="2" />
+                                <TextField fx:id="txtCurrency" GridPane.columnIndex="3" />
+                                <Label text="Alış fiyatı" GridPane.rowIndex="1" />
+                                <TextField fx:id="txtPurchasePrice" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                                <Label text="Satış fiyatı" GridPane.columnIndex="2" GridPane.rowIndex="1" />
+                                <TextField fx:id="txtSalesPrice" GridPane.columnIndex="3" GridPane.rowIndex="1" />
+                            </children>
+                        </GridPane>
+                    </content>
+                </Tab>
+                <Tab text="Muhasebe">
+                    <content>
+                        <GridPane hgap="10.0" vgap="8.0">
+                            <padding>
+                                <Insets bottom="12.0" left="12.0" right="12.0" top="12.0" />
+                            </padding>
+                            <columnConstraints>
+                                <ColumnConstraints prefWidth="160.0" />
+                                <ColumnConstraints hgrow="ALWAYS" />
+                            </columnConstraints>
+                            <children>
+                                <Label text="Stok hesabı" />
+                                <TextField fx:id="txtStockAccount" GridPane.columnIndex="1" />
+                                <Label text="Alış hesabı" GridPane.rowIndex="1" />
+                                <TextField fx:id="txtPurchaseAccount" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                                <Label text="Satış hesabı" GridPane.rowIndex="2" />
+                                <TextField fx:id="txtSalesAccount" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                            </children>
+                        </GridPane>
+                    </content>
+                </Tab>
+            </tabs>
+        </TabPane>
+    </children>
+</AnchorPane>

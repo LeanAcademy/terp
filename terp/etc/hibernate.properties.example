@@ -6,8 +6,13 @@
 # (at your option) any later version.
 #
 # Copy this file to hibernate.properties and adjust as needed.
+# Layout:
+#   etc/     config + embedded database directory (etc/terp/)
+#   lib/     extra JDBC driver JARs (postgresql.jar, mysql-connector, ...)
+#   plugins/ TERP plugin JARs
 # Any database with a Java JDBC driver is supported. TERP loads:
-#   1) JDBC 4 drivers already on the module path (Derby is bundled)
+#   1) JDBC 4 drivers already on the module path (Derby is bundled by Maven;
+#      do not put derby.jar in etc/ or lib/)
 #   2) *.jar files in terp/lib/
 #   3) extra JARs listed in terp.jdbc.driver.jars (comma-separated)
 # Optional: hibernate.connection.driver_class for older drivers without SPI.

@@ -24,8 +24,9 @@ import javafx.scene.Node;
 public interface IMenuManager {
     
     /**
-     * add toolbar to main frame
-     * @param tb
+     * Add a plugin control to the main toolbar. Pass a {@link javafx.scene.control.Button}
+     * (or a {@link javafx.scene.control.ToolBar} whose items will be inserted).
+     * Call this from {@code IPlugin.run()} after the host has set the menu manager.
      */
     public void addToolKit(Node node);
     

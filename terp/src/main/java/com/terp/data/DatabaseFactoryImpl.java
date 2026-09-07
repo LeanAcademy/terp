@@ -12,19 +12,15 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 package com.terp.data;
 
-import com.terp.data.dao.BranchDaoImpl;
 import com.terp.data.dao.CitiesDaoImpl;
-import com.terp.data.dao.CompanyDaoImpl;
 import com.terp.data.dao.CountriesDaoImpl;
 import com.terp.data.dao.RegionsDaoImpl;
 import com.terp.plugin.data.IDatabaseFactory;
-import com.terp.plugin.data.dao.IBranchDao;
 import com.terp.plugin.data.dao.ICitiesDao;
-import com.terp.plugin.data.dao.ICompanyDao;
 import com.terp.plugin.data.dao.ICountriesDao;
 import com.terp.plugin.data.dao.IRegionsDao;
 
@@ -33,16 +29,6 @@ import com.terp.plugin.data.dao.IRegionsDao;
  * @author cevdet
  */
 public class DatabaseFactoryImpl implements IDatabaseFactory {
-
-    @Override
-    public ICompanyDao getCompanyDao() {
-        return new CompanyDaoImpl();
-    }
-
-    @Override
-    public IBranchDao getBranchDao() {
-        return new BranchDaoImpl();
-    }
 
     @Override
     public ICountriesDao getCountriesDao() {

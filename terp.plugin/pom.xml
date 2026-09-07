@@ -12,6 +12,10 @@
     <description>Public SPI for TERP plugins (IPlugin, desktop, menu, DAO contracts)</description>
     <dependencies>
         <dependency>
+            <groupId>jakarta.persistence</groupId>
+            <artifactId>jakarta.persistence-api</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-controls</artifactId>
         </dependency>

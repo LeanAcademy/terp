@@ -1,6 +1,6 @@
 package com.terp.data.model;
 
-import com.terp.data.CommonFields;
+import com.terp.plugin.data.CommonFields;
 
 import java.io.Serializable;
 import jakarta.persistence.Column;

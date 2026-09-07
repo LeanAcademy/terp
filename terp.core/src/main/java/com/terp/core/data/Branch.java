@@ -16,9 +16,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-package com.terp.data.model;
+package com.terp.core.data;
 
-import com.terp.data.CommonFields;
+import com.terp.plugin.data.CommonFields;
 import com.terp.plugin.data.model.IBranch;
 import com.terp.plugin.data.model.ICompany;
 import java.io.Serializable;

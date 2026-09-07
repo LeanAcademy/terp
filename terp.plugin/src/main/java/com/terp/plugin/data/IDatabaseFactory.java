@@ -12,23 +12,18 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 package com.terp.plugin.data;
 
-import com.terp.plugin.data.dao.IBranchDao;
 import com.terp.plugin.data.dao.ICitiesDao;
-import com.terp.plugin.data.dao.ICompanyDao;
 import com.terp.plugin.data.dao.ICountriesDao;
 import com.terp.plugin.data.dao.IRegionsDao;
 
 /**
- *
- * @author cevdet
+ * Host-owned lookup DAOs. Plugin tables use {@code TerpApplication.getPersistence()}.
  */
 public interface IDatabaseFactory {
-    public ICompanyDao getCompanyDao();
-    public IBranchDao getBranchDao();
     public ICountriesDao getCountriesDao();
     public IRegionsDao getRegionsDao();
     public ICitiesDao getCitiesDao();

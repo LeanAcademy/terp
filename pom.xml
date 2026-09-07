@@ -28,6 +28,8 @@
     <modules>
         <module>terp.plugin</module>
         <module>terp.core</module>
+        <module>terp.stok</module>
+        <module>terp.cari</module>
         <module>terp</module>
     </modules>
     <dependencyManagement>

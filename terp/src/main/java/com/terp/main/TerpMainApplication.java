@@ -6,12 +6,13 @@
 package com.terp.main;
 
 import com.terp.data.DatabaseFactoryImpl;
+import com.terp.data.PersistenceImpl;
 import com.terp.gui.IconFactoryImpl;
 import com.terp.gui.controllers.LoginFormController;
 import com.terp.gui.controllers.TerpMainFormController;
-import com.terp.plugin.IPluginFactory;
 import com.terp.plugin.TerpApplication;
 import com.terp.plugins.PluginFactoryImpl;
+import com.terp.util.HibernateUtil;
 import com.terp.util.TerpHome;
 import com.terp.util.TerpProperties;
 import java.io.IOException;
@@ -51,6 +52,8 @@ public class TerpMainApplication extends Application {
 
     // terp main application holder
     TerpApplication app = TerpApplication.getInstance();
+
+    private PluginFactoryImpl pluginFactory;
 
     /**
      * logger
@@ -128,14 +131,12 @@ public class TerpMainApplication extends Application {
         }
     }
 
-    /**
-     * load plugins
-     */
-    private void loadPlugins() {
-        PluginFactoryImpl pluginFactory = new PluginFactoryImpl();
-        pluginFactory.loadAllPlugin();
-        TerpApplication terpApp = TerpApplication.getInstance();
-        terpApp.setPluginFactory((IPluginFactory) pluginFactory);
+    private void scanPluginsAndInitHibernate() {
+        pluginFactory = new PluginFactoryImpl();
+        pluginFactory.scanJars();
+        app.setPluginFactory(pluginFactory);
+        app.setPersistence(new PersistenceImpl());
+        HibernateUtil.initialize(pluginFactory.persistentClasses(), pluginFactory.classLoaders());
     }
 
     /**
@@ -178,8 +179,9 @@ public class TerpMainApplication extends Application {
      */
     public void startMainGui() {
 
-        //load plugins
-        loadPlugins();
+        if (pluginFactory != null) {
+            pluginFactory.bindRegistry();
+        }
 
         //create database factory
         app.setDatabaseFactory(new DatabaseFactoryImpl());
@@ -204,6 +206,11 @@ public class TerpMainApplication extends Application {
             this.stage.setMaximized(true);
             this.stage.setTitle(APP_TITLE);
             controller.setPrimaryStage(stage);
+
+            if (pluginFactory != null) {
+                pluginFactory.runBoundPlugins();
+            }
+
             this.stage.show();
 
         } catch (IOException ex) {
@@ -226,7 +233,7 @@ public class TerpMainApplication extends Application {
 
         try {
             loadProperties();
-
+            scanPluginsAndInitHibernate();
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, null, ex);
 
@@ -235,6 +242,14 @@ public class TerpMainApplication extends Application {
             alert.setHeaderText("File \"hibernate.properties\" not found.");
             alert.setContentText("Copy terp/etc/hibernate.properties.example to "
                     + "terp/etc/hibernate.properties\n" + ex.getMessage());
+            alert.show();
+            return;
+        } catch (RuntimeException ex) {
+            LOG.log(Level.SEVERE, null, ex);
+            Alert alert = new Alert(AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText("Database or plugin startup failed");
+            alert.setContentText(ex.getMessage());
             alert.show();
             return;
         }

@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.net.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane id="AnchorPane" prefHeight="520.0" prefWidth="920.0" styleClass="mainFxmlClass" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.terp.cari.gui.AccountFormController">
+    <stylesheets>
+        <URL value="@../styles/accountform.css" />
+    </stylesheets>
+    <children>
+        <BorderPane AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <top>
+                <VBox BorderPane.alignment="CENTER">
+                    <children>
+                        <ToolBar prefHeight="40.0">
+                            <items>
+                                <Button fx:id="btnSearch" defaultButton="true" mnemonicParsing="false" onAction="#onActionBtnSearch" prefWidth="95.0" text="Ara" />
+                                <Button fx:id="btnAdd" mnemonicParsing="false" onAction="#onActionBtnAdd" prefWidth="95.0" text="Ekle" />
+                                <Button fx:id="btnEdit" mnemonicParsing="false" onAction="#onActionBtnEdit" prefWidth="95.0" text="Düzenle" />
+                                <Button fx:id="btnDelete" mnemonicParsing="false" onAction="#onActionBtnDelete" prefWidth="95.0" text="Sil" />
+                            </items>
+                        </ToolBar>
+                        <GridPane hgap="8.0" vgap="6.0">
+                            <padding>
+                                <Insets bottom="6.0" left="8.0" right="8.0" top="4.0" />
+                            </padding>
+                            <columnConstraints>
+                                <ColumnConstraints hgrow="SOMETIMES" prefWidth="140.0" />
+                                <ColumnConstraints hgrow="ALWAYS" prefWidth="220.0" />
+                                <ColumnConstraints prefWidth="160.0" />
+                                <ColumnConstraints prefWidth="140.0" />
+                            </columnConstraints>
+                            <children>
+                                <TextField fx:id="txtAccountCode" promptText="Kod" />
+                                <TextField fx:id="txtAccountName" promptText="Unvan" GridPane.columnIndex="1" />
+                                <ComboBox fx:id="cmbSearchRole" prefWidth="160.0" promptText="Rol" GridPane.columnIndex="2" />
+                                <TextField fx:id="txtTaxId" promptText="Vergi no" GridPane.columnIndex="3" />
+                            </children>
+                        </GridPane>
+                    </children>
+                </VBox>
+            </top>
+            <bottom>
+                <Pagination fx:id="pgnAccountData" BorderPane.alignment="CENTER" />
+            </bottom>
+            <center>
+                <TableView fx:id="tblvAccountView" tableMenuButtonVisible="true" BorderPane.alignment="CENTER">
+                    <columns>
+                        <TableColumn fx:id="tcAccountCode" prefWidth="110.0" text="Kod" />
+                        <TableColumn fx:id="tcAccountName" prefWidth="240.0" text="Unvan" />
+                        <TableColumn fx:id="tcRoleLabel" prefWidth="150.0" text="Rol" />
+                        <TableColumn fx:id="tcTaxId" prefWidth="110.0" text="Vergi no" />
+                        <TableColumn fx:id="tcCity" prefWidth="120.0" text="Şehir" />
+                        <TableColumn fx:id="tcStatusLabel" prefWidth="70.0" text="Durum" />
+                    </columns>
+                </TableView>
+            </center>
+        </BorderPane>
+    </children>
+</AnchorPane>

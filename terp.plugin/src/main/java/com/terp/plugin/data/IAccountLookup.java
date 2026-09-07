@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 Your Organisation
+ * Copyright (C) 2026 LeanAcademy
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -12,21 +12,22 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
-package com.terp.data.dao;
+package com.terp.plugin.data;
 
-import com.terp.data.CommonDaoImpl;
-import com.terp.data.model.Company;
-import com.terp.plugin.data.dao.ICompanyDao;
-import com.terp.plugin.data.model.ICompany;
+import com.terp.plugin.data.model.IAccount;
+import java.util.List;
 
 /**
- *
- * @author cevdet
+ * Cross-plugin lookup for current accounts. Registered by the cari plugin.
+ * Other plugins (stock, sales) must not depend on the cari entity class.
  */
-public class CompanyDaoImpl extends CommonDaoImpl<ICompany> implements ICompanyDao {
-    public CompanyDaoImpl(){
-        super(Company.class);
-    }
+public interface IAccountLookup {
+
+    List<IAccount> findActiveCustomers();
+
+    List<IAccount> findActiveSuppliers();
+
+    IAccount findByCode(String accountCode);
 }

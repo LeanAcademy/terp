@@ -28,6 +28,7 @@ import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.geometry.Orientation;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.control.SplitPane.Divider;
@@ -204,6 +205,7 @@ public class TerpMainFormController implements Initializable,
      * gui properties
      */
     private Properties props;
+    private boolean pluginToolsStarted;
     
     /**
      * Event handler for adjusting of divider position
@@ -303,8 +305,10 @@ public class TerpMainFormController implements Initializable,
         // load program related to menu
         try {
             // load fxml program
-            Node nodeProgram = FXMLLoader.load(getClass().getResource(
+            FXMLLoader loader = new FXMLLoader(getClass().getResource(
                     "/fxml/" + program + ".fxml"));
+            loader.setClassLoader(getClass().getClassLoader());
+            Node nodeProgram = loader.load();
             this.addToDesktop(nodeProgram, program);            
             
         } catch (Exception e) {
@@ -437,7 +441,43 @@ public class TerpMainFormController implements Initializable,
     
     @Override
     public void addToolKit(Node node) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        if (node == null || this.tbMainToolBar == null) {
+            return;
+        }
+        if (node instanceof ToolBar bar) {
+            for (Node item : List.copyOf(bar.getItems())) {
+                insertPluginTool(item);
+            }
+            return;
+        }
+        insertPluginTool(node);
+    }
+
+    private void insertPluginTool(Node node) {
+        if (node == null) {
+            return;
+        }
+        int insertAt = pluginInsertIndex();
+        if (!pluginToolsStarted) {
+            Separator separator = new Separator();
+            separator.setOrientation(Orientation.VERTICAL);
+            separator.setPrefHeight(24.0);
+            this.tbMainToolBar.getItems().add(insertAt, separator);
+            insertAt++;
+            pluginToolsStarted = true;
+        }
+        this.tbMainToolBar.getItems().add(insertAt, node);
+    }
+
+    /**
+     * Keep the trailing spacer (popup menu) on the right of the toolbar.
+     */
+    private int pluginInsertIndex() {
+        int size = this.tbMainToolBar.getItems().size();
+        if (size > 0 && this.tbMainToolBar.getItems().get(size - 1) instanceof AnchorPane) {
+            return size - 1;
+        }
+        return size;
     }
     
     @Override

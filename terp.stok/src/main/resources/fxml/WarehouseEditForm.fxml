@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.net.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane id="AnchorPane" prefHeight="420.0" prefWidth="640.0" styleClass="mainFxmlClass" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.terp.stok.gui.WarehouseEditFormController">
+    <stylesheets>
+        <URL value="@../styles/itemform.css" />
+    </stylesheets>
+    <children>
+        <ToolBar prefHeight="40.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <items>
+                <Button fx:id="btnSubmit" defaultButton="true" mnemonicParsing="false" onAction="#onActionBtnSubmit" text="Kaydet" />
+                <Button fx:id="btnCancel" cancelButton="true" mnemonicParsing="false" onAction="#onActionBtnCancel" text="Vazgeç" />
+            </items>
+        </ToolBar>
+        <GridPane hgap="10.0" vgap="8.0" AnchorPane.bottomAnchor="12.0" AnchorPane.leftAnchor="16.0" AnchorPane.rightAnchor="16.0" AnchorPane.topAnchor="48.0">
+            <columnConstraints>
+                <ColumnConstraints prefWidth="130.0" />
+                <ColumnConstraints hgrow="ALWAYS" />
+                <ColumnConstraints prefWidth="120.0" />
+                <ColumnConstraints hgrow="ALWAYS" />
+            </columnConstraints>
+            <padding>
+                <Insets bottom="8.0" top="8.0" />
+            </padding>
+            <children>
+                <Label text="Kod" />
+                <TextField fx:id="txtWarehouseCode" GridPane.columnIndex="1" />
+                <Label text="Ad" GridPane.columnIndex="2" />
+                <TextField fx:id="txtWarehouseName" GridPane.columnIndex="3" />
+                <Label text="Tür" GridPane.rowIndex="1" />
+                <ComboBox fx:id="cmbWarehouseType" maxWidth="Infinity" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                <CheckBox fx:id="chkActive" mnemonicParsing="false" selected="true" text="Aktif" GridPane.columnIndex="3" GridPane.rowIndex="1" />
+                <CheckBox fx:id="chkAllowNegative" mnemonicParsing="false" text="Negatif stoka izin ver" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                <Label text="Şehir" GridPane.rowIndex="3" />
+                <TextField fx:id="txtCity" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                <Label text="Adres" GridPane.rowIndex="4" />
+                <TextArea fx:id="txtAddress" prefHeight="70.0" wrapText="true" GridPane.columnIndex="1" GridPane.columnSpan="3" GridPane.rowIndex="4" />
+                <Label text="Notlar" GridPane.rowIndex="5" />
+                <TextArea fx:id="txtNotes" prefHeight="70.0" wrapText="true" GridPane.columnIndex="1" GridPane.columnSpan="3" GridPane.rowIndex="5" />
+            </children>
+        </GridPane>
+    </children>
+</AnchorPane>

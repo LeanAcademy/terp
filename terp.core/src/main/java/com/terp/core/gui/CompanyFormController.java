@@ -5,8 +5,9 @@
  */
 package com.terp.core.gui;
 
+import com.terp.core.data.Company;
 import com.terp.plugin.TerpApplication;
-import com.terp.plugin.data.dao.ICompanyDao;
+import com.terp.plugin.data.ICommonDao;
 import com.terp.plugin.data.model.ICompany;
 import com.terp.plugin.gui.IIconFactory;
 import java.io.IOException;
@@ -138,7 +139,7 @@ public class CompanyFormController implements Initializable {
     
     private long recordCount = -1;
     
-    private ICompanyDao companyDao;
+    private ICommonDao<ICompany> companyDao;
     
     private static final int DEFAULT_ROWS_PER_PAGE = 20;
     
@@ -306,7 +307,8 @@ public class CompanyFormController implements Initializable {
         // TODO      
 
         //set database access obejct for company database
-        this.companyDao = TerpApplication.getInstance().getDatabaseFactory().getCompanyDao();
+        this.companyDao = TerpApplication.getInstance()
+                .getPersistence().<ICompany>createDao(Company.class);
 
         // set button images
         // delete button

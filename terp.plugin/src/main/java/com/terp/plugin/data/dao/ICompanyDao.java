@@ -26,7 +26,8 @@ import com.terp.plugin.data.model.ICompany;
  * to use this class you have to get it from TerpApplication factory calss
  * use following code
  * TerpApplication app = TerpApplication.getInstance();
- * ICompanyDao dao = app.getDatabaseFactory().getCompanyDao();
+ * ICommonDao&lt;ICompany&gt; dao = app.getPersistence()
+ *     .createDao(com.terp.core.data.Company.class);
  * 
  * then you can use all CRUD applicaitons
  * @author cevdet

@@ -17,7 +17,7 @@
 
 package com.terp.data.model;
 
-import com.terp.data.CommonFields;
+import com.terp.plugin.data.CommonFields;
 import com.terp.plugin.data.model.IEmployee;
 import com.terp.plugin.data.model.IEmployeeGroup;
 import java.io.Serializable;

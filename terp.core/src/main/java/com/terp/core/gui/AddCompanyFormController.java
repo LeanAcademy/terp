@@ -16,11 +16,11 @@
  */
 package com.terp.core.gui;
 
+import com.terp.core.data.Company;
 import com.terp.core.model.CompanyTableModel;
 import com.terp.plugin.IUser;
 import com.terp.plugin.TerpApplication;
-import com.terp.plugin.data.IDatabaseFactory;
-import com.terp.plugin.data.dao.ICompanyDao;
+import com.terp.plugin.data.ICommonDao;
 import com.terp.plugin.data.model.ICompany;
 import java.net.URL;
 import java.time.LocalDateTime;
@@ -105,13 +105,12 @@ public class AddCompanyFormController implements Initializable {
 //</editor-fold>
     
     // Data base factory object
-    IDatabaseFactory db;
     
     // Active user
     IUser user;
     
     // Company data access object
-    ICompanyDao companyDao;
+    ICommonDao<ICompany> companyDao;
     
     // field validation support
     ValidationSupport validationSupport;
@@ -237,13 +236,9 @@ public class AddCompanyFormController implements Initializable {
         CompanyTableModel tableModel = new CompanyTableModel();
         
         // TODO : create data from database
-        this.db = TerpApplication.getInstance().getDatabaseFactory();
-        
-        // get active user
+        this.companyDao = TerpApplication.getInstance()
+                .getPersistence().<ICompany>createDao(Company.class);
         this.user = TerpApplication.getInstance().getUser();
-        
-        // get company table DAO
-        this.companyDao = this.db.getCompanyDao();
         
         // set user information
         LocalDateTime date = LocalDateTime.now();
