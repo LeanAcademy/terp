@@ -18,6 +18,9 @@ package com.terp.gui;
 
 import com.terp.data.dao.MenuSourceDao;
 import com.terp.data.model.MenuSource;
+import com.terp.plugin.IUser;
+import com.terp.plugin.TerpApplication;
+import java.util.List;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
@@ -81,7 +84,16 @@ public class MenuItem extends TreeItem<String> {
             // check if there is child to load
             String sql = "from MenuSource e where e.menuType=1 and e.menuParent=" 
                 + this.currentItem.getRowId();
-            return menuSourceDao.findAll(sql).isEmpty();
+            List<?> children = menuSourceDao.findAll(sql);
+            if (children == null || children.isEmpty()) {
+                return true;
+            }
+            for (Object row : children) {
+                if (allowed((MenuSource) row)) {
+                    return false;
+                }
+            }
+            return true;
         }
     }    
 
@@ -90,13 +102,26 @@ public class MenuItem extends TreeItem<String> {
         
         String sql = "from MenuSource e where e.menuType=1 and e.menuParent=" 
                 + this.currentItem.getRowId();
-        for(Object menuItem : menuSourceDao.findAll(sql)){
-            MenuItem subitem = new MenuItem((MenuSource)menuItem);
+        List<?> children = menuSourceDao.findAll(sql);
+        if (children == null) {
+            return;
+        }
+        for(Object menuItem : children){
+            MenuSource source = (MenuSource)menuItem;
+            if (!allowed(source)) {
+                continue;
+            }
+            MenuItem subitem = new MenuItem(source);
             
             // add to children
             super.getChildren().add(subitem);
         }
     
+    }
+
+    private static boolean allowed(MenuSource menu) {
+        IUser user = TerpApplication.getInstance().getUser();
+        return user != null && menu != null && user.canOpen(menu.getMenuId());
     }
     
 }

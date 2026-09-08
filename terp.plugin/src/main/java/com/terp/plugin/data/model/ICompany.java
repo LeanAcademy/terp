@@ -53,4 +53,16 @@ public interface ICompany extends ICommonFields{
     public void setFax(String fax);
     public String getEmail();
     public void setEmail(String email);
+
+    default String getDisplayLabel() {
+        String code = getCompanyName() == null ? "" : getCompanyName();
+        String name = getCompanyLongName() == null ? "" : getCompanyLongName();
+        if (code.isBlank()) {
+            return name;
+        }
+        if (name.isBlank() || name.equals(code)) {
+            return code;
+        }
+        return code + " — " + name;
+    }
 }

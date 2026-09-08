@@ -35,5 +35,6 @@ public interface ICommonDao<T> {
     public T addOrUpdate(T row);
     public void delete(long rowId);
     public long getRecordCount();
+    public long getRecordCount(String fromHql);
     public T getEmpty();
 }

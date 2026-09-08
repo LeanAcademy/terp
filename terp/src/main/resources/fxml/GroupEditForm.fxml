@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane id="AnchorPane" prefHeight="560.0" prefWidth="820.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.terp.gui.controllers.GroupEditFormController">
+    <children>
+        <ToolBar prefHeight="40.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <items>
+                <Button fx:id="btnSubmit" defaultButton="true" mnemonicParsing="false" onAction="#onActionBtnSubmit" text="Kaydet" />
+                <Button fx:id="btnCancel" cancelButton="true" mnemonicParsing="false" onAction="#onActionBtnCancel" text="Vazgeç" />
+            </items>
+        </ToolBar>
+        <TabPane AnchorPane.bottomAnchor="8.0" AnchorPane.leftAnchor="8.0" AnchorPane.rightAnchor="8.0" AnchorPane.topAnchor="48.0">
+            <tabs>
+                <Tab closable="false" text="Genel">
+                    <content>
+                        <GridPane hgap="10.0" vgap="8.0">
+                            <padding>
+                                <Insets bottom="12.0" left="12.0" right="12.0" top="12.0" />
+                            </padding>
+                            <columnConstraints>
+                                <ColumnConstraints prefWidth="140.0" />
+                                <ColumnConstraints hgrow="ALWAYS" />
+                            </columnConstraints>
+                            <children>
+                                <Label text="Grup adı" />
+                                <TextField fx:id="txtGroupName" GridPane.columnIndex="1" />
+                                <CheckBox fx:id="chkActive" mnemonicParsing="false" selected="true" text="Aktif" GridPane.rowIndex="1" />
+                                <CheckBox fx:id="chkSystemAdmin" mnemonicParsing="false" text="Sistem yönetimi (tüm firma ve işlemler)" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                                <Label fx:id="lblSystemHint" text="Sistem grubu şirket ve işlem kutularını kullanmaz." wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                            </children>
+                        </GridPane>
+                    </content>
+                </Tab>
+                <Tab closable="false" text="Şirketler">
+                    <content>
+                        <TableView fx:id="tblvCompanyView" editable="true">
+                            <columns>
+                                <TableColumn fx:id="tcCompanySelected" prefWidth="70.0" text="Seç" />
+                                <TableColumn fx:id="tcCompanyLabel" prefWidth="480.0" text="Firma" />
+                            </columns>
+                        </TableView>
+                    </content>
+                </Tab>
+                <Tab closable="false" text="İşlemler">
+                    <content>
+                        <TableView fx:id="tblvMenuView" editable="true">
+                            <columns>
+                                <TableColumn fx:id="tcMenuId" prefWidth="90.0" text="Kod" />
+                                <TableColumn fx:id="tcMenuTitle" prefWidth="220.0" text="İşlem" />
+                                <TableColumn fx:id="tcView" prefWidth="90.0" text="Görüntüle" />
+                                <TableColumn fx:id="tcAdd" prefWidth="70.0" text="Ekle" />
+                                <TableColumn fx:id="tcEdit" prefWidth="90.0" text="Düzenle" />
+                                <TableColumn fx:id="tcDelete" prefWidth="70.0" text="Sil" />
+                            </columns>
+                        </TableView>
+                    </content>
+                </Tab>
+            </tabs>
+        </TabPane>
+    </children>
+</AnchorPane>

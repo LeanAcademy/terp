@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.net.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane id="AnchorPane" prefHeight="620.0" prefWidth="860.0" styleClass="mainFxmlClass" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.terp.satin.gui.OrderEditFormController">
+    <stylesheets>
+        <URL value="@../styles/receiptform.css" />
+    </stylesheets>
+    <children>
+        <ToolBar prefHeight="40.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <items>
+                <Button fx:id="btnSave" mnemonicParsing="false" onAction="#onActionBtnSave" text="Taslak kaydet" />
+                <Button fx:id="btnApprove" defaultButton="true" mnemonicParsing="false" onAction="#onActionBtnApprove" text="Onayla" />
+                <Button fx:id="btnReceive" mnemonicParsing="false" onAction="#onActionBtnReceive" text="Mal kabule çevir" />
+                <Button fx:id="btnCancelPosted" mnemonicParsing="false" onAction="#onActionBtnCancelPosted" text="İptal" />
+                <Button fx:id="btnClose" cancelButton="true" mnemonicParsing="false" onAction="#onActionBtnClose" text="Kapat" />
+            </items>
+        </ToolBar>
+        <GridPane hgap="10.0" vgap="8.0" AnchorPane.leftAnchor="16.0" AnchorPane.rightAnchor="16.0" AnchorPane.topAnchor="48.0">
+            <columnConstraints>
+                <ColumnConstraints prefWidth="100.0" />
+                <ColumnConstraints hgrow="ALWAYS" />
+                <ColumnConstraints prefWidth="100.0" />
+                <ColumnConstraints hgrow="ALWAYS" />
+            </columnConstraints>
+            <children>
+                <Label text="Belge no" />
+                <TextField fx:id="txtDocumentNo" GridPane.columnIndex="1" />
+                <Label text="Tarih" GridPane.columnIndex="2" />
+                <DatePicker fx:id="dtDocumentDate" maxWidth="Infinity" GridPane.columnIndex="3" />
+                <Label text="Tedarikçi" GridPane.rowIndex="1" />
+                <ComboBox fx:id="cmbAccount" editable="true" maxWidth="Infinity" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                <Label text="Depo" GridPane.columnIndex="2" GridPane.rowIndex="1" />
+                <ComboBox fx:id="cmbWarehouse" editable="true" maxWidth="Infinity" GridPane.columnIndex="3" GridPane.rowIndex="1" />
+                <Label text="Talep" GridPane.rowIndex="2" />
+                <TextField fx:id="txtSourceRequestNo" disable="true" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                <Label text="Notlar" GridPane.rowIndex="3" />
+                <TextArea fx:id="txtNotes" prefHeight="50.0" wrapText="true" GridPane.columnIndex="1" GridPane.columnSpan="3" GridPane.rowIndex="3" />
+            </children>
+        </GridPane>
+        <HBox spacing="8.0" AnchorPane.leftAnchor="16.0" AnchorPane.rightAnchor="16.0" AnchorPane.topAnchor="230.0">
+            <children>
+                <ComboBox fx:id="cmbItem" editable="true" maxWidth="Infinity" prefWidth="260.0" promptText="Malzeme" />
+                <TextField fx:id="txtQuantity" prefWidth="90.0" promptText="Miktar" />
+                <TextField fx:id="txtUnit" prefWidth="70.0" promptText="Birim" />
+                <TextField fx:id="txtUnitPrice" prefWidth="90.0" promptText="Fiyat" />
+                <Button fx:id="btnAddLine" mnemonicParsing="false" onAction="#onActionBtnAddLine" text="Satır ekle" />
+                <Button fx:id="btnRemoveLine" mnemonicParsing="false" onAction="#onActionBtnRemoveLine" text="Satır sil" />
+            </children>
+        </HBox>
+        <TableView fx:id="tblvLines" AnchorPane.bottomAnchor="12.0" AnchorPane.leftAnchor="16.0" AnchorPane.rightAnchor="16.0" AnchorPane.topAnchor="270.0">
+            <columns>
+                <TableColumn fx:id="tcItemCode" prefWidth="110.0" text="Kod" />
+                <TableColumn fx:id="tcItemDesc" prefWidth="240.0" text="Malzeme" />
+                <TableColumn fx:id="tcItemUnit" prefWidth="70.0" text="Birim" />
+                <TableColumn fx:id="tcQuantity" prefWidth="90.0" text="Miktar" />
+                <TableColumn fx:id="tcUnitPrice" prefWidth="90.0" text="Fiyat" />
+            </columns>
+        </TableView>
+    </children>
+</AnchorPane>

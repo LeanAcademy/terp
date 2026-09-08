@@ -17,6 +17,7 @@
 package com.terp.cari.data;
 
 import com.terp.plugin.data.CommonFields;
+import com.terp.plugin.data.ICompanyScoped;
 import com.terp.plugin.data.model.IAccount;
 import java.io.Serializable;
 import jakarta.persistence.Column;
@@ -25,15 +26,18 @@ import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 
 /**
- * Current account master ({@code cari}). {@code cari_kodu} is the unique
- * customer and/or supplier code.
+ * Current account master ({@code cari}). {@code cari_kodu} is unique per company
+ * ({@code firma_ref}).
  */
 @Entity
 @Table(name = "cari", catalog = "terp", schema = "terp",
         uniqueConstraints = {
-            @UniqueConstraint(name = "ix_cari", columnNames = "cari_kodu")
+            @UniqueConstraint(name = "ix_cari_firma", columnNames = {"firma_ref", "cari_kodu"})
         })
-public class Cari extends CommonFields implements Serializable, IAccount {
+public class Cari extends CommonFields implements Serializable, IAccount, ICompanyScoped {
+
+    @Column(name = "firma_ref")
+    private Long companyId;
 
     @Column(name = "cari_kodu", nullable = false, length = 50)
     private String accountCode;
@@ -231,5 +235,15 @@ public class Cari extends CommonFields implements Serializable, IAccount {
     @Override
     public void setNotes(String notes) {
         this.notes = notes;
+    }
+
+    @Override
+    public Long getCompanyId() {
+        return companyId;
+    }
+
+    @Override
+    public void setCompanyId(Long companyId) {
+        this.companyId = companyId;
     }
 }

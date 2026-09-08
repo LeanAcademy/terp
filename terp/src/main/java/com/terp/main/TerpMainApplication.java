@@ -211,6 +211,8 @@ public class TerpMainApplication extends Application {
                 pluginFactory.runBoundPlugins();
             }
 
+            controller.applySessionContext();
+
             this.stage.show();
 
         } catch (IOException ex) {

@@ -19,8 +19,14 @@
 package com.terp.plugin;
 
 import com.terp.plugin.data.IAccountLookup;
+import com.terp.plugin.data.ICompanyLookup;
 import com.terp.plugin.data.IDatabaseFactory;
+import com.terp.plugin.data.IItemLookup;
+import com.terp.plugin.data.IMovementReasonLookup;
 import com.terp.plugin.data.IPersistence;
+import com.terp.plugin.data.IStockLedger;
+import com.terp.plugin.data.IWarehouseLookup;
+import com.terp.plugin.data.model.ICompany;
 import com.terp.plugin.gui.IDesktopManager;
 import com.terp.plugin.gui.IMenuManager;
 import com.terp.plugin.gui.IIconFactory;
@@ -40,6 +46,12 @@ public class TerpApplication {
     private IDatabaseFactory databaseFactory;
     private IPersistence persistence;
     private IAccountLookup accountLookup;
+    private ICompanyLookup companyLookup;
+    private IItemLookup itemLookup;
+    private IWarehouseLookup warehouseLookup;
+    private IMovementReasonLookup movementReasonLookup;
+    private IStockLedger stockLedger;
+    private ICompany currentCompany;
     private IIconFactory iconFactory;
     private ClassLoader loader;
     
@@ -153,6 +165,54 @@ public class TerpApplication {
 
     public void setAccountLookup(IAccountLookup accountLookup) {
         this.accountLookup = accountLookup;
+    }
+
+    public ICompanyLookup getCompanyLookup() {
+        return companyLookup;
+    }
+
+    public void setCompanyLookup(ICompanyLookup companyLookup) {
+        this.companyLookup = companyLookup;
+    }
+
+    public IItemLookup getItemLookup() {
+        return itemLookup;
+    }
+
+    public void setItemLookup(IItemLookup itemLookup) {
+        this.itemLookup = itemLookup;
+    }
+
+    public IWarehouseLookup getWarehouseLookup() {
+        return warehouseLookup;
+    }
+
+    public void setWarehouseLookup(IWarehouseLookup warehouseLookup) {
+        this.warehouseLookup = warehouseLookup;
+    }
+
+    public IMovementReasonLookup getMovementReasonLookup() {
+        return movementReasonLookup;
+    }
+
+    public void setMovementReasonLookup(IMovementReasonLookup movementReasonLookup) {
+        this.movementReasonLookup = movementReasonLookup;
+    }
+
+    public IStockLedger getStockLedger() {
+        return stockLedger;
+    }
+
+    public void setStockLedger(IStockLedger stockLedger) {
+        this.stockLedger = stockLedger;
+    }
+
+    public ICompany getCurrentCompany() {
+        return currentCompany;
+    }
+
+    public void setCurrentCompany(ICompany currentCompany) {
+        this.currentCompany = currentCompany;
     }
 
     public IIconFactory getIconFactory() {

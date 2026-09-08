@@ -16,10 +16,13 @@
  */
 package com.terp.stok.gui;
 
+import com.terp.plugin.CompanyScope;
 import com.terp.plugin.TerpApplication;
 import com.terp.plugin.data.IAccountLookup;
 import com.terp.plugin.data.ICommonDao;
+import com.terp.plugin.data.IMovementReasonLookup;
 import com.terp.plugin.data.model.IAccount;
+import com.terp.plugin.data.model.IMovementReason;
 import com.terp.stok.data.Item;
 import com.terp.stok.data.StockBalances;
 import com.terp.stok.data.StockMovement;
@@ -56,6 +59,8 @@ public class MovementEditFormController implements Initializable {
     @FXML
     private ComboBox<String> cmbMovementType;
     @FXML
+    private ComboBox<String> cmbReason;
+    @FXML
     private ComboBox<String> cmbWarehouse;
     @FXML
     private ComboBox<String> cmbTargetWarehouse;
@@ -90,6 +95,10 @@ public class MovementEditFormController implements Initializable {
     public void initializeForm(StockMovement row) {
         this.currentRow = row;
         fillLookups();
+        if (row != null && row.isDocumentPosted()) {
+            showError("Belge hareketi", "Bu satır mal kabul belgesinden geldi. Değişiklik belge üzerinden yapılır.");
+            btnSubmit.setDisable(true);
+        }
         if (row == null) {
             dtMovementDate.setValue(LocalDate.now());
             cmbMovementType.getSelectionModel().select(StockMovement.TYPE_IN);
@@ -98,6 +107,8 @@ public class MovementEditFormController implements Initializable {
         }
         dtMovementDate.setValue(toLocalDate(row.getMovementDate()));
         cmbMovementType.getSelectionModel().select(row.getMovementType());
+        fillReasons();
+        StockCombos.select(cmbReason, row.getReasonCode());
         StockCombos.select(cmbWarehouse, row.getWarehouseCode());
         StockCombos.select(cmbTargetWarehouse, row.getTargetWarehouseCode());
         StockCombos.select(cmbItem, row.getItemCode());
@@ -114,6 +125,10 @@ public class MovementEditFormController implements Initializable {
 
     @FXML
     private void onActionBtnSubmit(ActionEvent event) {
+        if (currentRow != null && currentRow.isDocumentPosted()) {
+            showError("Belge hareketi", "Bu satır mal kabul belgesinden geldi. Değişiklik belge üzerinden yapılır.");
+            return;
+        }
         if (validationSupport.isInvalid()) {
             showError("Zorunlu alanlar eksik", "Depo, malzeme ve miktar zorunludur.");
             return;
@@ -166,8 +181,15 @@ public class MovementEditFormController implements Initializable {
             }
             row.setAddedDate(now);
         }
+        if (!CompanyScope.stamp(row)) {
+            showError("Firma", "Önce araç çubuğundan çalışma firmasını seçin.");
+            return;
+        }
         row.setMovementDate(toDate(dtMovementDate.getValue()));
         row.setMovementType(typeIndex);
+        String reasonCode = StockCombos.codeOf(cmbReason);
+        row.setReasonCode(reasonCode);
+        row.setReasonName(StockCombos.nameOf(cmbReason));
         row.setWarehouseCode(warehouseCode);
         row.setWarehouseName(nameOfWarehouse(warehouseCode));
         row.setTargetWarehouseCode(targetCode);
@@ -205,6 +227,7 @@ public class MovementEditFormController implements Initializable {
         cmbMovementType.valueProperty().addListener((obs, old, value) -> {
             updateTargetEnabled();
             fillAccounts();
+            fillReasons();
         });
         cmbItem.valueProperty().addListener((obs, old, value) -> applyItem(StockCombos.codeOf(cmbItem)));
         this.validationSupport = new ValidationSupport();
@@ -213,7 +236,7 @@ public class MovementEditFormController implements Initializable {
     }
 
     private void fillLookups() {
-        List<Warehouse> warehouseRows = warehouseDao.findAll();
+        List<Warehouse> warehouseRows = warehouseDao.findAll(CompanyScope.from("Warehouse"));
         this.warehouses = warehouseRows == null ? List.of() : warehouseRows;
         List<String> warehouseLabels = new ArrayList<>();
         for (Warehouse warehouse : warehouses) {
@@ -224,7 +247,7 @@ public class MovementEditFormController implements Initializable {
         StockCombos.fill(cmbWarehouse, warehouseLabels);
         StockCombos.fill(cmbTargetWarehouse, warehouseLabels);
 
-        List<Item> itemRows = itemDao.findAll();
+        List<Item> itemRows = itemDao.findAll(CompanyScope.from("Item"));
         this.items = itemRows == null ? List.of() : itemRows;
         List<String> itemLabels = new ArrayList<>();
         for (Item item : items) {
@@ -235,6 +258,29 @@ public class MovementEditFormController implements Initializable {
         }
         StockCombos.fill(cmbItem, itemLabels);
         fillAccounts();
+        fillReasons();
+    }
+
+    private void fillReasons() {
+        List<String> labels = new ArrayList<>();
+        IMovementReasonLookup lookup = TerpApplication.getInstance().getMovementReasonLookup();
+        int type = cmbMovementType.getSelectionModel().getSelectedIndex();
+        if (type < 0) {
+            type = StockMovement.TYPE_IN;
+        }
+        if (lookup != null) {
+            List<IMovementReason> rows = lookup.findByDirection(type);
+            if (rows != null) {
+                for (IMovementReason reason : rows) {
+                    if (reason != null && reason.getDisplayLabel() != null) {
+                        labels.add(reason.getDisplayLabel());
+                    }
+                }
+            }
+        }
+        String current = StockCombos.codeOf(cmbReason);
+        StockCombos.fill(cmbReason, labels);
+        StockCombos.select(cmbReason, current);
     }
 
     private void fillAccounts() {
@@ -287,7 +333,7 @@ public class MovementEditFormController implements Initializable {
         if (warehouse != null && warehouse.isNegativeAllowed()) {
             return true;
         }
-        List<StockMovement> all = movementDao.findAll();
+        List<StockMovement> all = movementDao.findAll(CompanyScope.from("StockMovement"));
         Long exclude = currentRow == null ? null : currentRow.getRowId();
         double onHand = StockBalances.onHand(all, warehouseCode, itemCode, exclude);
         if (onHand - quantity < -0.000001) {

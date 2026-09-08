@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.net.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane id="AnchorPane" prefHeight="520.0" prefWidth="980.0" styleClass="mainFxmlClass" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.terp.satin.gui.ReceiptFormController">
+    <stylesheets>
+        <URL value="@../styles/receiptform.css" />
+    </stylesheets>
+    <children>
+        <BorderPane AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <top>
+                <VBox BorderPane.alignment="CENTER">
+                    <children>
+                        <ToolBar prefHeight="40.0">
+                            <items>
+                                <Button fx:id="btnSearch" defaultButton="true" mnemonicParsing="false" onAction="#onActionBtnSearch" prefWidth="95.0" text="Ara" />
+                                <Button fx:id="btnAdd" mnemonicParsing="false" onAction="#onActionBtnAdd" prefWidth="95.0" text="Ekle" />
+                                <Button fx:id="btnEdit" mnemonicParsing="false" onAction="#onActionBtnEdit" prefWidth="95.0" text="Düzenle" />
+                                <Button fx:id="btnDelete" mnemonicParsing="false" onAction="#onActionBtnDelete" prefWidth="95.0" text="Sil / İptal" />
+                            </items>
+                        </ToolBar>
+                        <GridPane hgap="8.0" vgap="6.0">
+                            <padding>
+                                <Insets bottom="6.0" left="8.0" right="8.0" top="4.0" />
+                            </padding>
+                            <columnConstraints>
+                                <ColumnConstraints prefWidth="140.0" />
+                                <ColumnConstraints hgrow="ALWAYS" prefWidth="180.0" />
+                                <ColumnConstraints prefWidth="160.0" />
+                            </columnConstraints>
+                            <children>
+                                <TextField fx:id="txtDocumentNo" promptText="Belge no" />
+                                <TextField fx:id="txtAccountCode" promptText="Tedarikçi" GridPane.columnIndex="1" />
+                                <ComboBox fx:id="cmbSearchStatus" prefWidth="160.0" promptText="Durum" GridPane.columnIndex="2" />
+                            </children>
+                        </GridPane>
+                    </children>
+                </VBox>
+            </top>
+            <bottom>
+                <Pagination fx:id="pgnReceiptData" BorderPane.alignment="CENTER" />
+            </bottom>
+            <center>
+                <TableView fx:id="tblvReceiptView" tableMenuButtonVisible="true" BorderPane.alignment="CENTER">
+                    <columns>
+                        <TableColumn fx:id="tcDateLabel" prefWidth="100.0" text="Tarih" />
+                        <TableColumn fx:id="tcDocumentNo" prefWidth="120.0" text="Belge" />
+                        <TableColumn fx:id="tcAccountCode" prefWidth="110.0" text="Cari" />
+                        <TableColumn fx:id="tcAccountName" prefWidth="200.0" text="Unvan" />
+                        <TableColumn fx:id="tcWarehouseCode" prefWidth="90.0" text="Depo" />
+                        <TableColumn fx:id="tcSourceOrderNo" prefWidth="110.0" text="Sipariş" />
+                        <TableColumn fx:id="tcStatusLabel" prefWidth="80.0" text="Durum" />
+                    </columns>
+                </TableView>
+            </center>
+        </BorderPane>
+    </children>
+</AnchorPane>

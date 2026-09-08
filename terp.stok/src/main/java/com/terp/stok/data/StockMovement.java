@@ -17,6 +17,7 @@
 package com.terp.stok.data;
 
 import com.terp.plugin.data.CommonFields;
+import com.terp.plugin.data.ICompanyScoped;
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -28,7 +29,7 @@ import jakarta.persistence.TemporalType;
 
 @Entity
 @Table(name = "stok_hareket", catalog = "terp", schema = "terp")
-public class StockMovement extends CommonFields implements Serializable {
+public class StockMovement extends CommonFields implements Serializable, ICompanyScoped {
 
     public static final int TYPE_IN = 0;
     public static final int TYPE_OUT = 1;
@@ -40,6 +41,9 @@ public class StockMovement extends CommonFields implements Serializable {
     public static final String[] TYPE_LABELS = {
         "Giriş", "Çıkış", "Transfer", "Sayım artış", "Sayım azalış", "Fire"
     };
+
+    @Column(name = "firma_ref")
+    private Long companyId;
 
     @Temporal(TemporalType.DATE)
     @Column(name = "hareket_tarihi")
@@ -89,6 +93,18 @@ public class StockMovement extends CommonFields implements Serializable {
 
     @Column(name = "belge_no", length = 50)
     private String documentNo;
+
+    @Column(name = "neden_kodu", length = 50)
+    private String reasonCode;
+
+    @Column(name = "neden_adi", length = 128)
+    private String reasonName;
+
+    @Column(name = "kaynak_turu", length = 50)
+    private String sourceType;
+
+    @Column(name = "kaynak_ref")
+    private Long sourceId;
 
     @Column(name = "aciklama", length = 512)
     private String notes;
@@ -270,11 +286,57 @@ public class StockMovement extends CommonFields implements Serializable {
         this.documentNo = documentNo;
     }
 
+    public String getReasonCode() {
+        return reasonCode;
+    }
+
+    public void setReasonCode(String reasonCode) {
+        this.reasonCode = reasonCode;
+    }
+
+    public String getReasonName() {
+        return reasonName;
+    }
+
+    public void setReasonName(String reasonName) {
+        this.reasonName = reasonName;
+    }
+
+    public String getSourceType() {
+        return sourceType;
+    }
+
+    public void setSourceType(String sourceType) {
+        this.sourceType = sourceType;
+    }
+
+    public Long getSourceId() {
+        return sourceId;
+    }
+
+    public void setSourceId(Long sourceId) {
+        this.sourceId = sourceId;
+    }
+
+    public boolean isDocumentPosted() {
+        return sourceType != null && !sourceType.isBlank() && sourceId != null;
+    }
+
     public String getNotes() {
         return notes;
     }
 
     public void setNotes(String notes) {
         this.notes = notes;
+    }
+
+    @Override
+    public Long getCompanyId() {
+        return companyId;
+    }
+
+    @Override
+    public void setCompanyId(Long companyId) {
+        this.companyId = companyId;
     }
 }

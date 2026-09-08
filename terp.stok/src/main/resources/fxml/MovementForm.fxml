@@ -50,6 +50,7 @@
                     <columns>
                         <TableColumn fx:id="tcDateLabel" prefWidth="100.0" text="Tarih" />
                         <TableColumn fx:id="tcTypeLabel" prefWidth="110.0" text="Tür" />
+                        <TableColumn fx:id="tcReasonName" prefWidth="140.0" text="Neden" />
                         <TableColumn fx:id="tcWarehouseCode" prefWidth="90.0" text="Depo" />
                         <TableColumn fx:id="tcTargetWarehouseCode" prefWidth="90.0" text="Hedef" />
                         <TableColumn fx:id="tcItemCode" prefWidth="110.0" text="Malzeme" />

@@ -102,6 +102,7 @@ public class PluginFactoryImpl implements IPluginFactory {
         for (IPlugin plugin : new ArrayList<>(pluginsByName.values())) {
             bind(plugin, registryByName);
         }
+        ensureHostMenus();
         bound = true;
     }
 
@@ -447,6 +448,29 @@ public class PluginFactoryImpl implements IPluginFactory {
     private static MenuSource findMenuByCode(MenuSourceDao dao, String menuId) {
         String escaped = menuId.replace("'", "''");
         return dao.firstOrDefault("from MenuSource e where e.menuId = '" + escaped + "'");
+    }
+
+    private void ensureHostMenus() {
+        MenuSourceDao dao = new MenuSourceDao();
+        MenuSource sys01 = findMenuByCode(dao, "SYS01");
+        Long parentId = sys01 == null || sys01.getRowId() == null ? 1L : sys01.getRowId();
+        MenuSource sys03 = findMenuByCode(dao, "SYS03");
+        if (sys03 != null && (sys03.getProgramName() == null || sys03.getProgramName().isBlank())) {
+            sys03.setProgramName("GroupForm");
+            sys03.setIsPlugin(0);
+            dao.addOrUpdate(sys03);
+        }
+        if (findMenuByCode(dao, "SYS05") == null) {
+            MenuSource users = new MenuSource();
+            users.setMenuId("SYS05");
+            users.setMenuName("Kullanıcılar");
+            users.setMenuType(1);
+            users.setMenuParent(parentId);
+            users.setProgramName("UserForm");
+            users.setIsPlugin(0);
+            users.setStatus(0);
+            dao.addOrUpdate(users);
+        }
     }
 
     private PluginSource persistRegistry(IPlugin plugin) {

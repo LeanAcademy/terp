@@ -135,6 +135,6 @@ public class Plugin implements IPlugin {
             }
         }
         button.setOnAction(event -> loadProgram(program));
-        this.menuManager.addToolKit(button);
+        this.menuManager.addToolKit(button, "CRI02");
     }
 }

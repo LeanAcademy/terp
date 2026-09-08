@@ -47,6 +47,9 @@ public  class EmployeeGroup extends CommonFields implements Serializable, IEmplo
     
     @Column(name="durum")
     private int status;
+
+    @Column(name="sistem")
+    private Integer systemAdmin;
     
     @OneToMany(fetch=FetchType.LAZY, mappedBy="group")
     private Set<Employee> employee;
@@ -72,7 +75,27 @@ public  class EmployeeGroup extends CommonFields implements Serializable, IEmplo
     @Override
     public void setStatus(int status){
         this.status = status;
-    }    
+    }
+
+    public int getSystemAdmin() {
+        return systemAdmin == null ? 0 : systemAdmin;
+    }
+
+    public void setSystemAdmin(int systemAdmin) {
+        this.systemAdmin = systemAdmin;
+    }
+
+    public boolean isSystemAdmin() {
+        return getSystemAdmin() != 0 || "Administrators".equals(groupName);
+    }
+
+    public String getStatusLabel() {
+        return getStatus() == 0 ? "Aktif" : "Pasif";
+    }
+
+    public String getSystemLabel() {
+        return isSystemAdmin() ? "Sistem yönetimi" : "İş grubu";
+    }
     
     public Set<Employee> getEmployee(){
         return this.employee;

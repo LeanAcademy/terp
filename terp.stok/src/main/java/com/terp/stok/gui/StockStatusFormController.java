@@ -16,6 +16,7 @@
  */
 package com.terp.stok.gui;
 
+import com.terp.plugin.CompanyScope;
 import com.terp.plugin.TerpApplication;
 import com.terp.plugin.data.ICommonDao;
 import com.terp.plugin.gui.IIconFactory;
@@ -113,7 +114,7 @@ public class StockStatusFormController implements Initializable {
     private void fillWarehouses() {
         List<String> labels = new ArrayList<>();
         labels.add(ALL_WAREHOUSES);
-        List<Warehouse> warehouses = warehouseDao.findAll();
+        List<Warehouse> warehouses = warehouseDao.findAll(CompanyScope.from("Warehouse"));
         if (warehouses != null) {
             for (Warehouse warehouse : warehouses) {
                 if (warehouse != null && warehouse.getStatus() == 0) {
@@ -126,9 +127,9 @@ public class StockStatusFormController implements Initializable {
     }
 
     private void refreshView() {
-        List<Warehouse> warehouses = warehouseDao.findAll();
-        List<Item> items = itemDao.findAll();
-        List<StockMovement> movements = movementDao.findAll();
+        List<Warehouse> warehouses = warehouseDao.findAll(CompanyScope.from("Warehouse"));
+        List<Item> items = itemDao.findAll(CompanyScope.from("Item"));
+        List<StockMovement> movements = movementDao.findAll(CompanyScope.from("StockMovement"));
         boolean onlyNonZero = chkOnlyNonZero != null && chkOnlyNonZero.isSelected();
         boolean onlyBelowMin = chkOnlyBelowMin != null && chkOnlyBelowMin.isSelected();
         List<StockBalanceRow> rows = StockBalances.report(

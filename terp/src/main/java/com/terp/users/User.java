@@ -18,59 +18,55 @@
 
 package com.terp.users;
 
+import com.terp.data.CommonDaoImpl;
 import com.terp.data.dao.EmployeeDaoImpl;
+import com.terp.data.model.EmployeeGroup;
+import com.terp.data.model.GroupCompany;
+import com.terp.data.model.GroupPermission;
+import com.terp.plugin.data.ICommonDao;
 import com.terp.plugin.data.model.IEmployee;
 import com.terp.plugin.IUser;
-
-/**
- *
- * @author ilknur
- */
-
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public final class User implements IUser {
-    
+
     private String userName;
     private long groupId;
     private boolean authenticated;
     private boolean administrator;
     private IEmployee employee;
-    private final EmployeeDaoImpl employeeDao; 
+    private final EmployeeDaoImpl employeeDao;
     private Object password;
-    
-    public User(){
+    private final Set<Long> companyIds = new HashSet<>();
+    private final Map<String, GroupPermission> menuRights = new HashMap<>();
+
+    public User() {
         this.userName = null;
         this.groupId = -1;
         this.authenticated = false;
         this.administrator = false;
-        
-        //create eployee dao
         this.employeeDao = new EmployeeDaoImpl();
-        
-    }    
-    
-    public User(String name, String pwd){
-        this.userName = null;
-        this.groupId = -1;
-        this.authenticated = false;
-        this.administrator = false;
-        
-        //create eployee dao
-        this.employeeDao = new EmployeeDaoImpl();
-        
-        //set user name and password
+    }
+
+    public User(String name, String pwd) {
+        this();
         this.userName = name;
         this.password = pwd;
     }
-    
-    public void setUsername(String name){
+
+    public void setUsername(String name) {
         this.userName = name;
     }
-    
-    public void setPassword(String pwd){
+
+    public void setPassword(String pwd) {
         this.password = pwd;
     }
-    
+
     @Override
     public String getUserName() {
         return this.userName;
@@ -87,39 +83,91 @@ public final class User implements IUser {
     }
 
     @Override
-    public boolean isAdministrator() {        
+    public boolean isAdministrator() {
         return this.administrator;
     }
 
     @Override
     public boolean isAuthorized(String menuId) {
-        //TODO  create menu authorizing system
-        return false;
+        return canOpen(menuId);
     }
 
-    /**
-     * login this user
-     */
+    @Override
+    public boolean canOpen(String menuId) {
+        if (administrator) {
+            return true;
+        }
+        if (menuId == null || menuId.isBlank()) {
+            return false;
+        }
+        GroupPermission row = menuRights.get(menuId);
+        return row != null && row.isViewAllowed();
+    }
+
+    @Override
+    public boolean canAdd(String menuId) {
+        if (administrator) {
+            return true;
+        }
+        GroupPermission row = menuRights.get(menuId);
+        return row != null && row.isAddAllowed();
+    }
+
+    @Override
+    public boolean canEdit(String menuId) {
+        if (administrator) {
+            return true;
+        }
+        GroupPermission row = menuRights.get(menuId);
+        return row != null && row.isEditAllowed();
+    }
+
+    @Override
+    public boolean canDelete(String menuId) {
+        if (administrator) {
+            return true;
+        }
+        GroupPermission row = menuRights.get(menuId);
+        return row != null && row.isDeleteAllowed();
+    }
+
+    @Override
+    public boolean hasAllCompanies() {
+        return administrator;
+    }
+
+    @Override
+    public boolean canAccessCompany(Long companyId) {
+        if (administrator) {
+            return true;
+        }
+        return companyId != null && companyIds.contains(companyId);
+    }
+
+    @Override
+    public List<Long> getAllowedCompanyIds() {
+        return new ArrayList<>(companyIds);
+    }
+
     public void login() {
-        //check if user is already logged.
-        if(this.authenticated) 
+        if (this.authenticated) {
             return;
-        
-        String sql = "from Employee e "
-                + "where e.userName = '" + this.userName + "' and "
-                + "e.type = 1";
+        }
+        String escaped = this.userName == null ? "" : this.userName.replace("'", "''");
+        String sql = "from Employee e join fetch e.group g "
+                + "where e.userName = '" + escaped + "' and e.type = 1";
         IEmployee emp = employeeDao.firstOrDefault(sql);
-        
-        if(emp == null)
+        if (emp == null || emp.getStatus() != 0) {
             return;
-        
-        if(emp.getUserName().equals(this.userName) &&
-                emp.getPassword().equals(this.password)){
-            
+        }
+        if (emp.getUserName() != null && emp.getUserName().equals(this.userName)
+                && emp.getPassword() != null && emp.getPassword().equals(this.password)) {
             this.authenticated = true;
-            this.groupId = emp.getGroup().getRowId();
-            this.administrator = (emp.getGroup().getGroupName()
-                    .equals("Administrators"));            
+            this.employee = emp;
+            EmployeeGroup group = emp.getGroup() instanceof EmployeeGroup eg ? eg : null;
+            this.groupId = group == null || group.getRowId() == null ? -1 : group.getRowId();
+            this.administrator = group != null && group.isSystemAdmin();
+            loadRights();
         } else {
             this.authenticated = false;
             this.groupId = -1;
@@ -127,13 +175,35 @@ public final class User implements IUser {
         }
     }
 
-    /**
-     * change pasword of this user
-     * @param oldPwd
-     * @param newPwd
-     * @return 
-     */
+    private void loadRights() {
+        companyIds.clear();
+        menuRights.clear();
+        if (administrator || groupId < 0) {
+            return;
+        }
+        ICommonDao<GroupCompany> companyDao = new CommonDaoImpl<>(GroupCompany.class);
+        List<GroupCompany> companies = companyDao.findAll(
+                "from GroupCompany e where e.group.rowId = " + groupId);
+        if (companies != null) {
+            for (GroupCompany row : companies) {
+                if (row != null && row.getCompanyId() != null) {
+                    companyIds.add(row.getCompanyId());
+                }
+            }
+        }
+        ICommonDao<GroupPermission> permDao = new CommonDaoImpl<>(GroupPermission.class);
+        List<GroupPermission> perms = permDao.findAll(
+                "from GroupPermission e where e.group.rowId = " + groupId);
+        if (perms != null) {
+            for (GroupPermission row : perms) {
+                if (row != null && row.getMenuId() != null) {
+                    menuRights.put(row.getMenuId(), row);
+                }
+            }
+        }
+    }
+
     public boolean changePassword(String oldPwd, String newPwd) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 }

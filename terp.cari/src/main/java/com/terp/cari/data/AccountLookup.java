@@ -16,6 +16,7 @@
  */
 package com.terp.cari.data;
 
+import com.terp.plugin.CompanyScope;
 import com.terp.plugin.data.IAccountLookup;
 import com.terp.plugin.data.ICommonDao;
 import com.terp.plugin.data.model.IAccount;
@@ -46,11 +47,12 @@ public class AccountLookup implements IAccountLookup {
             return null;
         }
         String escaped = accountCode.replace("'", "''");
-        return dao.firstOrDefault("from Cari e where e.accountCode = '" + escaped + "'");
+        return dao.firstOrDefault("from Cari e where " + CompanyScope.predicate("e")
+                + " and e.accountCode = '" + escaped + "'");
     }
 
     private List<IAccount> filter(boolean customers, boolean suppliers) {
-        List<Cari> rows = dao.findAll();
+        List<Cari> rows = dao.findAll(CompanyScope.from("Cari"));
         List<IAccount> result = new ArrayList<>();
         if (rows == null) {
             return result;

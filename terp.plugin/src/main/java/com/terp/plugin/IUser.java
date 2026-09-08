@@ -57,5 +57,32 @@ public interface IUser {
      * @return 
      */
     public boolean isAuthorized(String menuId);
-    
+
+    default boolean canOpen(String menuId) {
+        return isAdministrator() || isAuthorized(menuId);
+    }
+
+    default boolean canAdd(String menuId) {
+        return isAdministrator();
+    }
+
+    default boolean canEdit(String menuId) {
+        return isAdministrator();
+    }
+
+    default boolean canDelete(String menuId) {
+        return isAdministrator();
+    }
+
+    default boolean hasAllCompanies() {
+        return isAdministrator();
+    }
+
+    default boolean canAccessCompany(Long companyId) {
+        return isAdministrator();
+    }
+
+    default java.util.List<Long> getAllowedCompanyIds() {
+        return java.util.List.of();
+    }
 }

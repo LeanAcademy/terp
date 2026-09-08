@@ -18,6 +18,8 @@ package com.terp.util;
 
 import com.terp.data.model.Employee;
 import com.terp.data.model.EmployeeGroup;
+import com.terp.data.model.GroupCompany;
+import com.terp.data.model.GroupPermission;
 import com.terp.data.model.MenuSource;
 import com.terp.data.model.MenuTranslations;
 import com.terp.data.model.PluginSource;
@@ -86,12 +88,15 @@ public class HibernateUtil {
                     .addAnnotatedClass(PluginSource.class)
                     .addAnnotatedClass(Employee.class)
                     .addAnnotatedClass(EmployeeGroup.class)
+                    .addAnnotatedClass(GroupCompany.class)
+                    .addAnnotatedClass(GroupPermission.class)
                     .addAnnotatedClass(MenuSource.class)
                     .addAnnotatedClass(MenuTranslations.class);
 
             Set<Class<?>> host = Set.of(
                     PluginSource.class, Employee.class,
-                    EmployeeGroup.class, MenuSource.class, MenuTranslations.class);
+                    EmployeeGroup.class, GroupCompany.class, GroupPermission.class,
+                    MenuSource.class, MenuTranslations.class);
             if (extraEntities != null) {
                 Set<Class<?>> seen = new LinkedHashSet<>();
                 for (Class<?> type : extraEntities) {

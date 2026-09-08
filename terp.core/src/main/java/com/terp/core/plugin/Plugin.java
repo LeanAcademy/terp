@@ -20,6 +20,8 @@ package com.terp.core.plugin;
 import java.util.logging.Logger;
 import com.terp.core.data.Branch;
 import com.terp.core.data.Company;
+import com.terp.core.data.CompanyLookup;
+import com.terp.plugin.PluginMenu;
 import com.terp.plugin.TerpApplication;
 import com.terp.plugin.gui.IDesktopManager;
 import com.terp.plugin.gui.IIconFactory;
@@ -63,7 +65,10 @@ public class Plugin implements IPlugin{
         
         // set menu manager
         this.menuManager = this.app.getMenuManager();
-        addProgramTool("Firma", "BUILDING", "CompanyForm");
+        if (app.getPersistence() != null) {
+            app.setCompanyLookup(new CompanyLookup(app.getPersistence().createDao(Company.class)));
+        }
+        addProgramTool("Firma", "BUILDING", "CompanyForm", "FRMYS02");
         
     }
 
@@ -101,6 +106,13 @@ public class Plugin implements IPlugin{
     public List<Class<?>> getPersistentClasses() {
         return List.of(Company.class, Branch.class);
     }
+
+    @Override
+    public List<PluginMenu> getMenus() {
+        return List.of(
+                PluginMenu.folder("FRMYS01", "Firma yönetimi"),
+                PluginMenu.program("FRMYS02", "Firma tanımı", "FRMYS01", "CompanyForm"));
+    }
     
     @Override
     public void loadProgram(String program) {
@@ -123,7 +135,7 @@ public class Plugin implements IPlugin{
         }
     }
 
-    private void addProgramTool(String text, String iconName, String program) {
+    private void addProgramTool(String text, String iconName, String program, String menuId) {
         if (this.menuManager == null) {
             return;
         }
@@ -139,7 +151,7 @@ public class Plugin implements IPlugin{
             }
         }
         button.setOnAction(event -> loadProgram(program));
-        this.menuManager.addToolKit(button);
+        this.menuManager.addToolKit(button, menuId);
     }
     
     //logger

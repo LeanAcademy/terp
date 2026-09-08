@@ -19,7 +19,8 @@ module terp {
     uses java.sql.Driver;
 
     opens com.terp.main to javafx.fxml, org.controlsfx.controls;
-    opens com.terp.gui.controllers to javafx.fxml;
+    opens com.terp.gui.controllers to javafx.fxml, javafx.base;
+    opens com.terp.gui.auth to javafx.base;
     opens com.terp.data.model to org.hibernate.orm.core, javafx.base, javafx.fxml;
     opens com.terp.data to org.hibernate.orm.core, javafx.base, javafx.fxml;
     opens fxml;

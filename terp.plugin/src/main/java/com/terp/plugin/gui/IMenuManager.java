@@ -29,5 +29,11 @@ public interface IMenuManager {
      * Call this from {@code IPlugin.run()} after the host has set the menu manager.
      */
     public void addToolKit(Node node);
-    
+
+    /**
+     * Add a toolbar control only if the current user can open {@code menuId}.
+     */
+    default void addToolKit(Node node, String menuId) {
+        addToolKit(node);
+    }
 }

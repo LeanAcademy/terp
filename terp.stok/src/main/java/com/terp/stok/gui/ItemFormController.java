@@ -16,6 +16,8 @@
  */
 package com.terp.stok.gui;
 
+import com.terp.plugin.CompanyScope;
+import com.terp.plugin.FormRights;
 import com.terp.plugin.TerpApplication;
 import com.terp.plugin.data.ICommonDao;
 import com.terp.plugin.gui.IIconFactory;
@@ -102,6 +104,7 @@ public class ItemFormController implements Initializable {
     private ICommonDao<Item> itemDao;
     private ICommonDao<ItemPartnerCode> partnerCodeDao;
     private ICommonDao<StockMovement> movementDao;
+    private FormRights rights = FormRights.forMenu("STK02");
     private int rowsPerPage = DEFAULT_ROWS_PER_PAGE;
     private int currentPageNum = 1;
     private String searchSqlStatement = "";
@@ -109,7 +112,7 @@ public class ItemFormController implements Initializable {
     @FXML
     public void onActionBtnSearch(ActionEvent event) {
         StringBuilder sql = new StringBuilder("from Item e");
-        boolean whereAdded = false;
+        boolean whereAdded = CompanyScope.append(sql, false);
         whereAdded = appendLike(sql, whereAdded, "e.itemId", txtItemId.getText());
         whereAdded = appendLike(sql, whereAdded, "e.itemDesc", txtItemDesc.getText());
         whereAdded = appendLike(sql, whereAdded, "e.itemGroup", txtItemGroup.getText());
@@ -133,6 +136,12 @@ public class ItemFormController implements Initializable {
 
     @FXML
     public void onActionBtnAdd(ActionEvent event) {
+        if (!rights.add) {
+            return;
+        }
+        if (!CompanyScope.requireCompany()) {
+            return;
+        }
         openEditor(null);
     }
 
@@ -220,6 +229,8 @@ public class ItemFormController implements Initializable {
                 });
         this.tblvItemView.getSelectionModel().getSelectedItems()
                 .addListener(this::selectionChanged);
+        this.searchSqlStatement = CompanyScope.from("Item");
+        this.btnAdd.setDisable(!rights.add);
         updateButtons(true, true);
         refreshView();
     }
@@ -230,7 +241,8 @@ public class ItemFormController implements Initializable {
         }
         String escaped = itemCode.replace("'", "''");
         List<StockMovement> rows = movementDao.findAll(
-                "from StockMovement e where e.itemCode = '" + escaped + "'");
+                "from StockMovement e where " + CompanyScope.predicate("e")
+                        + " and e.itemCode = '" + escaped + "'");
         return rows != null && !rows.isEmpty();
     }
 
@@ -253,7 +265,8 @@ public class ItemFormController implements Initializable {
     }
 
     private void refreshView() {
-        long count = itemDao.getRecordCount();
+        String hql = scopedQuery();
+        long count = itemDao.getRecordCount(hql);
         int pages = (int) (count / rowsPerPage + 1);
         this.pgnItemData.setPageCount(Math.max(1, pages));
         this.tblvItemView.setItems(currentPage());
@@ -261,14 +274,15 @@ public class ItemFormController implements Initializable {
 
     private ObservableList<Item> currentPage() {
         int pageNum = Math.max(1, this.currentPageNum);
-        List<Item> rows;
-        if (searchSqlStatement != null && !searchSqlStatement.isEmpty()
-                && !"from Item e".equals(searchSqlStatement)) {
-            rows = itemDao.findPage(pageNum, rowsPerPage, searchSqlStatement);
-        } else {
-            rows = itemDao.findPage(pageNum, rowsPerPage);
-        }
+        List<Item> rows = itemDao.findPage(pageNum, rowsPerPage, scopedQuery());
         return FXCollections.observableArrayList(rows == null ? List.of() : rows);
+    }
+
+    private String scopedQuery() {
+        if (searchSqlStatement == null || searchSqlStatement.isBlank()) {
+            return CompanyScope.from("Item");
+        }
+        return searchSqlStatement;
     }
 
     private void selectionChanged(Change<? extends Item> change) {
@@ -283,8 +297,8 @@ public class ItemFormController implements Initializable {
     }
 
     private void updateButtons(boolean editDisabled, boolean deleteDisabled) {
-        this.btnEdit.setDisable(editDisabled);
-        this.btnDelete.setDisable(deleteDisabled);
+        this.btnEdit.setDisable(editDisabled || !rights.edit);
+        this.btnDelete.setDisable(deleteDisabled || !rights.delete);
     }
 
     private static boolean appendLike(StringBuilder sql, boolean whereAdded, String field, String value) {

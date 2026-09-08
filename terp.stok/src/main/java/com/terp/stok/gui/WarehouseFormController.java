@@ -16,6 +16,8 @@
  */
 package com.terp.stok.gui;
 
+import com.terp.plugin.CompanyScope;
+import com.terp.plugin.FormRights;
 import com.terp.plugin.TerpApplication;
 import com.terp.plugin.data.ICommonDao;
 import com.terp.plugin.gui.IIconFactory;
@@ -88,6 +90,7 @@ public class WarehouseFormController implements Initializable {
 
     private ICommonDao<Warehouse> warehouseDao;
     private ICommonDao<StockMovement> movementDao;
+    private FormRights rights = FormRights.forMenu("STK03");
     private int rowsPerPage = DEFAULT_ROWS_PER_PAGE;
     private int currentPageNum = 1;
     private String searchSqlStatement = "";
@@ -95,7 +98,7 @@ public class WarehouseFormController implements Initializable {
     @FXML
     public void onActionBtnSearch(ActionEvent event) {
         StringBuilder sql = new StringBuilder("from Warehouse e");
-        boolean whereAdded = false;
+        boolean whereAdded = CompanyScope.append(sql, false);
         whereAdded = appendLike(sql, whereAdded, "e.warehouseCode", txtWarehouseCode.getText());
         whereAdded = appendLike(sql, whereAdded, "e.warehouseName", txtWarehouseName.getText());
         String type = cmbSearchType.getValue();
@@ -112,6 +115,9 @@ public class WarehouseFormController implements Initializable {
 
     @FXML
     public void onActionBtnAdd(ActionEvent event) {
+        if (!CompanyScope.requireCompany()) {
+            return;
+        }
         openEditor(null);
     }
 
@@ -179,6 +185,8 @@ public class WarehouseFormController implements Initializable {
                 });
         this.tblvWarehouseView.getSelectionModel().getSelectedItems()
                 .addListener(this::selectionChanged);
+        this.searchSqlStatement = CompanyScope.from("Warehouse");
+        this.btnAdd.setDisable(!rights.add);
         updateButtons(true, true);
         refreshView();
     }
@@ -189,8 +197,9 @@ public class WarehouseFormController implements Initializable {
         }
         String escaped = warehouseCode.replace("'", "''");
         List<StockMovement> rows = movementDao.findAll(
-                "from StockMovement e where e.warehouseCode = '" + escaped
-                        + "' or e.targetWarehouseCode = '" + escaped + "'");
+                "from StockMovement e where " + CompanyScope.predicate("e")
+                        + " and (e.warehouseCode = '" + escaped
+                        + "' or e.targetWarehouseCode = '" + escaped + "')");
         return rows != null && !rows.isEmpty();
     }
 
@@ -213,7 +222,8 @@ public class WarehouseFormController implements Initializable {
     }
 
     private void refreshView() {
-        long count = warehouseDao.getRecordCount();
+        String hql = scopedQuery();
+        long count = warehouseDao.getRecordCount(hql);
         int pages = (int) (count / rowsPerPage + 1);
         this.pgnWarehouseData.setPageCount(Math.max(1, pages));
         this.tblvWarehouseView.setItems(currentPage());
@@ -221,14 +231,15 @@ public class WarehouseFormController implements Initializable {
 
     private ObservableList<Warehouse> currentPage() {
         int pageNum = Math.max(1, this.currentPageNum);
-        List<Warehouse> rows;
-        if (searchSqlStatement != null && !searchSqlStatement.isEmpty()
-                && !"from Warehouse e".equals(searchSqlStatement)) {
-            rows = warehouseDao.findPage(pageNum, rowsPerPage, searchSqlStatement);
-        } else {
-            rows = warehouseDao.findPage(pageNum, rowsPerPage);
-        }
+        List<Warehouse> rows = warehouseDao.findPage(pageNum, rowsPerPage, scopedQuery());
         return FXCollections.observableArrayList(rows == null ? List.of() : rows);
+    }
+
+    private String scopedQuery() {
+        if (searchSqlStatement == null || searchSqlStatement.isBlank()) {
+            return CompanyScope.from("Warehouse");
+        }
+        return searchSqlStatement;
     }
 
     private void selectionChanged(Change<? extends Warehouse> change) {
@@ -243,8 +254,8 @@ public class WarehouseFormController implements Initializable {
     }
 
     private void updateButtons(boolean editDisabled, boolean deleteDisabled) {
-        this.btnEdit.setDisable(editDisabled);
-        this.btnDelete.setDisable(deleteDisabled);
+        this.btnEdit.setDisable(editDisabled || !rights.edit);
+        this.btnDelete.setDisable(deleteDisabled || !rights.delete);
     }
 
     private static boolean appendLike(StringBuilder sql, boolean whereAdded, String field, String value) {

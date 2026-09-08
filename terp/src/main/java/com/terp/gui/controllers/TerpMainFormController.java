@@ -11,6 +11,9 @@ import com.terp.plugin.gui.IMenuManager;
 import com.terp.data.model.MenuSource;
 import com.terp.gui.MenuItem;
 import com.terp.plugin.*;
+import com.terp.plugin.data.ICompanyLookup;
+import com.terp.plugin.data.model.ICompany;
+import com.terp.util.CompanyScopeSchema;
 import com.terp.util.TerpProperties;
 import java.io.IOException;
 import java.net.URL;
@@ -30,12 +33,17 @@ import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.geometry.Orientation;
 import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.SplitPane.Divider;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.GridPane;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import org.controlsfx.control.PopOver;
 
@@ -79,6 +87,18 @@ public class TerpMainFormController implements Initializable,
     private ToolBar tbMainToolBar;
     
     @FXML
+    private ComboBox<ICompany> cmbCompany;
+
+    @FXML
+    private Label lblUser;
+
+    @FXML
+    private Label lblCompany;
+
+    @FXML
+    private GridPane gpStatusBar;
+    
+    @FXML
     private ToggleButton tbtnShowHideMenu;
     
     @FXML
@@ -95,7 +115,7 @@ public class TerpMainFormController implements Initializable,
             MenuItem selectedItem = (MenuItem) tvMainMenu.getSelectionModel().getSelectedItem();
 
             // find out if there is program for it
-            if (selectedItem != null) {
+            if (selectedItem != null && allowedToOpen(selectedItem.getCurrentItem())) {
                 if (selectedItem.getCurrentItem().getIsPlugin() == 0) {
                     loadProgram(selectedItem.getCurrentItem().getProgramName());
                 } else if (selectedItem.getCurrentItem().getIsPlugin() == 1) {
@@ -126,6 +146,10 @@ public class TerpMainFormController implements Initializable,
         
         //run program
         MenuSource menuSource = (MenuSource)prog;
+        if (!allowedToOpen(menuSource)) {
+            this.txtSearchMenuItem.clear();
+            return;
+        }
         if(menuSource.getIsPlugin() == 0){
             loadProgram(menuSource.getProgramName());
         }else if (menuSource.getIsPlugin() == 1) {
@@ -206,6 +230,11 @@ public class TerpMainFormController implements Initializable,
      */
     private Properties props;
     private boolean pluginToolsStarted;
+    private boolean companyComboBound;
+    private boolean schemaAligned;
+    private Separator pluginToolSeparator;
+    private static final String PLUGIN_TOOL_KEY = "terp.pluginTool";
+    private static final String MENU_ID_KEY = "terp.menuId";
     
     /**
      * Event handler for adjusting of divider position
@@ -272,9 +301,11 @@ public class TerpMainFormController implements Initializable,
 
         //build tree menu
         for (Object item : list) {
-
-            // create titled pane
-            MenuItem menuLeaf = new MenuItem((MenuSource) item);
+            MenuSource folder = (MenuSource) item;
+            if (!folderHasVisibleProgram(folder)) {
+                continue;
+            }
+            MenuItem menuLeaf = new MenuItem(folder);
             rootNode.getChildren().add(menuLeaf);
             
         }
@@ -286,6 +317,9 @@ public class TerpMainFormController implements Initializable,
         String sql2 = "from MenuSource e where e.programName is not null";
         List<MenuSource> list2 = menuSourceDao.findAll(sql2);
         for (MenuSource item2 : list2) {
+            if (!allowedToOpen(item2)) {
+                continue;
+            }
             this.entries.add((item2).getMenuId() + " - "
                     + (item2).getMenuName());
         }
@@ -436,21 +470,130 @@ public class TerpMainFormController implements Initializable,
         
         // get application properties
         this.props = TerpProperties.getInstance().getViewProps();
-        
+
+        bindUserSwitchMenu();
+    }
+
+    private void bindUserSwitchMenu() {
+        ContextMenu menu = new ContextMenu();
+        javafx.scene.control.MenuItem switchUser = new javafx.scene.control.MenuItem("Kullanıcı değiştir");
+        switchUser.setOnAction(event -> confirmAndSwitchUser());
+        menu.getItems().add(switchUser);
+        if (this.lblUser != null) {
+            this.lblUser.setTooltip(new Tooltip("Sağ tık: kullanıcı değiştir"));
+        }
+        Node bar = this.gpStatusBar != null ? this.gpStatusBar : this.lblUser;
+        if (bar == null) {
+            return;
+        }
+        bar.addEventFilter(ContextMenuEvent.CONTEXT_MENU_REQUESTED, event -> {
+            menu.show(bar, event.getScreenX(), event.getScreenY());
+            event.consume();
+        });
+    }
+
+    private void confirmAndSwitchUser() {
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION,
+                "Açık programlar kapanır. Kullanıcı değiştirilsin mi?",
+                ButtonType.OK, ButtonType.CANCEL);
+        confirm.setTitle("Kullanıcı değiştir");
+        confirm.setHeaderText("Oturum değişecek");
+        confirm.initOwner(this.primaryStage);
+        confirm.showAndWait().ifPresent(response -> {
+            if (response == ButtonType.OK) {
+                showSwitchUserDialog();
+            }
+        });
+    }
+
+    private void showSwitchUserDialog() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/LoginForm.fxml"));
+            loader.setClassLoader(getClass().getClassLoader());
+            Parent root = loader.load();
+            LoginFormController controller = loader.getController();
+            Stage dialog = new Stage();
+            dialog.initModality(Modality.WINDOW_MODAL);
+            dialog.initOwner(this.primaryStage);
+            dialog.setTitle("Kullanıcı değiştir");
+            dialog.setScene(new Scene(root));
+            dialog.setResizable(false);
+            controller.prepareSwitchUser(this::applyUserSwitch);
+            dialog.showAndWait();
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, null, ex);
+        }
+    }
+
+    private void applyUserSwitch() {
+        if (this.tpDesktopContainer != null) {
+            this.tpDesktopContainer.getTabs().clear();
+        }
+        if (this.entries != null) {
+            this.entries.clear();
+        }
+        loadMenu();
+        applyPluginToolRights();
+        applySessionContext();
     }
     
     @Override
     public void addToolKit(Node node) {
+        addToolKit(node, null);
+    }
+
+    @Override
+    public void addToolKit(Node node, String menuId) {
         if (node == null || this.tbMainToolBar == null) {
             return;
         }
         if (node instanceof ToolBar bar) {
             for (Node item : List.copyOf(bar.getItems())) {
+                tagPluginTool(item, menuId);
                 insertPluginTool(item);
             }
+            applyPluginToolRights();
             return;
         }
+        tagPluginTool(node, menuId);
         insertPluginTool(node);
+        applyPluginToolRights();
+    }
+
+    private void tagPluginTool(Node node, String menuId) {
+        if (node == null) {
+            return;
+        }
+        node.getProperties().put(PLUGIN_TOOL_KEY, Boolean.TRUE);
+        if (menuId != null && !menuId.isBlank()) {
+            node.getProperties().put(MENU_ID_KEY, menuId);
+        }
+    }
+
+    private void applyPluginToolRights() {
+        if (this.tbMainToolBar == null) {
+            return;
+        }
+        boolean anyVisible = false;
+        for (Node node : this.tbMainToolBar.getItems()) {
+            if (node == null || node == this.pluginToolSeparator) {
+                continue;
+            }
+            if (!Boolean.TRUE.equals(node.getProperties().get(PLUGIN_TOOL_KEY))) {
+                continue;
+            }
+            Object menuId = node.getProperties().get(MENU_ID_KEY);
+            boolean show = menuId == null || allowedToOpen(menuId.toString());
+            node.setVisible(show);
+            node.setManaged(show);
+            if (show) {
+                anyVisible = true;
+            }
+        }
+        if (this.pluginToolSeparator != null) {
+            this.pluginToolSeparator.setVisible(anyVisible);
+            this.pluginToolSeparator.setManaged(anyVisible);
+        }
     }
 
     private void insertPluginTool(Node node) {
@@ -462,6 +605,8 @@ public class TerpMainFormController implements Initializable,
             Separator separator = new Separator();
             separator.setOrientation(Orientation.VERTICAL);
             separator.setPrefHeight(24.0);
+            separator.getProperties().put(PLUGIN_TOOL_KEY, Boolean.TRUE);
+            this.pluginToolSeparator = separator;
             this.tbMainToolBar.getItems().add(insertAt, separator);
             insertAt++;
             pluginToolsStarted = true;
@@ -499,12 +644,123 @@ public class TerpMainFormController implements Initializable,
     
     @Override
     public void updateUser(String userName) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        if (this.lblUser != null) {
+            this.lblUser.setText(userName == null ? "" : userName);
+        }
     }
     
     @Override
     public void updateCompany(String company) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        if (this.lblCompany != null) {
+            this.lblCompany.setText(company == null ? "" : company);
+        }
+    }
+    
+    public void applySessionContext() {
+        IUser user = TerpApplication.getInstance().getUser();
+        if (user != null) {
+            updateUser(user.getUserName());
+        }
+        applyPluginToolRights();
+        bindCompanyCombo();
+    }
+
+    private void bindCompanyCombo() {
+        if (cmbCompany == null) {
+            return;
+        }
+        if (!companyComboBound) {
+            cmbCompany.setConverter(new javafx.util.StringConverter<ICompany>() {
+                @Override
+                public String toString(ICompany company) {
+                    return company == null ? "" : company.getDisplayLabel();
+                }
+
+                @Override
+                public ICompany fromString(String string) {
+                    return null;
+                }
+            });
+            cmbCompany.valueProperty().addListener((obs, old, value) -> {
+                TerpApplication.getInstance().setCurrentCompany(value);
+                updateCompany(value == null ? "" : value.getDisplayLabel());
+            });
+            companyComboBound = true;
+        }
+        cmbCompany.getItems().clear();
+        ICompanyLookup lookup = TerpApplication.getInstance().getCompanyLookup();
+        IUser user = TerpApplication.getInstance().getUser();
+        if (lookup != null) {
+            List<ICompany> companies = lookup.findActive();
+            for (ICompany company : companies) {
+                if (company == null || company.getRowId() == null) {
+                    continue;
+                }
+                if (user != null && !user.hasAllCompanies()
+                        && !user.canAccessCompany(company.getRowId())) {
+                    continue;
+                }
+                cmbCompany.getItems().add(company);
+            }
+        }
+        if (cmbCompany.getItems().isEmpty()) {
+            TerpApplication.getInstance().setCurrentCompany(null);
+            updateCompany("");
+            alignSchema(null);
+            if (user != null && !user.hasAllCompanies()) {
+                Alert alert = new Alert(Alert.AlertType.WARNING);
+                alert.setTitle("Firma");
+                alert.setHeaderText("Grubunuza firma atanmamış");
+                alert.setContentText("Sistem yöneticisi gruba en az bir şirket vermelidir.");
+                alert.show();
+            }
+            return;
+        }
+        cmbCompany.getSelectionModel().select(0);
+        ICompany selected = cmbCompany.getSelectionModel().getSelectedItem();
+        TerpApplication.getInstance().setCurrentCompany(selected);
+        updateCompany(selected == null ? "" : selected.getDisplayLabel());
+        alignSchema(selected == null ? null : selected.getRowId());
+    }
+
+    private void alignSchema(Long companyId) {
+        if (schemaAligned) {
+            return;
+        }
+        CompanyScopeSchema.align(companyId);
+        if (companyId != null) {
+            schemaAligned = true;
+        }
+    }
+
+    private boolean folderHasVisibleProgram(MenuSource folder) {
+        if (folder == null || folder.getRowId() == null) {
+            return false;
+        }
+        MenuSourceDao dao = new MenuSourceDao();
+        List<MenuSource> children = dao.findAll(
+                "from MenuSource e where e.menuType=1 and e.menuParent=" + folder.getRowId());
+        if (children == null) {
+            return false;
+        }
+        for (MenuSource child : children) {
+            if (allowedToOpen(child)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean allowedToOpen(MenuSource menu) {
+        if (menu == null) {
+            return false;
+        }
+        return allowedToOpen(menu.getMenuId());
+    }
+
+    private static boolean allowedToOpen(String menuId) {
+        IUser user = TerpApplication.getInstance().getUser();
+        return user != null && user.canOpen(menuId);
     }
     
     @Override

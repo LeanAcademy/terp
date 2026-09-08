@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.net.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane id="AnchorPane" prefHeight="280.0" prefWidth="560.0" styleClass="mainFxmlClass" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.terp.stok.gui.ReasonEditFormController">
+    <stylesheets>
+        <URL value="@../styles/itemform.css" />
+    </stylesheets>
+    <children>
+        <ToolBar prefHeight="40.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <items>
+                <Button fx:id="btnSubmit" defaultButton="true" mnemonicParsing="false" onAction="#onActionBtnSubmit" text="Kaydet" />
+                <Button fx:id="btnCancel" cancelButton="true" mnemonicParsing="false" onAction="#onActionBtnCancel" text="Vazgeç" />
+            </items>
+        </ToolBar>
+        <GridPane hgap="10.0" vgap="8.0" AnchorPane.bottomAnchor="12.0" AnchorPane.leftAnchor="16.0" AnchorPane.rightAnchor="16.0" AnchorPane.topAnchor="48.0">
+            <columnConstraints>
+                <ColumnConstraints prefWidth="80.0" />
+                <ColumnConstraints hgrow="ALWAYS" />
+            </columnConstraints>
+            <padding>
+                <Insets bottom="8.0" top="8.0" />
+            </padding>
+            <children>
+                <Label text="Kod" />
+                <TextField fx:id="txtReasonCode" GridPane.columnIndex="1" />
+                <Label text="Ad" GridPane.rowIndex="1" />
+                <TextField fx:id="txtReasonName" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                <Label text="Yön" GridPane.rowIndex="2" />
+                <ComboBox fx:id="cmbDirection" maxWidth="Infinity" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                <CheckBox fx:id="chkActive" mnemonicParsing="false" selected="true" text="Aktif" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+            </children>
+        </GridPane>
+    </children>
+</AnchorPane>

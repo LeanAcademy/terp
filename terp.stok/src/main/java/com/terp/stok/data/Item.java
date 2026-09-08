@@ -18,6 +18,8 @@
 package com.terp.stok.data;
 
 import com.terp.plugin.data.CommonFields;
+import com.terp.plugin.data.ICompanyScoped;
+import com.terp.plugin.data.model.IStockItem;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
@@ -30,9 +32,9 @@ import jakarta.persistence.UniqueConstraint;
 @Entity
 @Table(name = "malzeme", catalog = "terp", schema = "terp",
         uniqueConstraints = {
-            @UniqueConstraint(name = "ix_malzeme", columnNames = "mlz_kodu")
+            @UniqueConstraint(name = "ix_malzeme_firma", columnNames = {"firma_ref", "mlz_kodu"})
         })
-public class Item extends CommonFields {
+public class Item extends CommonFields implements ICompanyScoped, IStockItem {
 
     public static final int TYPE_TRADE = 0;
     public static final int TYPE_RAW = 1;
@@ -44,6 +46,9 @@ public class Item extends CommonFields {
     public static final String[] TYPE_LABELS = {
         "Ticari mal", "Hammadde", "Yarı mamul", "Mamul", "Hizmet", "Sarf"
     };
+
+    @Column(name = "firma_ref")
+    private Long companyId;
 
     @Column(name = "mlz_kodu", nullable = false, length = 50)
     private String itemId;
@@ -424,5 +429,15 @@ public class Item extends CommonFields {
 
     public void setNotes(String notes) {
         this.notes = notes;
+    }
+
+    @Override
+    public Long getCompanyId() {
+        return companyId;
+    }
+
+    @Override
+    public void setCompanyId(Long companyId) {
+        this.companyId = companyId;
     }
 }

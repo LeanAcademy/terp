@@ -134,5 +134,13 @@ public  class Employee extends CommonFields implements Serializable, IEmployee {
     public void setGroup (IEmployeeGroup employeeGroup) {
         this.group = (EmployeeGroup)employeeGroup;
     }
+
+    public String getGroupName() {
+        return group == null ? "" : group.getGroupName();
+    }
+
+    public String getStatusLabel() {
+        return getStatus() == 0 ? "Aktif" : "Pasif";
+    }
 }
 

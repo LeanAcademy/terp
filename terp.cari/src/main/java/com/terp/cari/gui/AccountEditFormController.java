@@ -17,6 +17,7 @@
 package com.terp.cari.gui;
 
 import com.terp.cari.data.Cari;
+import com.terp.plugin.CompanyScope;
 import com.terp.plugin.TerpApplication;
 import com.terp.plugin.data.ICommonDao;
 import java.net.URL;
@@ -129,6 +130,14 @@ public class AccountEditFormController implements Initializable {
             }
             row.setAddedDate(now);
         }
+        if (!CompanyScope.stamp(row)) {
+            Alert alert = new Alert(AlertType.ERROR);
+            alert.setTitle("Firma");
+            alert.setHeaderText("Firma seçilmedi");
+            alert.setContentText("Önce araç çubuğundan çalışma firmasını seçin.");
+            alert.show();
+            return;
+        }
         row.setAccountCode(txtAccountCode.getText().trim());
         row.setAccountName(txtAccountName.getText().trim());
         row.setLongName(trimToNull(txtLongName.getText()));
@@ -144,6 +153,12 @@ public class AccountEditFormController implements Initializable {
         row.setEmail(trimToNull(txtEmail.getText()));
         row.setNotes(trimToNull(txtNotes.getText()));
         row.setLastUpdateDate(now);
+        if (CompanyScope.rejectDuplicate(
+                CompanyScope.findDuplicate(accountDao, "Cari", "accountCode",
+                        row.getAccountCode(), row.getRowId()),
+                "Cari kodu tekrar ediyor")) {
+            return;
+        }
         accountDao.addOrUpdate(row);
         close();
     }

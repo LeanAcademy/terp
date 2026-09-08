@@ -17,6 +17,8 @@
 package com.terp.stok.data;
 
 import com.terp.plugin.data.CommonFields;
+import com.terp.plugin.data.ICompanyScoped;
+import com.terp.plugin.data.model.IStockWarehouse;
 import java.io.Serializable;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -26,9 +28,9 @@ import jakarta.persistence.UniqueConstraint;
 @Entity
 @Table(name = "depo", catalog = "terp", schema = "terp",
         uniqueConstraints = {
-            @UniqueConstraint(name = "ix_depo", columnNames = "depo_kodu")
+            @UniqueConstraint(name = "ix_depo_firma", columnNames = {"firma_ref", "depo_kodu"})
         })
-public class Warehouse extends CommonFields implements Serializable {
+public class Warehouse extends CommonFields implements Serializable, ICompanyScoped, IStockWarehouse {
 
     public static final int TYPE_NORMAL = 0;
     public static final int TYPE_SHIPPING = 1;
@@ -39,6 +41,9 @@ public class Warehouse extends CommonFields implements Serializable {
     public static final String[] TYPE_LABELS = {
         "Normal", "Sevkiyat", "Üretim", "Konsinye", "Fire"
     };
+
+    @Column(name = "firma_ref")
+    private Long companyId;
 
     @Column(name = "depo_kodu", nullable = false, length = 50)
     private String warehouseCode;
@@ -160,5 +165,15 @@ public class Warehouse extends CommonFields implements Serializable {
 
     public void setNotes(String notes) {
         this.notes = notes;
+    }
+
+    @Override
+    public Long getCompanyId() {
+        return companyId;
+    }
+
+    @Override
+    public void setCompanyId(Long companyId) {
+        this.companyId = companyId;
     }
 }

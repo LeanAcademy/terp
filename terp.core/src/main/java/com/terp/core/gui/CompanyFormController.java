@@ -6,6 +6,7 @@
 package com.terp.core.gui;
 
 import com.terp.core.data.Company;
+import com.terp.plugin.FormRights;
 import com.terp.plugin.TerpApplication;
 import com.terp.plugin.data.ICommonDao;
 import com.terp.plugin.data.model.ICompany;
@@ -140,6 +141,7 @@ public class CompanyFormController implements Initializable {
     private long recordCount = -1;
     
     private ICommonDao<ICompany> companyDao;
+    private final FormRights rights = FormRights.forMenu("FRMYS02");
     
     private static final int DEFAULT_ROWS_PER_PAGE = 20;
     
@@ -365,6 +367,7 @@ public class CompanyFormController implements Initializable {
         // set listener for selection change of table
         this.tblvCompanyView.getSelectionModel()
                 .getSelectedItems().addListener(this::selectionChanged);
+        this.btnAdd.setDisable(!rights.add);
         
         // update buttons
         this.updateButtons(true, true);
@@ -464,8 +467,8 @@ public class CompanyFormController implements Initializable {
     }
     
     private void updateButtons(boolean edit, boolean delete){
-        this.btnDelete.setDisable(delete);
-        this.btnEdit.setDisable(edit);
+        this.btnDelete.setDisable(delete || !rights.delete);
+        this.btnEdit.setDisable(edit || !rights.edit);
     }
 
     private static FXMLLoader pluginFxmlLoader(String fxml) {

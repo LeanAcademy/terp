@@ -31,7 +31,7 @@
                     </AnchorPane>
                 </items>
             </SplitPane>
-            <GridPane layoutY="541.0" prefHeight="25.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
+            <GridPane fx:id="gpStatusBar" layoutY="541.0" prefHeight="25.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
                 <columnConstraints>
                     <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
                     <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
@@ -55,6 +55,16 @@
                             </Label>
                         </children>
                     </HBox>
+                    <Label fx:id="lblUser" prefHeight="24.0" text="" GridPane.columnIndex="1">
+                        <font>
+                            <Font size="11.0" />
+                        </font>
+                    </Label>
+                    <Label fx:id="lblCompany" prefHeight="24.0" text="" GridPane.columnIndex="2">
+                        <font>
+                            <Font size="11.0" />
+                        </font>
+                    </Label>
                 </children>
             </GridPane>
             <ToolBar fx:id="tbMainToolBar" prefHeight="40.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
@@ -73,6 +83,7 @@
                         </graphic>
                     </Button>
                     <Separator orientation="VERTICAL" prefHeight="24.0" />
+                    <ComboBox fx:id="cmbCompany" prefHeight="24.0" prefWidth="220.0" promptText="Firma" />
                     <ToggleButton fx:id="tbtnShowHideMenu" onAction="#tbtnShowHideMenuOnAction" prefHeight="24.0" selected="true" text="Show menu">
                         <font>
                             <Font size="11.0" />

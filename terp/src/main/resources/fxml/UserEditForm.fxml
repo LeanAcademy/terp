@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane id="AnchorPane" prefHeight="320.0" prefWidth="520.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.terp.gui.controllers.UserEditFormController">
+    <children>
+        <ToolBar prefHeight="40.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <items>
+                <Button fx:id="btnSubmit" defaultButton="true" mnemonicParsing="false" onAction="#onActionBtnSubmit" text="Kaydet" />
+                <Button fx:id="btnCancel" cancelButton="true" mnemonicParsing="false" onAction="#onActionBtnCancel" text="Vazgeç" />
+            </items>
+        </ToolBar>
+        <GridPane hgap="10.0" vgap="8.0" AnchorPane.leftAnchor="16.0" AnchorPane.rightAnchor="16.0" AnchorPane.topAnchor="52.0">
+            <columnConstraints>
+                <ColumnConstraints prefWidth="120.0" />
+                <ColumnConstraints hgrow="ALWAYS" />
+            </columnConstraints>
+            <children>
+                <Label text="Kullanıcı adı" />
+                <TextField fx:id="txtUserName" GridPane.columnIndex="1" />
+                <Label text="Ad" GridPane.rowIndex="1" />
+                <TextField fx:id="txtName" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                <Label text="Grup" GridPane.rowIndex="2" />
+                <ComboBox fx:id="cmbGroup" maxWidth="Infinity" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                <Label text="Şifre" GridPane.rowIndex="3" />
+                <PasswordField fx:id="txtPassword" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                <CheckBox fx:id="chkActive" mnemonicParsing="false" selected="true" text="Aktif" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+                <Label fx:id="lblPasswordHint" text="Düzenlemede boş bırakılırsa şifre değişmez." wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="5" />
+            </children>
+        </GridPane>
+    </children>
+</AnchorPane>

@@ -16,6 +16,7 @@
  */
 package com.terp.stok.gui;
 
+import com.terp.plugin.CompanyScope;
 import com.terp.plugin.TerpApplication;
 import com.terp.plugin.data.ICommonDao;
 import com.terp.stok.data.Warehouse;
@@ -104,6 +105,14 @@ public class WarehouseEditFormController implements Initializable {
             }
             row.setAddedDate(now);
         }
+        if (!CompanyScope.stamp(row)) {
+            Alert alert = new Alert(AlertType.ERROR);
+            alert.setTitle("Firma");
+            alert.setHeaderText("Firma seçilmedi");
+            alert.setContentText("Önce araç çubuğundan çalışma firmasını seçin.");
+            alert.show();
+            return;
+        }
         row.setWarehouseCode(txtWarehouseCode.getText().trim());
         row.setWarehouseName(txtWarehouseName.getText().trim());
         int typeIndex = cmbWarehouseType.getSelectionModel().getSelectedIndex();
@@ -114,6 +123,12 @@ public class WarehouseEditFormController implements Initializable {
         row.setAddress(trimToNull(txtAddress.getText()));
         row.setNotes(trimToNull(txtNotes.getText()));
         row.setLastUpdateDate(now);
+        if (CompanyScope.rejectDuplicate(
+                CompanyScope.findDuplicate(warehouseDao, "Warehouse", "warehouseCode",
+                        row.getWarehouseCode(), row.getRowId()),
+                "Depo kodu tekrar ediyor")) {
+            return;
+        }
         warehouseDao.addOrUpdate(row);
         close();
     }

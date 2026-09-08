@@ -17,6 +17,8 @@
 package com.terp.cari.gui;
 
 import com.terp.cari.data.Cari;
+import com.terp.plugin.CompanyScope;
+import com.terp.plugin.FormRights;
 import com.terp.plugin.TerpApplication;
 import com.terp.plugin.data.ICommonDao;
 import com.terp.plugin.gui.IIconFactory;
@@ -92,6 +94,7 @@ public class AccountFormController implements Initializable {
     private TableColumn<Cari, String> tcStatusLabel;
 
     private ICommonDao<Cari> accountDao;
+    private FormRights rights = FormRights.forMenu("CRI02");
     private int rowsPerPage = DEFAULT_ROWS_PER_PAGE;
     private int currentPageNum = 1;
     private String searchSqlStatement = "";
@@ -99,7 +102,7 @@ public class AccountFormController implements Initializable {
     @FXML
     public void onActionBtnSearch(ActionEvent event) {
         StringBuilder sql = new StringBuilder("from Cari e");
-        boolean whereAdded = false;
+        boolean whereAdded = CompanyScope.append(sql, false);
         whereAdded = appendLike(sql, whereAdded, "e.accountCode", txtAccountCode.getText());
         whereAdded = appendLike(sql, whereAdded, "e.accountName", txtAccountName.getText());
         whereAdded = appendLike(sql, whereAdded, "e.taxId", txtTaxId.getText());
@@ -116,6 +119,9 @@ public class AccountFormController implements Initializable {
 
     @FXML
     public void onActionBtnAdd(ActionEvent event) {
+        if (!CompanyScope.requireCompany()) {
+            return;
+        }
         openEditor(null);
     }
 
@@ -178,6 +184,8 @@ public class AccountFormController implements Initializable {
                 });
         this.tblvAccountView.getSelectionModel().getSelectedItems()
                 .addListener(this::selectionChanged);
+        this.searchSqlStatement = CompanyScope.from("Cari");
+        this.btnAdd.setDisable(!rights.add);
         updateButtons(true, true);
         refreshView();
     }
@@ -201,7 +209,8 @@ public class AccountFormController implements Initializable {
     }
 
     private void refreshView() {
-        long count = accountDao.getRecordCount();
+        String hql = scopedQuery();
+        long count = accountDao.getRecordCount(hql);
         int pages = (int) (count / rowsPerPage + 1);
         this.pgnAccountData.setPageCount(Math.max(1, pages));
         this.tblvAccountView.setItems(currentPage());
@@ -209,14 +218,15 @@ public class AccountFormController implements Initializable {
 
     private ObservableList<Cari> currentPage() {
         int pageNum = Math.max(1, this.currentPageNum);
-        List<Cari> rows;
-        if (searchSqlStatement != null && !searchSqlStatement.isEmpty()
-                && !"from Cari e".equals(searchSqlStatement)) {
-            rows = accountDao.findPage(pageNum, rowsPerPage, searchSqlStatement);
-        } else {
-            rows = accountDao.findPage(pageNum, rowsPerPage);
-        }
+        List<Cari> rows = accountDao.findPage(pageNum, rowsPerPage, scopedQuery());
         return FXCollections.observableArrayList(rows == null ? List.of() : rows);
+    }
+
+    private String scopedQuery() {
+        if (searchSqlStatement == null || searchSqlStatement.isBlank()) {
+            return CompanyScope.from("Cari");
+        }
+        return searchSqlStatement;
     }
 
     private void selectionChanged(Change<? extends Cari> change) {
@@ -231,8 +241,8 @@ public class AccountFormController implements Initializable {
     }
 
     private void updateButtons(boolean editDisabled, boolean deleteDisabled) {
-        this.btnEdit.setDisable(editDisabled);
-        this.btnDelete.setDisable(deleteDisabled);
+        this.btnEdit.setDisable(editDisabled || !rights.edit);
+        this.btnDelete.setDisable(deleteDisabled || !rights.delete);
     }
 
     private static boolean appendLike(StringBuilder sql, boolean whereAdded, String field, String value) {

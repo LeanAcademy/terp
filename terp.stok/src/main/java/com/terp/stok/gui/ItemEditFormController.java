@@ -16,6 +16,7 @@
  */
 package com.terp.stok.gui;
 
+import com.terp.plugin.CompanyScope;
 import com.terp.plugin.TerpApplication;
 import com.terp.plugin.data.IAccountLookup;
 import com.terp.plugin.data.ICommonDao;
@@ -292,6 +293,14 @@ public class ItemEditFormController implements Initializable {
             }
             row.setAddedDate(now);
         }
+        if (!CompanyScope.stamp(row)) {
+            Alert alert = new Alert(AlertType.ERROR);
+            alert.setTitle("Firma");
+            alert.setHeaderText("Firma seçilmedi");
+            alert.setContentText("Önce araç çubuğundan çalışma firmasını seçin.");
+            alert.show();
+            return;
+        }
         row.setItemId(txtItemId.getText().trim());
         row.setItemDesc(txtItemDesc.getText().trim());
         row.setStatus(chkActive.isSelected() ? 0 : 1);
@@ -328,6 +337,11 @@ public class ItemEditFormController implements Initializable {
         row.setPurchaseAccount(trimToNull(txtPurchaseAccount.getText()));
         row.setSalesAccount(trimToNull(txtSalesAccount.getText()));
         row.setLastUpdateDate(now);
+        if (CompanyScope.rejectDuplicate(
+                CompanyScope.findDuplicate(itemDao, "Item", "itemId", row.getItemId(), row.getRowId()),
+                "Malzeme kodu tekrar ediyor")) {
+            return;
+        }
         Item saved = itemDao.addOrUpdate(row);
         if (saved == null || saved.getRowId() == null) {
             Alert alert = new Alert(AlertType.ERROR);

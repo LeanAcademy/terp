@@ -319,6 +319,26 @@ public class CommonDaoImpl<T> implements ICommonDao<T>{
         return recordCount;
     }
 
+    @Override
+    public long getRecordCount(String fromHql) {
+        if (fromHql == null || fromHql.isBlank()) {
+            return getRecordCount();
+        }
+        String hql = fromHql.trim();
+        if (!hql.toLowerCase().startsWith("select")) {
+            hql = "select count(*) " + hql;
+        }
+        Session session = HibernateUtil.getSessionFactory().openSession();
+        if (session == null) {
+            return -1;
+        }
+        session.getTransaction().begin();
+        Query<Long> query = session.createQuery(hql, Long.class);
+        Long recordCount = query.uniqueResult();
+        session.getTransaction().commit();
+        return recordCount == null ? 0 : recordCount;
+    }
+
     /**
      * create empty record
      * @return 
