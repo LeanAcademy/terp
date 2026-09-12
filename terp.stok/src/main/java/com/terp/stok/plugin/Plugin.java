@@ -27,6 +27,8 @@ import com.terp.stok.data.ItemLookup;
 import com.terp.stok.data.ItemPartnerCode;
 import com.terp.stok.data.MovementReason;
 import com.terp.stok.data.MovementReasonLookup;
+import com.terp.stok.data.StockCount;
+import com.terp.stok.data.StockCountLine;
 import com.terp.stok.data.StockLedger;
 import com.terp.stok.data.StockMovement;
 import com.terp.stok.data.Warehouse;
@@ -70,10 +72,9 @@ public class Plugin implements IPlugin {
                     items, warehouses, reasons));
         }
         addProgramTool("Malzeme", "CUBE", "ItemForm");
-        addProgramTool("Depo", "HOME", "WarehouseForm");
         addProgramTool("İşlem", "EXCHANGE", "MovementForm");
+        addProgramTool("Sayım", "CHECK", "CountForm");
         addProgramTool("Durum", "BAR_CHART", "StockStatusForm");
-        addProgramTool("Neden", "TAGS", "ReasonForm");
     }
 
     @Override
@@ -109,7 +110,7 @@ public class Plugin implements IPlugin {
     @Override
     public List<Class<?>> getPersistentClasses() {
         return List.of(Item.class, ItemPartnerCode.class, Warehouse.class, StockMovement.class,
-                MovementReason.class);
+                MovementReason.class, StockCount.class, StockCountLine.class);
     }
 
     @Override
@@ -117,10 +118,11 @@ public class Plugin implements IPlugin {
         return List.of(
                 PluginMenu.folder("STK01", "Stok yönetimi"),
                 PluginMenu.program("STK02", "Malzeme kartı", "STK01", "ItemForm"),
-                PluginMenu.program("STK03", "Depo tanımı", "STK01", "WarehouseForm"),
                 PluginMenu.program("STK04", "Stok işlemleri", "STK01", "MovementForm"),
+                PluginMenu.program("STK07", "Stok sayım", "STK01", "CountForm"),
                 PluginMenu.program("STK05", "Stok durum", "STK01", "StockStatusForm"),
-                PluginMenu.program("STK06", "Hareket nedeni", "STK01", "ReasonForm"));
+                PluginMenu.program("STK03", "Depo tanımı", "SYS01", "WarehouseForm"),
+                PluginMenu.program("STK06", "Hareket nedeni", "SYS01", "ReasonForm"));
     }
 
     @Override
@@ -136,7 +138,7 @@ public class Plugin implements IPlugin {
                     "/fxml/" + program + ".fxml"));
             loader.setClassLoader(getClass().getClassLoader());
             Node node = loader.load();
-            this.desktopManager.addToDesktop(node, name + "-" + program);
+            this.desktopManager.addToDesktop(node, program);
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, null, ex);
         }
@@ -173,6 +175,9 @@ public class Plugin implements IPlugin {
         }
         if ("StockStatusForm".equals(program)) {
             return "STK05";
+        }
+        if ("CountForm".equals(program)) {
+            return "STK07";
         }
         if ("ReasonForm".equals(program)) {
             return "STK06";

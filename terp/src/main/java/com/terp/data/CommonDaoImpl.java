@@ -16,7 +16,10 @@
  */
 package com.terp.data;
 
+import com.terp.plugin.IUser;
+import com.terp.plugin.TerpApplication;
 import com.terp.plugin.data.ICommonDao;
+import com.terp.plugin.data.ICommonFields;
 import com.terp.util.HibernateUtil;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
@@ -220,12 +223,10 @@ public class CommonDaoImpl<T> implements ICommonDao<T>{
         
         // begin transaction
         session.getTransaction().begin();
-        
-        // find by primary key
         Query qry = session.createQuery(sql);
-        T obj = (T)qry.uniqueResult();
-        
-        // commint transaction
+        qry.setMaxResults(1);
+        List<T> list = qry.list();
+        T obj = list == null || list.isEmpty() ? null : list.get(0);
         session.getTransaction().commit();
         
         // return object
@@ -244,6 +245,7 @@ public class CommonDaoImpl<T> implements ICommonDao<T>{
             return null;
         }
         try {
+            stampAudit(row);
             session.getTransaction().begin();
             T obj = session.merge(row);
             session.getTransaction().commit();
@@ -362,5 +364,17 @@ public class CommonDaoImpl<T> implements ICommonDao<T>{
     @SuppressWarnings("unchecked")
     private Class<T> resultType() {
         return (Class<T>) this.instance;
+    }
+
+    private static void stampAudit(Object row) {
+        if (row instanceof ICommonFields fields) {
+            fields.applyAudit(currentUserId());
+        }
+    }
+
+    private static Long currentUserId() {
+        TerpApplication app = TerpApplication.getInstance();
+        IUser user = app == null ? null : app.getUser();
+        return user == null ? null : user.getUserId();
     }
 }

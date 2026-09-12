@@ -22,6 +22,7 @@ import com.terp.data.model.EmployeeGroup;
 import com.terp.plugin.IUser;
 import com.terp.plugin.TerpApplication;
 import com.terp.plugin.data.ICommonDao;
+import com.terp.plugin.gui.RecordAuditBar;
 import com.terp.users.PasswordHashes;
 import java.net.URL;
 import java.util.Date;
@@ -64,6 +65,7 @@ public class UserEditFormController implements Initializable {
     private Employee currentRow;
     private List<EmployeeGroup> groups = List.of();
     private boolean callerIsAdmin;
+    private RecordAuditBar auditBar;
 
     public void initializeForm(Employee row) {
         this.currentRow = row;
@@ -73,6 +75,7 @@ public class UserEditFormController implements Initializable {
         if (row == null) {
             chkActive.setSelected(true);
             lblPasswordHint.setText("Yeni kullanıcı için şifre zorunludur.");
+            showAudit();
             return;
         }
         txtUserName.setText(empty(row.getUserName()));
@@ -85,6 +88,7 @@ public class UserEditFormController implements Initializable {
         if (row.getGroup() instanceof EmployeeGroup eg && eg.isSystemAdmin() && !callerIsAdmin) {
             btnSubmit.setDisable(true);
         }
+        showAudit();
     }
 
     @FXML
@@ -133,6 +137,14 @@ public class UserEditFormController implements Initializable {
     public void initialize(URL url, ResourceBundle rb) {
         this.userDao = new CommonDaoImpl<>(Employee.class);
         this.groupDao = new CommonDaoImpl<>(EmployeeGroup.class);
+        this.auditBar = RecordAuditBar.install(txtUserName);
+        showAudit();
+    }
+
+    private void showAudit() {
+        if (auditBar != null) {
+            auditBar.bind(currentRow);
+        }
     }
 
     private void fillGroups() {

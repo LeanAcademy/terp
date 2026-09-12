@@ -45,6 +45,7 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
 import javafx.scene.control.Pagination;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -61,6 +62,8 @@ public class ReceiptFormController implements Initializable {
     private Button btnSearch;
     @FXML
     private Button btnAdd;
+    @FXML
+    private Button btnFromOrder;
     @FXML
     private Button btnEdit;
     @FXML
@@ -89,6 +92,22 @@ public class ReceiptFormController implements Initializable {
     private TableColumn<PurchaseReceipt, String> tcSourceOrderNo;
     @FXML
     private TableColumn<PurchaseReceipt, String> tcStatusLabel;
+    @FXML
+    private TableView<PurchaseReceiptLine> tblvLineView;
+    @FXML
+    private TableColumn<PurchaseReceiptLine, Integer> tcLineNo;
+    @FXML
+    private TableColumn<PurchaseReceiptLine, String> tcLineSourceOrderNo;
+    @FXML
+    private TableColumn<PurchaseReceiptLine, String> tcLineItemCode;
+    @FXML
+    private TableColumn<PurchaseReceiptLine, String> tcLineItemDesc;
+    @FXML
+    private TableColumn<PurchaseReceiptLine, String> tcLineItemUnit;
+    @FXML
+    private TableColumn<PurchaseReceiptLine, Double> tcLineQuantity;
+    @FXML
+    private TableColumn<PurchaseReceiptLine, Double> tcLineUnitPrice;
 
     private ICommonDao<PurchaseReceipt> receiptDao;
     private ICommonDao<PurchaseReceiptLine> lineDao;
@@ -98,6 +117,7 @@ public class ReceiptFormController implements Initializable {
     private int rowsPerPage = DEFAULT_ROWS_PER_PAGE;
     private int currentPageNum = 1;
     private String searchSqlStatement = "";
+    private boolean syncingSelection;
 
     @FXML
     public void onActionBtnSearch(ActionEvent event) {
@@ -124,6 +144,14 @@ public class ReceiptFormController implements Initializable {
             return;
         }
         SatinWindows.openReceiptEditor(null, this::refreshView);
+    }
+
+    @FXML
+    public void onActionBtnFromOrder(ActionEvent event) {
+        if (!CompanyScope.requireCompany()) {
+            return;
+        }
+        SatinWindows.openReceiptFromOrder(this::refreshView);
     }
 
     @FXML
@@ -196,6 +224,14 @@ public class ReceiptFormController implements Initializable {
         this.tcWarehouseCode.setCellValueFactory(new PropertyValueFactory<>("warehouseCode"));
         this.tcSourceOrderNo.setCellValueFactory(new PropertyValueFactory<>("sourceOrderNo"));
         this.tcStatusLabel.setCellValueFactory(new PropertyValueFactory<>("statusLabel"));
+        this.tcLineNo.setCellValueFactory(new PropertyValueFactory<>("lineNo"));
+        this.tcLineSourceOrderNo.setCellValueFactory(new PropertyValueFactory<>("sourceOrderNo"));
+        this.tcLineItemCode.setCellValueFactory(new PropertyValueFactory<>("itemCode"));
+        this.tcLineItemDesc.setCellValueFactory(new PropertyValueFactory<>("itemDesc"));
+        this.tcLineItemUnit.setCellValueFactory(new PropertyValueFactory<>("itemUnit"));
+        this.tcLineQuantity.setCellValueFactory(new PropertyValueFactory<>("quantity"));
+        this.tcLineUnitPrice.setCellValueFactory(new PropertyValueFactory<>("unitPrice"));
+        this.tblvLineView.setPlaceholder(new Label("Belge satırı yok"));
         this.pgnReceiptData.currentPageIndexProperty().addListener(
                 (ObservableValue<? extends Number> observable, Number oldValue, Number newValue) -> {
                     this.currentPageNum = newValue.intValue() + 1;
@@ -205,8 +241,25 @@ public class ReceiptFormController implements Initializable {
                 .addListener(this::selectionChanged);
         this.searchSqlStatement = CompanyScope.from("PurchaseReceipt");
         this.btnAdd.setDisable(!rights.add);
+        if (this.btnFromOrder != null) {
+            this.btnFromOrder.setDisable(!rights.add);
+        }
         updateButtons(true, true);
         refreshView();
+        if (!tblvReceiptView.getItems().isEmpty()) {
+            tblvReceiptView.getSelectionModel().select(0);
+        }
+    }
+
+    private void showLines(PurchaseReceipt row) {
+        if (row == null || row.getRowId() == null) {
+            tblvLineView.setItems(FXCollections.observableArrayList());
+            return;
+        }
+        List<PurchaseReceiptLine> stored = lineDao.findAll(
+                "from PurchaseReceiptLine e where e.receiptId = " + row.getRowId()
+                        + " order by e.lineNo");
+        tblvLineView.setItems(FXCollections.observableArrayList(stored == null ? List.of() : stored));
     }
 
     private void deleteLines(Long receiptId) {
@@ -226,11 +279,41 @@ public class ReceiptFormController implements Initializable {
     }
 
     private void refreshView() {
+        Long selectedId = selectedRowId();
         String hql = scopedQuery();
         long count = receiptDao.getRecordCount(hql);
         int pages = (int) (count / rowsPerPage + 1);
         this.pgnReceiptData.setPageCount(Math.max(1, pages));
         this.tblvReceiptView.setItems(currentPage());
+        restoreSelection(selectedId);
+        showLines(tblvReceiptView.getSelectionModel().getSelectedItem());
+    }
+
+    private Long selectedRowId() {
+        PurchaseReceipt selected = tblvReceiptView.getSelectionModel().getSelectedItem();
+        return selected == null ? null : selected.getRowId();
+    }
+
+    private PurchaseReceipt findOnPage(Long rowId) {
+        if (rowId == null) {
+            return null;
+        }
+        for (PurchaseReceipt row : tblvReceiptView.getItems()) {
+            if (row != null && rowId.equals(row.getRowId())) {
+                return row;
+            }
+        }
+        return null;
+    }
+
+    private void restoreSelection(Long rowId) {
+        PurchaseReceipt match = findOnPage(rowId);
+        if (match == null) {
+            return;
+        }
+        syncingSelection = true;
+        tblvReceiptView.getSelectionModel().select(match);
+        syncingSelection = false;
     }
 
     private ObservableList<PurchaseReceipt> currentPage() {
@@ -250,8 +333,14 @@ public class ReceiptFormController implements Initializable {
         int size = change.getList().size();
         if (size == 0) {
             updateButtons(true, true);
+            if (!syncingSelection) {
+                showLines(null);
+            }
         } else if (size == 1) {
             updateButtons(false, false);
+            if (!syncingSelection) {
+                showLines(change.getList().get(0));
+            }
         } else {
             updateButtons(true, false);
         }

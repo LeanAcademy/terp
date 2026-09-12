@@ -20,8 +20,10 @@ import com.terp.plugin.CompanyScope;
 import com.terp.plugin.data.ICommonDao;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public final class PurchaseDocs {
@@ -68,10 +70,10 @@ public final class PurchaseDocs {
         if (receiptDao == null || orderId == null) {
             return false;
         }
-        PurchaseReceipt headerHit = receiptDao.firstOrDefault(
+        List<PurchaseReceipt> posted = receiptDao.findAll(
                 "from PurchaseReceipt e where e.sourceOrderId = " + orderId
                         + " and e.status = " + PurchaseReceipt.STATUS_POSTED);
-        if (headerHit != null) {
+        if (posted != null && !posted.isEmpty()) {
             return true;
         }
         List<PurchaseOrderLine> orderLines = orderLineDao == null ? null
@@ -102,6 +104,71 @@ public final class PurchaseDocs {
 
     public static double remainingOrdered(double ordered, double posted) {
         return Math.max(0d, ordered - posted);
+    }
+
+    public static List<PurchaseOrderStatusRow> orderStatus(
+            ICommonDao<PurchaseOrder> orderDao, ICommonDao<PurchaseOrderLine> orderLineDao,
+            ICommonDao<PurchaseReceipt> receiptDao, ICommonDao<PurchaseReceiptLine> receiptLineDao) {
+        List<PurchaseOrderStatusRow> result = new ArrayList<>();
+        if (orderDao == null || orderLineDao == null) {
+            return result;
+        }
+        List<PurchaseOrder> orders = orderDao.findAll(CompanyScope.from("PurchaseOrder")
+                + " and e.status in (" + PurchaseOrder.STATUS_APPROVED
+                + "," + PurchaseOrder.STATUS_RECEIVED + ") order by e.documentNo");
+        if (orders == null || orders.isEmpty()) {
+            return result;
+        }
+        Map<Long, PurchaseOrder> byId = new HashMap<>();
+        StringBuilder ids = new StringBuilder();
+        for (PurchaseOrder order : orders) {
+            if (order == null || order.getRowId() == null) {
+                continue;
+            }
+            byId.put(order.getRowId(), order);
+            if (ids.length() > 0) {
+                ids.append(',');
+            }
+            ids.append(order.getRowId());
+        }
+        if (byId.isEmpty()) {
+            return result;
+        }
+        List<PurchaseOrderLine> lines = orderLineDao.findAll(
+                "from PurchaseOrderLine e where e.orderId in (" + ids + ") order by e.orderId, e.lineNo");
+        if (lines == null) {
+            return result;
+        }
+        Map<Long, Double> deliveredByLine = postedByOrderLine(receiptDao, receiptLineDao);
+        for (PurchaseOrderLine line : lines) {
+            if (line == null) {
+                continue;
+            }
+            PurchaseOrder order = byId.get(line.getOrderId());
+            if (order == null) {
+                continue;
+            }
+            double ordered = line.getQuantity() == null ? 0d : line.getQuantity();
+            double delivered = deliveredByLine.getOrDefault(line.getRowId(), 0d);
+            double remaining = remainingOrdered(ordered, delivered);
+            PurchaseOrderStatusRow row = new PurchaseOrderStatusRow();
+            row.setDocumentNo(order.getDocumentNo());
+            row.setDateLabel(order.getDateLabel());
+            row.setAccountCode(order.getAccountCode());
+            row.setAccountName(order.getAccountName());
+            row.setWarehouseCode(order.getWarehouseCode());
+            row.setDocumentStatusLabel(order.getStatusLabel());
+            row.setLineNo(line.getLineNo());
+            row.setItemCode(line.getItemCode());
+            row.setItemDesc(line.getItemDesc());
+            row.setItemUnit(line.getItemUnit());
+            row.setOrderedQty(ordered);
+            row.setDeliveredQty(delivered);
+            row.setRemainingQty(remaining);
+            row.setBalanceLabel(remaining > 0.0000001d ? "Açık" : "Kapalı");
+            result.add(row);
+        }
+        return result;
     }
 
     public static double maxReceivable(double ordered, double posted, double overPercent) {
@@ -319,5 +386,46 @@ public final class PurchaseDocs {
             }
         }
         return false;
+    }
+
+    private static Map<Long, Double> postedByOrderLine(ICommonDao<PurchaseReceipt> receiptDao,
+            ICommonDao<PurchaseReceiptLine> lineDao) {
+        Map<Long, Double> totals = new HashMap<>();
+        if (receiptDao == null || lineDao == null) {
+            return totals;
+        }
+        List<PurchaseReceipt> receipts = receiptDao.findAll(CompanyScope.from("PurchaseReceipt")
+                + " and e.status = " + PurchaseReceipt.STATUS_POSTED);
+        if (receipts == null || receipts.isEmpty()) {
+            return totals;
+        }
+        Set<Long> postedIds = new LinkedHashSet<>();
+        StringBuilder ids = new StringBuilder();
+        for (PurchaseReceipt receipt : receipts) {
+            if (receipt == null || receipt.getRowId() == null) {
+                continue;
+            }
+            postedIds.add(receipt.getRowId());
+            if (ids.length() > 0) {
+                ids.append(',');
+            }
+            ids.append(receipt.getRowId());
+        }
+        if (postedIds.isEmpty()) {
+            return totals;
+        }
+        List<PurchaseReceiptLine> lines = lineDao.findAll(
+                "from PurchaseReceiptLine e where e.receiptId in (" + ids + ")");
+        if (lines == null) {
+            return totals;
+        }
+        for (PurchaseReceiptLine line : lines) {
+            if (line == null || line.getSourceOrderLineId() == null) {
+                continue;
+            }
+            double qty = line.getQuantity() == null ? 0d : line.getQuantity();
+            totals.merge(line.getSourceOrderLineId(), qty, Double::sum);
+        }
+        return totals;
     }
 }

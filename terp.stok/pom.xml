@@ -9,7 +9,7 @@
     <artifactId>terp.stok</artifactId>
     <packaging>jar</packaging>
     <name>TERP Stock Plugin</name>
-    <description>Stock plugin: material, warehouse, movements, on-hand report</description>
+    <description>Stock plugin: material, warehouse, movements, stock count, on-hand report</description>
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>

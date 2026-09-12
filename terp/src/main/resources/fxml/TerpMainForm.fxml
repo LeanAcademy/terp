@@ -83,7 +83,7 @@
                         </graphic>
                     </Button>
                     <Separator orientation="VERTICAL" prefHeight="24.0" />
-                    <ComboBox fx:id="cmbCompany" prefHeight="24.0" prefWidth="220.0" promptText="Firma" />
+                    <ComboBox fx:id="cmbCompany" maxWidth="220.0" prefHeight="24.0" prefWidth="220.0" promptText="Firma" />
                     <ToggleButton fx:id="tbtnShowHideMenu" onAction="#tbtnShowHideMenuOnAction" prefHeight="24.0" selected="true" text="Show menu">
                         <font>
                             <Font size="11.0" />

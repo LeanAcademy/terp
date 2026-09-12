@@ -9,7 +9,7 @@
     <artifactId>terp.core</artifactId>
     <packaging>jar</packaging>
     <name>TERP Core Plugin</name>
-    <description>Reference plugin: company screens loaded from plugins/terp.core.jar</description>
+    <description>Reference plugin: company, document number series</description>
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>

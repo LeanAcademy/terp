@@ -98,12 +98,36 @@ final class SatinWindows {
         openReceiptEditor(null, fresh, lines, afterClose);
     }
 
+    static void openRequestEditor(PurchaseRequest current, Runnable afterClose) {
+        try {
+            FXMLLoader loader = SatinDates.pluginLoader(SatinWindows.class, "/fxml/RequestEditForm.fxml");
+            Node node = loader.load();
+            RequestEditFormController controller = loader.getController();
+            controller.initializeForm(current);
+            Stage stage = new Stage();
+            stage.initModality(Modality.WINDOW_MODAL);
+            stage.initOwner(TerpApplication.getInstance().getDesktopManager().getPrimaryStage());
+            stage.setScene(new Scene((Parent) node));
+            stage.setTitle(current == null ? "Yeni satınalma talebi" : "Satınalma talebi");
+            stage.showAndWait();
+            if (afterClose != null) {
+                afterClose.run();
+            }
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, null, ex);
+        }
+    }
+
     static void openOrderEditor(PurchaseOrder current, Runnable afterClose) {
         openOrderEditor(current, null, null, afterClose);
     }
 
     static void openReceiptEditor(PurchaseReceipt current, Runnable afterClose) {
         openReceiptEditor(current, null, null, afterClose);
+    }
+
+    static void openReceiptFromOrder(Runnable afterClose) {
+        openReceiptEditor(null, null, null, afterClose, "Siparişten mal kabul");
     }
 
     private static void openOrderEditor(PurchaseOrder current, PurchaseRequest fromRequest,
@@ -134,6 +158,13 @@ final class SatinWindows {
 
     private static void openReceiptEditor(PurchaseReceipt current, PurchaseOrder fromOrder,
             List<PurchaseOrderLine> orderLines, Runnable afterClose) {
+        String title = fromOrder != null ? "Siparişten mal kabul"
+                : (current == null ? "Yeni mal kabul" : "Mal kabul");
+        openReceiptEditor(current, fromOrder, orderLines, afterClose, title);
+    }
+
+    private static void openReceiptEditor(PurchaseReceipt current, PurchaseOrder fromOrder,
+            List<PurchaseOrderLine> orderLines, Runnable afterClose, String title) {
         try {
             FXMLLoader loader = SatinDates.pluginLoader(SatinWindows.class, "/fxml/ReceiptEditForm.fxml");
             Node node = loader.load();
@@ -147,8 +178,7 @@ final class SatinWindows {
             stage.initModality(Modality.WINDOW_MODAL);
             stage.initOwner(TerpApplication.getInstance().getDesktopManager().getPrimaryStage());
             stage.setScene(new Scene((Parent) node));
-            stage.setTitle(fromOrder != null ? "Siparişten mal kabul"
-                    : (current == null ? "Yeni mal kabul" : "Mal kabul"));
+            stage.setTitle(title);
             stage.showAndWait();
             if (afterClose != null) {
                 afterClose.run();

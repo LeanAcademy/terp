@@ -64,7 +64,7 @@ public class PurchaseReceipt extends CommonFields implements Serializable, IComp
     @Column(name = "siparis_ref")
     private Long sourceOrderId;
 
-    @Column(name = "siparis_no", length = 50)
+    @Column(name = "siparis_no", length = 128)
     private String sourceOrderNo;
 
     @Column(name = "durum")

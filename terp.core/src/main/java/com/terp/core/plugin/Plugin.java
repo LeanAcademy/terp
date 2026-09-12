@@ -21,6 +21,8 @@ import java.util.logging.Logger;
 import com.terp.core.data.Branch;
 import com.terp.core.data.Company;
 import com.terp.core.data.CompanyLookup;
+import com.terp.core.data.DocumentNumbering;
+import com.terp.core.data.DocumentSeries;
 import com.terp.plugin.PluginMenu;
 import com.terp.plugin.TerpApplication;
 import com.terp.plugin.gui.IDesktopManager;
@@ -67,8 +69,11 @@ public class Plugin implements IPlugin{
         this.menuManager = this.app.getMenuManager();
         if (app.getPersistence() != null) {
             app.setCompanyLookup(new CompanyLookup(app.getPersistence().createDao(Company.class)));
+            app.setDocumentNumbers(new DocumentNumbering(
+                    app.getPersistence().createDao(DocumentSeries.class)));
         }
         addProgramTool("Firma", "BUILDING", "CompanyForm", "FRMYS02");
+        addProgramTool("Numara", "BARCODE", "SeriesForm", "SYS07");
         
     }
 
@@ -104,14 +109,15 @@ public class Plugin implements IPlugin{
 
     @Override
     public List<Class<?>> getPersistentClasses() {
-        return List.of(Company.class, Branch.class);
+        return List.of(Company.class, Branch.class, DocumentSeries.class);
     }
 
     @Override
     public List<PluginMenu> getMenus() {
         return List.of(
                 PluginMenu.folder("FRMYS01", "Firma yönetimi"),
-                PluginMenu.program("FRMYS02", "Firma tanımı", "FRMYS01", "CompanyForm"));
+                PluginMenu.program("FRMYS02", "Firma tanımı", "FRMYS01", "CompanyForm"),
+                PluginMenu.program("SYS07", "Belge numaraları", "SYS01", "SeriesForm"));
     }
     
     @Override
@@ -129,7 +135,7 @@ public class Plugin implements IPlugin{
                     "/fxml/" + program + ".fxml"));
             loader.setClassLoader(getClass().getClassLoader());
             Node node = loader.load();
-            this.desktopManager.addToDesktop(node, name + "-" + program);
+            this.desktopManager.addToDesktop(node, program);
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, null, ex);
         }

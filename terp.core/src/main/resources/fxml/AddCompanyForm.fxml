@@ -130,21 +130,11 @@
             <Font size="11.0" />
          </font>
       </TextField>
-      <Label fx:id="lblAddedByAtDate" layoutX="541.0" layoutY="15.0" prefHeight="30.0" prefWidth="307.0" text="Added by %u at %d" AnchorPane.leftAnchor="540.0" AnchorPane.topAnchor="14.0">
-         <font>
-            <Font size="11.0" />
-         </font>
-      </Label>
       <CheckBox fx:id="chkActive" layoutX="539.0" layoutY="77.0" mnemonicParsing="false" text="Active" AnchorPane.leftAnchor="540.0" AnchorPane.topAnchor="77.0">
          <font>
             <Font size="11.0" />
          </font>
       </CheckBox>
-      <Label fx:id="lblChangedByAtDate" layoutX="541.0" layoutY="41.0" prefHeight="30.0" prefWidth="307.0" text="Changed by %u at %d" AnchorPane.leftAnchor="540.0" AnchorPane.topAnchor="44.0">
-         <font>
-            <Font size="11.0" />
-         </font>
-      </Label>
       <Label layoutX="15.0" layoutY="15.0" prefHeight="30.0" prefWidth="160.0" text="Record ID">
          <font>
             <Font size="11.0" />

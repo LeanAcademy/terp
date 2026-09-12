@@ -73,6 +73,11 @@ public final class User implements IUser {
     }
 
     @Override
+    public Long getUserId() {
+        return this.employee == null ? null : this.employee.getRowId();
+    }
+
+    @Override
     public long getUserGroupId() {
         return this.groupId;
     }

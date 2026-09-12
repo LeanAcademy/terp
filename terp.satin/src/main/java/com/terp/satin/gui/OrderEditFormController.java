@@ -18,6 +18,7 @@ package com.terp.satin.gui;
 
 import com.terp.plugin.CompanyScope;
 import com.terp.plugin.TerpApplication;
+import com.terp.plugin.data.DocumentNumbers;
 import com.terp.plugin.data.IAccountLookup;
 import com.terp.plugin.data.ICommonDao;
 import com.terp.plugin.data.IItemLookup;
@@ -25,6 +26,7 @@ import com.terp.plugin.data.IWarehouseLookup;
 import com.terp.plugin.data.model.IAccount;
 import com.terp.plugin.data.model.IStockItem;
 import com.terp.plugin.data.model.IStockWarehouse;
+import com.terp.plugin.gui.RecordAuditBar;
 import com.terp.satin.data.PurchaseDocs;
 import com.terp.satin.data.PurchaseOrder;
 import com.terp.satin.data.PurchaseOrderLine;
@@ -39,6 +41,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.ResourceBundle;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -52,9 +55,6 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.stage.Stage;
-import org.controlsfx.validation.ValidationSupport;
-import org.controlsfx.validation.Validator;
 
 public class OrderEditFormController implements Initializable {
 
@@ -113,14 +113,38 @@ public class OrderEditFormController implements Initializable {
     private ICommonDao<PurchaseSettings> settingsDao;
     private PurchaseOrder currentRow;
     private final ObservableList<PurchaseOrderLine> lines = FXCollections.observableArrayList();
-    private ValidationSupport validationSupport;
+    private Runnable afterChange;
+    private boolean notifying;
+    private RecordAuditBar auditBar;
+
+    public void embedInList(Runnable afterChange) {
+        this.afterChange = afterChange;
+        if (btnApprove != null) {
+            btnApprove.setDefaultButton(false);
+        }
+    }
+
+    public Long currentRowId() {
+        return currentRow == null ? null : currentRow.getRowId();
+    }
 
     public void initializeForm(PurchaseOrder row) {
-        this.currentRow = row;
         fillLookups();
+        lines.clear();
+        txtDocumentNo.clear();
+        txtNotes.clear();
+        txtQuantity.clear();
+        txtUnit.clear();
+        txtUnitPrice.clear();
+        txtSourceRequestNo.clear();
+        cmbItem.getSelectionModel().clearSelection();
+        cmbAccount.getSelectionModel().clearSelection();
+        cmbWarehouse.getSelectionModel().clearSelection();
+        dtDocumentDate.setValue(LocalDate.now());
+        this.currentRow = row;
         if (row == null) {
-            dtDocumentDate.setValue(LocalDate.now());
             applyLock(PurchaseOrder.STATUS_DRAFT);
+            showAudit();
             return;
         }
         fillHeader(row);
@@ -133,6 +157,7 @@ public class OrderEditFormController implements Initializable {
             }
         }
         applyLock(row.getStatus());
+        showAudit();
     }
 
     public void initializeFromRequest(PurchaseRequest request, List<PurchaseRequestLine> requestLines) {
@@ -148,7 +173,7 @@ public class OrderEditFormController implements Initializable {
         this.currentRow.setWarehouseName(request.getWarehouseName());
         this.currentRow.setNotes(request.getNotes());
         dtDocumentDate.setValue(LocalDate.now());
-        txtDocumentNo.setText("SIP-" + SatinDates.empty(request.getDocumentNo()));
+        txtDocumentNo.clear();
         SatinCombos.select(cmbWarehouse, request.getWarehouseCode());
         txtSourceRequestNo.setText(SatinDates.empty(request.getDocumentNo()));
         txtNotes.setText(SatinDates.empty(request.getNotes()));
@@ -167,11 +192,14 @@ public class OrderEditFormController implements Initializable {
             }
         }
         applyLock(PurchaseOrder.STATUS_DRAFT);
+        showAudit();
     }
 
     @FXML
     private void onActionBtnSave(ActionEvent event) {
-        saveDraft();
+        if (saveDraft()) {
+            notifyChanged();
+        }
     }
 
     @FXML
@@ -196,7 +224,9 @@ public class OrderEditFormController implements Initializable {
             if (reloaded != null) {
                 this.currentRow = reloaded;
                 applyLock(reloaded.getStatus());
+                showAudit();
             }
+            notifyChanged();
         });
     }
 
@@ -274,16 +304,18 @@ public class OrderEditFormController implements Initializable {
         this.tcUnitPrice.setCellValueFactory(new PropertyValueFactory<>("unitPrice"));
         this.tblvLines.setItems(lines);
         cmbItem.valueProperty().addListener((obs, old, value) -> applyItem(SatinCombos.codeOf(cmbItem)));
-        this.validationSupport = new ValidationSupport();
-        this.validationSupport.registerValidator(txtDocumentNo, true,
-                Validator.createEmptyValidator("Belge no zorunlu"));
+        this.auditBar = RecordAuditBar.install(txtDocumentNo);
+        showAudit();
+        Platform.runLater(() -> SatinEmbed.hideCloseIfDesktop(btnClose));
+    }
+
+    private void showAudit() {
+        if (auditBar != null) {
+            auditBar.bind(currentRow);
+        }
     }
 
     private boolean saveDraft() {
-        if (validationSupport.isInvalid()) {
-            SatinDates.showError("Satınalma siparişi", "Zorunlu alanlar eksik", "Belge no zorunludur.");
-            return false;
-        }
         String warehouseCode = SatinCombos.codeOf(cmbWarehouse);
         if (warehouseCode == null) {
             SatinDates.showError("Satınalma siparişi", "Depo eksik", "Depo seçin.");
@@ -319,7 +351,13 @@ public class OrderEditFormController implements Initializable {
                     "Önce araç çubuğundan çalışma firmasını seçin.");
             return false;
         }
-        row.setDocumentNo(txtDocumentNo.getText().trim());
+        String documentNo = SatinDates.assignDocumentNo(DocumentNumbers.PURCHASE_ORDER, txtDocumentNo);
+        if (documentNo == null || documentNo.isBlank()) {
+            SatinDates.showError("Satınalma siparişi", "Belge no",
+                    "Belge no üretilemedi. Elle yazın veya Sistem yönetimi → Belge numaraları serisini kontrol edin.");
+            return false;
+        }
+        row.setDocumentNo(documentNo);
         row.setDocumentDate(SatinDates.toDate(dtDocumentDate.getValue()));
         row.setAccountCode(accountCode);
         row.setAccountName(SatinCombos.nameOf(cmbAccount));
@@ -347,6 +385,7 @@ public class OrderEditFormController implements Initializable {
         this.currentRow = saved;
         replaceLines(saved.getRowId(), now);
         PurchaseDocs.syncRequestStatus(requestDao, orderDao, saved.getSourceRequestId());
+        showAudit();
         return true;
     }
 
@@ -461,7 +500,19 @@ public class OrderEditFormController implements Initializable {
     }
 
     private void close() {
-        Stage stage = (Stage) btnClose.getScene().getWindow();
-        stage.close();
+        notifyChanged();
+        SatinEmbed.closeIfModal(btnClose);
+    }
+
+    private void notifyChanged() {
+        if (afterChange == null || notifying) {
+            return;
+        }
+        notifying = true;
+        try {
+            afterChange.run();
+        } finally {
+            notifying = false;
+        }
     }
 }

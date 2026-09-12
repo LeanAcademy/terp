@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.net.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane id="AnchorPane" prefHeight="300.0" prefWidth="520.0" styleClass="mainFxmlClass" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.terp.core.gui.SeriesEditFormController">
+    <stylesheets>
+        <URL value="@../styles/companyform.css" />
+    </stylesheets>
+    <children>
+        <ToolBar prefHeight="40.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <items>
+                <Button fx:id="btnSubmit" defaultButton="true" mnemonicParsing="false" onAction="#onActionBtnSubmit" text="Kaydet" />
+                <Button fx:id="btnCancel" cancelButton="true" mnemonicParsing="false" onAction="#onActionBtnCancel" text="Vazgeç" />
+            </items>
+        </ToolBar>
+        <GridPane hgap="10.0" vgap="8.0" AnchorPane.bottomAnchor="12.0" AnchorPane.leftAnchor="16.0" AnchorPane.rightAnchor="16.0" AnchorPane.topAnchor="48.0">
+            <columnConstraints>
+                <ColumnConstraints prefWidth="90.0" />
+                <ColumnConstraints hgrow="ALWAYS" />
+            </columnConstraints>
+            <padding>
+                <Insets bottom="8.0" top="8.0" />
+            </padding>
+            <children>
+                <Label text="Tür" />
+                <TextField fx:id="txtDocumentType" disable="true" GridPane.columnIndex="1" />
+                <Label text="Ad" GridPane.rowIndex="1" />
+                <TextField fx:id="txtTypeLabel" disable="true" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                <Label text="Önek" GridPane.rowIndex="2" />
+                <TextField fx:id="txtPrefix" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                <Label text="Hane" GridPane.rowIndex="3" />
+                <TextField fx:id="txtPadding" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                <Label text="Son no" GridPane.rowIndex="4" />
+                <TextField fx:id="txtLastNumber" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+                <Label fx:id="lblSample" wrapText="true" GridPane.columnIndex="1" GridPane.columnSpan="1" GridPane.rowIndex="5" />
+            </children>
+        </GridPane>
+    </children>
+</AnchorPane>

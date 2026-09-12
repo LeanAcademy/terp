@@ -46,6 +46,7 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
 import javafx.scene.control.Pagination;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -92,6 +93,20 @@ public class OrderFormController implements Initializable {
     private TableColumn<PurchaseOrder, String> tcSourceRequestNo;
     @FXML
     private TableColumn<PurchaseOrder, String> tcStatusLabel;
+    @FXML
+    private TableView<PurchaseOrderLine> tblvLineView;
+    @FXML
+    private TableColumn<PurchaseOrderLine, Integer> tcLineNo;
+    @FXML
+    private TableColumn<PurchaseOrderLine, String> tcLineItemCode;
+    @FXML
+    private TableColumn<PurchaseOrderLine, String> tcLineItemDesc;
+    @FXML
+    private TableColumn<PurchaseOrderLine, String> tcLineItemUnit;
+    @FXML
+    private TableColumn<PurchaseOrderLine, Double> tcLineQuantity;
+    @FXML
+    private TableColumn<PurchaseOrderLine, Double> tcLineUnitPrice;
 
     private ICommonDao<PurchaseOrder> orderDao;
     private ICommonDao<PurchaseOrderLine> lineDao;
@@ -101,10 +116,10 @@ public class OrderFormController implements Initializable {
     private ICommonDao<PurchaseSettings> settingsDao;
     private FormRights rights = FormRights.forMenu("SAT04");
     private FormRights receiptRights = FormRights.forMenu("SAT02");
-    private FormRights fromOrderRights = FormRights.forMenu("SAT05");
     private int rowsPerPage = DEFAULT_ROWS_PER_PAGE;
     private int currentPageNum = 1;
     private String searchSqlStatement = "";
+    private boolean syncingSelection;
 
     @FXML
     public void onActionBtnSearch(ActionEvent event) {
@@ -214,6 +229,13 @@ public class OrderFormController implements Initializable {
         this.tcWarehouseCode.setCellValueFactory(new PropertyValueFactory<>("warehouseCode"));
         this.tcSourceRequestNo.setCellValueFactory(new PropertyValueFactory<>("sourceRequestNo"));
         this.tcStatusLabel.setCellValueFactory(new PropertyValueFactory<>("statusLabel"));
+        this.tcLineNo.setCellValueFactory(new PropertyValueFactory<>("lineNo"));
+        this.tcLineItemCode.setCellValueFactory(new PropertyValueFactory<>("itemCode"));
+        this.tcLineItemDesc.setCellValueFactory(new PropertyValueFactory<>("itemDesc"));
+        this.tcLineItemUnit.setCellValueFactory(new PropertyValueFactory<>("itemUnit"));
+        this.tcLineQuantity.setCellValueFactory(new PropertyValueFactory<>("quantity"));
+        this.tcLineUnitPrice.setCellValueFactory(new PropertyValueFactory<>("unitPrice"));
+        this.tblvLineView.setPlaceholder(new Label("Belge satırı yok"));
         this.pgnOrderData.currentPageIndexProperty().addListener(
                 (ObservableValue<? extends Number> observable, Number oldValue, Number newValue) -> {
                     this.currentPageNum = newValue.intValue() + 1;
@@ -225,14 +247,58 @@ public class OrderFormController implements Initializable {
         this.btnAdd.setDisable(!rights.add);
         updateButtons(true, true, true);
         refreshView();
+        if (!tblvOrderView.getItems().isEmpty()) {
+            tblvOrderView.getSelectionModel().select(0);
+        }
+    }
+
+    private void showLines(PurchaseOrder row) {
+        if (row == null || row.getRowId() == null) {
+            tblvLineView.setItems(FXCollections.observableArrayList());
+            return;
+        }
+        List<PurchaseOrderLine> stored = lineDao.findAll(
+                "from PurchaseOrderLine e where e.orderId = " + row.getRowId()
+                        + " order by e.lineNo");
+        tblvLineView.setItems(FXCollections.observableArrayList(stored == null ? List.of() : stored));
     }
 
     private void refreshView() {
+        Long selectedId = selectedRowId();
         String hql = scopedQuery();
         long count = orderDao.getRecordCount(hql);
         int pages = (int) (count / rowsPerPage + 1);
         this.pgnOrderData.setPageCount(Math.max(1, pages));
         this.tblvOrderView.setItems(currentPage());
+        restoreSelection(selectedId);
+        showLines(tblvOrderView.getSelectionModel().getSelectedItem());
+    }
+
+    private Long selectedRowId() {
+        PurchaseOrder selected = tblvOrderView.getSelectionModel().getSelectedItem();
+        return selected == null ? null : selected.getRowId();
+    }
+
+    private PurchaseOrder findOnPage(Long rowId) {
+        if (rowId == null) {
+            return null;
+        }
+        for (PurchaseOrder row : tblvOrderView.getItems()) {
+            if (row != null && rowId.equals(row.getRowId())) {
+                return row;
+            }
+        }
+        return null;
+    }
+
+    private void restoreSelection(Long rowId) {
+        PurchaseOrder match = findOnPage(rowId);
+        if (match == null) {
+            return;
+        }
+        syncingSelection = true;
+        tblvOrderView.getSelectionModel().select(match);
+        syncingSelection = false;
     }
 
     private ObservableList<PurchaseOrder> currentPage() {
@@ -252,13 +318,19 @@ public class OrderFormController implements Initializable {
         int size = change.getList().size();
         if (size == 0) {
             updateButtons(true, true, true);
+            if (!syncingSelection) {
+                showLines(null);
+            }
             return;
         }
         PurchaseOrder selected = change.getList().get(0);
         boolean receiveDisabled = size != 1 || selected == null
                 || !PurchaseDocs.hasReceivableBalance(selected, lineDao, receiptDao, receiptLineDao, settingsDao)
-                || (!receiptRights.add && !fromOrderRights.add);
+                || !receiptRights.add;
         updateButtons(size != 1, size == 0, receiveDisabled);
+        if (!syncingSelection && size == 1) {
+            showLines(selected);
+        }
     }
 
     private void updateButtons(boolean editDisabled, boolean deleteDisabled, boolean receiveDisabled) {

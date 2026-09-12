@@ -28,7 +28,7 @@
             </columnConstraints>
             <children>
                 <Label text="Belge no" />
-                <TextField fx:id="txtDocumentNo" GridPane.columnIndex="1" />
+                <TextField fx:id="txtDocumentNo" promptText="Boş = otomatik" GridPane.columnIndex="1" />
                 <Label text="Tarih" GridPane.columnIndex="2" />
                 <DatePicker fx:id="dtDocumentDate" maxWidth="Infinity" GridPane.columnIndex="3" />
                 <Label text="Tedarikçi" GridPane.rowIndex="1" />

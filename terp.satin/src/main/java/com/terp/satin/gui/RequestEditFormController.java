@@ -18,11 +18,13 @@ package com.terp.satin.gui;
 
 import com.terp.plugin.CompanyScope;
 import com.terp.plugin.TerpApplication;
+import com.terp.plugin.data.DocumentNumbers;
 import com.terp.plugin.data.ICommonDao;
 import com.terp.plugin.data.IItemLookup;
 import com.terp.plugin.data.IWarehouseLookup;
 import com.terp.plugin.data.model.IStockItem;
 import com.terp.plugin.data.model.IStockWarehouse;
+import com.terp.plugin.gui.RecordAuditBar;
 import com.terp.satin.data.PurchaseDocs;
 import com.terp.satin.data.PurchaseOrder;
 import com.terp.satin.data.PurchaseRequest;
@@ -33,6 +35,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.ResourceBundle;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -46,9 +49,6 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.stage.Stage;
-import org.controlsfx.validation.ValidationSupport;
-import org.controlsfx.validation.Validator;
 
 public class RequestEditFormController implements Initializable {
 
@@ -96,14 +96,35 @@ public class RequestEditFormController implements Initializable {
     private ICommonDao<PurchaseOrder> orderDao;
     private PurchaseRequest currentRow;
     private final ObservableList<PurchaseRequestLine> lines = FXCollections.observableArrayList();
-    private ValidationSupport validationSupport;
+    private Runnable afterChange;
+    private boolean notifying;
+    private RecordAuditBar auditBar;
+
+    public void embedInList(Runnable afterChange) {
+        this.afterChange = afterChange;
+        if (btnApprove != null) {
+            btnApprove.setDefaultButton(false);
+        }
+    }
+
+    public Long currentRowId() {
+        return currentRow == null ? null : currentRow.getRowId();
+    }
 
     public void initializeForm(PurchaseRequest row) {
-        this.currentRow = row;
         fillLookups();
+        lines.clear();
+        txtDocumentNo.clear();
+        txtNotes.clear();
+        txtQuantity.clear();
+        txtUnit.clear();
+        cmbItem.getSelectionModel().clearSelection();
+        cmbWarehouse.getSelectionModel().clearSelection();
+        dtDocumentDate.setValue(LocalDate.now());
+        this.currentRow = row;
         if (row == null) {
-            dtDocumentDate.setValue(LocalDate.now());
             applyLock(PurchaseRequest.STATUS_DRAFT);
+            showAudit();
             return;
         }
         txtDocumentNo.setText(SatinDates.empty(row.getDocumentNo()));
@@ -119,11 +140,14 @@ public class RequestEditFormController implements Initializable {
             }
         }
         applyLock(row.getStatus());
+        showAudit();
     }
 
     @FXML
     private void onActionBtnSave(ActionEvent event) {
-        saveDraft();
+        if (saveDraft()) {
+            notifyChanged();
+        }
     }
 
     @FXML
@@ -135,6 +159,8 @@ public class RequestEditFormController implements Initializable {
         currentRow.setLastUpdateDate(new Date());
         requestDao.addOrUpdate(currentRow);
         applyLock(currentRow.getStatus());
+        showAudit();
+        notifyChanged();
     }
 
     @FXML
@@ -147,7 +173,9 @@ public class RequestEditFormController implements Initializable {
             if (reloaded != null) {
                 this.currentRow = reloaded;
                 applyLock(reloaded.getStatus());
+                showAudit();
             }
+            notifyChanged();
         });
     }
 
@@ -216,16 +244,18 @@ public class RequestEditFormController implements Initializable {
         this.tcQuantity.setCellValueFactory(new PropertyValueFactory<>("quantity"));
         this.tblvLines.setItems(lines);
         cmbItem.valueProperty().addListener((obs, old, value) -> applyItem(SatinCombos.codeOf(cmbItem)));
-        this.validationSupport = new ValidationSupport();
-        this.validationSupport.registerValidator(txtDocumentNo, true,
-                Validator.createEmptyValidator("Belge no zorunlu"));
+        this.auditBar = RecordAuditBar.install(txtDocumentNo);
+        showAudit();
+        Platform.runLater(() -> SatinEmbed.hideCloseIfDesktop(btnClose));
+    }
+
+    private void showAudit() {
+        if (auditBar != null) {
+            auditBar.bind(currentRow);
+        }
     }
 
     private boolean saveDraft() {
-        if (validationSupport.isInvalid()) {
-            SatinDates.showError("Satınalma talebi", "Zorunlu alanlar eksik", "Belge no zorunludur.");
-            return false;
-        }
         if (lines.isEmpty()) {
             SatinDates.showError("Satınalma talebi", "Satır yok", "En az bir malzeme satırı ekleyin.");
             return false;
@@ -251,7 +281,13 @@ public class RequestEditFormController implements Initializable {
                     "Önce araç çubuğundan çalışma firmasını seçin.");
             return false;
         }
-        row.setDocumentNo(txtDocumentNo.getText().trim());
+        String documentNo = SatinDates.assignDocumentNo(DocumentNumbers.PURCHASE_REQUEST, txtDocumentNo);
+        if (documentNo == null || documentNo.isBlank()) {
+            SatinDates.showError("Satınalma talebi", "Belge no",
+                    "Belge no üretilemedi. Elle yazın veya Sistem yönetimi → Belge numaraları serisini kontrol edin.");
+            return false;
+        }
+        row.setDocumentNo(documentNo);
         row.setDocumentDate(SatinDates.toDate(dtDocumentDate.getValue()));
         String warehouseCode = SatinCombos.codeOf(cmbWarehouse);
         row.setWarehouseCode(warehouseCode);
@@ -275,6 +311,7 @@ public class RequestEditFormController implements Initializable {
         }
         this.currentRow = saved;
         replaceLines(saved.getRowId(), now);
+        showAudit();
         return true;
     }
 
@@ -361,7 +398,19 @@ public class RequestEditFormController implements Initializable {
     }
 
     private void close() {
-        Stage stage = (Stage) btnClose.getScene().getWindow();
-        stage.close();
+        notifyChanged();
+        SatinEmbed.closeIfModal(btnClose);
+    }
+
+    private void notifyChanged() {
+        if (afterChange == null || notifying) {
+            return;
+        }
+        notifying = true;
+        try {
+            afterChange.run();
+        } finally {
+            notifying = false;
+        }
     }
 }

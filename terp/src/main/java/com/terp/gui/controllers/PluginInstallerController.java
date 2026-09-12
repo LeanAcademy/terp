@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 Your Organisation
+ * Copyright (C) 2026 LeanAcademy
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,112 +16,174 @@
  */
 package com.terp.gui.controllers;
 
+import com.terp.plugin.FormRights;
 import com.terp.plugin.IPluginFactory;
 import com.terp.plugin.TerpApplication;
 import com.terp.plugins.PluginFactoryImpl;
+import com.terp.plugins.PluginInstallInfo;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.ResourceBundle;
+import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.Node;
-import javafx.scene.Parent;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
-import javafx.scene.control.Tab;
-import javafx.scene.control.TabPane;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 /**
- * Copies a plugin JAR into {@code plugins/} and registers it in {@code eklenti}.
+ * Lists plugins under {@code plugins/} merged with {@code eklenti}, and adds or removes JARs.
  */
 public class PluginInstallerController implements Initializable {
 
-    @FXML
-    private Button btnCancel;
+    private static final String MENU_ID = "SYS02";
+    private static final String RESTART_HINT = "Değişikliğin yüklenmesi için TERP'i yeniden başlatın.";
 
     @FXML
-    private Button btnInstall;
-
+    private Button btnAdd;
     @FXML
-    private TextArea txtResult;
-
+    private Button btnRemove;
     @FXML
-    private TextField txtPluginFileName;
+    private Button btnRefresh;
+    @FXML
+    private TableView<PluginInstallInfo> tblvPluginView;
+    @FXML
+    private TableColumn<PluginInstallInfo, String> tcName;
+    @FXML
+    private TableColumn<PluginInstallInfo, String> tcVersion;
+    @FXML
+    private TableColumn<PluginInstallInfo, String> tcType;
+    @FXML
+    private TableColumn<PluginInstallInfo, String> tcJar;
+    @FXML
+    private TableColumn<PluginInstallInfo, String> tcStatus;
+
+    private FormRights rights = FormRights.forMenu(MENU_ID);
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        txtResult.setEditable(false);
-        btnInstall.setDisable(true);
+        tcName.setCellValueFactory(new PropertyValueFactory<>("pluginName"));
+        tcVersion.setCellValueFactory(new PropertyValueFactory<>("pluginVersion"));
+        tcType.setCellValueFactory(new PropertyValueFactory<>("typeLabel"));
+        tcJar.setCellValueFactory(new PropertyValueFactory<>("jarFileName"));
+        tcStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
+        tblvPluginView.getSelectionModel().selectedItemProperty()
+                .addListener((obs, old, selected) -> updateButtons());
+        btnAdd.setDisable(!rights.add);
+        refreshView();
     }
 
     @FXML
-    void btnBrowseOnAction(ActionEvent event) {
-        FileChooser chooser = new FileChooser();
-        chooser.setTitle("Select plugin JAR");
-        chooser.getExtensionFilters().add(
-                new FileChooser.ExtensionFilter("Plugin JAR", "*.jar"));
-        Stage owner = TerpApplication.getInstance().getDesktopManager() != null
-                ? TerpApplication.getInstance().getDesktopManager().getPrimaryStage()
-                : null;
-        File chosen = chooser.showOpenDialog(owner);
-        if (chosen != null) {
-            txtPluginFileName.setText(chosen.getAbsolutePath());
-            btnInstall.setDisable(false);
-            append("Selected " + chosen.getAbsolutePath());
-        }
-    }
-
-    @FXML
-    void btnInstallOnAction(ActionEvent event) {
-        String pathText = txtPluginFileName.getText();
-        if (pathText == null || pathText.isBlank()) {
-            append("Choose a plugin JAR first.");
+    void onActionBtnAdd(ActionEvent event) {
+        if (!rights.add) {
             return;
         }
-        Path source = Path.of(pathText.trim());
-        IPluginFactory factory = TerpApplication.getInstance().getPluginFactory();
-        if (!(factory instanceof PluginFactoryImpl impl)) {
-            append("Plugin factory is not available.");
+        PluginFactoryImpl impl = factory();
+        if (impl == null) {
+            showError("Eklenti fabrikası yok.");
+            return;
+        }
+        FileChooser chooser = new FileChooser();
+        chooser.setTitle("Eklenti JAR seçin");
+        chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Plugin JAR", "*.jar"));
+        Stage owner = ownerStage();
+        File chosen = chooser.showOpenDialog(owner);
+        if (chosen == null) {
             return;
         }
         try {
-            String log = impl.installJar(source);
-            append(log);
+            String log = impl.installJar(Path.of(chosen.getAbsolutePath()));
+            refreshView();
+            showInfo("Eklenti eklendi", log + "\n" + RESTART_HINT);
         } catch (IOException | RuntimeException ex) {
-            append("Install failed: " + ex.getMessage());
+            showError(ex.getMessage() == null ? "Kurulum başarısız." : ex.getMessage());
         }
     }
 
     @FXML
-    void btnCancelOnAction(ActionEvent event) {
-        closeTab(btnCancel);
-    }
-
-    private void append(String line) {
-        if (txtResult.getText() == null || txtResult.getText().isEmpty()) {
-            txtResult.setText(line);
-        } else {
-            txtResult.appendText("\n" + line);
+    void onActionBtnRemove(ActionEvent event) {
+        if (!rights.delete) {
+            return;
         }
-    }
-
-    private static void closeTab(Node node) {
-        Parent parent = node.getParent();
-        while (parent != null) {
-            if (parent instanceof TabPane pane) {
-                Tab selected = pane.getSelectionModel().getSelectedItem();
-                if (selected != null) {
-                    pane.getTabs().remove(selected);
-                }
+        PluginInstallInfo selected = tblvPluginView.getSelectionModel().getSelectedItem();
+        if (selected == null || !selected.isRemovable()) {
+            return;
+        }
+        PluginFactoryImpl impl = factory();
+        if (impl == null) {
+            showError("Eklenti fabrikası yok.");
+            return;
+        }
+        Alert confirm = new Alert(AlertType.CONFIRMATION,
+                selected.getPluginName() + " çıkarılsın mı?\nJAR ve eklenti kaydı silinir; menü ve iş tabloları kalır.",
+                ButtonType.OK, ButtonType.CANCEL);
+        confirm.setTitle("Eklenti çıkar");
+        confirm.setHeaderText("Eklentiyi çıkar");
+        confirm.showAndWait().ifPresent(response -> {
+            if (response != ButtonType.OK) {
                 return;
             }
-            parent = parent.getParent();
-        }
+            try {
+                String log = impl.uninstall(selected.getPluginName());
+                refreshView();
+                showInfo("Eklenti çıkarıldı", log);
+            } catch (IOException | RuntimeException ex) {
+                showError(ex.getMessage() == null ? "Çıkarma başarısız." : ex.getMessage());
+            }
+        });
+    }
+
+    @FXML
+    void onActionBtnRefresh(ActionEvent event) {
+        refreshView();
+    }
+
+    private void refreshView() {
+        PluginFactoryImpl impl = factory();
+        List<PluginInstallInfo> rows = impl == null ? List.of() : impl.listPlugins();
+        tblvPluginView.setItems(FXCollections.observableArrayList(rows));
+        updateButtons();
+    }
+
+    private void updateButtons() {
+        PluginInstallInfo selected = tblvPluginView.getSelectionModel().getSelectedItem();
+        btnRemove.setDisable(!rights.delete || selected == null || !selected.isRemovable());
+    }
+
+    private static PluginFactoryImpl factory() {
+        IPluginFactory factory = TerpApplication.getInstance().getPluginFactory();
+        return factory instanceof PluginFactoryImpl impl ? impl : null;
+    }
+
+    private static Stage ownerStage() {
+        return TerpApplication.getInstance().getDesktopManager() == null
+                ? null
+                : TerpApplication.getInstance().getDesktopManager().getPrimaryStage();
+    }
+
+    private static void showInfo(String header, String content) {
+        Alert alert = new Alert(AlertType.INFORMATION);
+        alert.setTitle("Eklenti yönetimi");
+        alert.setHeaderText(header);
+        alert.setContentText(content);
+        alert.show();
+    }
+
+    private static void showError(String content) {
+        Alert alert = new Alert(AlertType.ERROR);
+        alert.setTitle("Eklenti yönetimi");
+        alert.setHeaderText("İşlem başarısız");
+        alert.setContentText(content);
+        alert.show();
     }
 }

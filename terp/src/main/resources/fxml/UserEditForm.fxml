@@ -4,7 +4,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane id="AnchorPane" prefHeight="320.0" prefWidth="520.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.terp.gui.controllers.UserEditFormController">
+<AnchorPane id="AnchorPane" prefHeight="360.0" prefWidth="520.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.terp.gui.controllers.UserEditFormController">
     <children>
         <ToolBar prefHeight="40.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
             <items>
@@ -12,7 +12,7 @@
                 <Button fx:id="btnCancel" cancelButton="true" mnemonicParsing="false" onAction="#onActionBtnCancel" text="Vazgeç" />
             </items>
         </ToolBar>
-        <GridPane hgap="10.0" vgap="8.0" AnchorPane.leftAnchor="16.0" AnchorPane.rightAnchor="16.0" AnchorPane.topAnchor="52.0">
+        <GridPane hgap="10.0" vgap="8.0" AnchorPane.bottomAnchor="12.0" AnchorPane.leftAnchor="16.0" AnchorPane.rightAnchor="16.0" AnchorPane.topAnchor="52.0">
             <columnConstraints>
                 <ColumnConstraints prefWidth="120.0" />
                 <ColumnConstraints hgrow="ALWAYS" />

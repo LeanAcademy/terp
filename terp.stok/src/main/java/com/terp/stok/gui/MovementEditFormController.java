@@ -23,6 +23,7 @@ import com.terp.plugin.data.ICommonDao;
 import com.terp.plugin.data.IMovementReasonLookup;
 import com.terp.plugin.data.model.IAccount;
 import com.terp.plugin.data.model.IMovementReason;
+import com.terp.plugin.gui.RecordAuditBar;
 import com.terp.stok.data.Item;
 import com.terp.stok.data.StockBalances;
 import com.terp.stok.data.StockMovement;
@@ -91,18 +92,20 @@ public class MovementEditFormController implements Initializable {
     private List<Warehouse> warehouses = List.of();
     private List<Item> items = List.of();
     private boolean parseFailed;
+    private RecordAuditBar auditBar;
 
     public void initializeForm(StockMovement row) {
         this.currentRow = row;
         fillLookups();
         if (row != null && row.isDocumentPosted()) {
-            showError("Belge hareketi", "Bu satır mal kabul belgesinden geldi. Değişiklik belge üzerinden yapılır.");
+            showError("Belge hareketi", "Bu satır bir belgeden geldi. Değişiklik belge üzerinden yapılır.");
             btnSubmit.setDisable(true);
         }
         if (row == null) {
             dtMovementDate.setValue(LocalDate.now());
             cmbMovementType.getSelectionModel().select(StockMovement.TYPE_IN);
             updateTargetEnabled();
+            showAudit();
             return;
         }
         dtMovementDate.setValue(toLocalDate(row.getMovementDate()));
@@ -121,12 +124,13 @@ public class MovementEditFormController implements Initializable {
         txtSerialNo.setText(empty(row.getSerialNo()));
         txtNotes.setText(empty(row.getNotes()));
         updateTargetEnabled();
+        showAudit();
     }
 
     @FXML
     private void onActionBtnSubmit(ActionEvent event) {
         if (currentRow != null && currentRow.isDocumentPosted()) {
-            showError("Belge hareketi", "Bu satır mal kabul belgesinden geldi. Değişiklik belge üzerinden yapılır.");
+            showError("Belge hareketi", "Bu satır bir belgeden geldi. Değişiklik belge üzerinden yapılır.");
             return;
         }
         if (validationSupport.isInvalid()) {
@@ -233,6 +237,8 @@ public class MovementEditFormController implements Initializable {
         this.validationSupport = new ValidationSupport();
         this.validationSupport.registerValidator(txtQuantity, true,
                 Validator.createEmptyValidator("Miktar zorunlu"));
+        this.auditBar = RecordAuditBar.install(txtQuantity);
+        showAudit();
     }
 
     private void fillLookups() {
@@ -393,6 +399,12 @@ public class MovementEditFormController implements Initializable {
         alert.setHeaderText(header);
         alert.setContentText(content);
         alert.show();
+    }
+
+    private void showAudit() {
+        if (auditBar != null) {
+            auditBar.bind(currentRow);
+        }
     }
 
     private void close() {

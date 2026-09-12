@@ -30,8 +30,10 @@ public interface IUser {
      * @return 
      */
     public String getUserName();
-    
-    //TODO add other fields
+
+    default Long getUserId() {
+        return null;
+    }
     
     /**
      * gets user group name

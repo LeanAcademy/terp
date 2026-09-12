@@ -25,6 +25,9 @@ public  class PluginSource extends CommonFields implements Serializable {
     @Column(name="sinif_adi")
     private String mainClassName;
 
+    @Column(name="jar_adi", length = 255)
+    private String jarFileName;
+
     //////////////////////////////////////////////////////////////////////////
     // Gettters and setters
     //////////////////////////////////////////////////////////////////////////
@@ -54,6 +57,14 @@ public  class PluginSource extends CommonFields implements Serializable {
 
     public void setMainClassName(String mainClassName) {
         this.mainClassName = mainClassName;
+    }
+
+    public String getJarFileName() {
+        return jarFileName;
+    }
+
+    public void setJarFileName(String jarFileName) {
+        this.jarFileName = jarFileName;
     }
 
 }

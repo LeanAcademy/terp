@@ -24,7 +24,6 @@ import java.util.Date;
  * @author cevdet
  */
 public interface ICommonFields {    
-    //field getter end setter
     public Long getRowId();
     public void setRowId(Long rowId);
     public Date getLastUpdateDate();
@@ -35,4 +34,18 @@ public interface ICommonFields {
     public void setUpdatedByUserId(Long updatedByUserId);
     public Long getAddedByUserId();
     public void setAddedByUserId(Long addedByUserId);
+
+    default void applyAudit(Long userId) {
+        Date now = new Date();
+        if (getAddedDate() == null) {
+            setAddedDate(now);
+        }
+        if (getAddedByUserId() == null && userId != null) {
+            setAddedByUserId(userId);
+        }
+        setLastUpdateDate(now);
+        if (userId != null) {
+            setUpdatedByUserId(userId);
+        }
+    }
 }

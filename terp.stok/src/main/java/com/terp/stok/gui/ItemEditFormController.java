@@ -21,6 +21,7 @@ import com.terp.plugin.TerpApplication;
 import com.terp.plugin.data.IAccountLookup;
 import com.terp.plugin.data.ICommonDao;
 import com.terp.plugin.data.model.IAccount;
+import com.terp.plugin.gui.RecordAuditBar;
 import com.terp.stok.data.Item;
 import com.terp.stok.data.ItemPartnerCode;
 import java.net.URL;
@@ -161,6 +162,7 @@ public class ItemEditFormController implements Initializable {
     private final ObservableList<ItemPartnerCode> customerCodes = FXCollections.observableArrayList();
     private final Set<Long> loadedPartnerIds = new HashSet<>();
     private boolean hadParseError;
+    private RecordAuditBar auditBar;
 
     public void initializeForm(Item row) {
         this.currentRow = row;
@@ -171,6 +173,7 @@ public class ItemEditFormController implements Initializable {
             cmbItemType.getSelectionModel().select(Item.TYPE_TRADE);
             chkActive.setSelected(true);
             txtCurrency.setText("TRY");
+            showAudit();
             return;
         }
         txtItemId.setText(empty(row.getItemId()));
@@ -222,6 +225,7 @@ public class ItemEditFormController implements Initializable {
                 }
             }
         }
+        showAudit();
     }
 
     @FXML
@@ -378,6 +382,14 @@ public class ItemEditFormController implements Initializable {
                 Validator.createEmptyValidator("Tanım zorunlu"));
         this.validationSupport.registerValidator(txtItemUnit, true,
                 Validator.createEmptyValidator("Ana birim zorunlu"));
+        this.auditBar = RecordAuditBar.install(txtItemId);
+        showAudit();
+    }
+
+    private void showAudit() {
+        if (auditBar != null) {
+            auditBar.bind(currentRow);
+        }
     }
 
     private void persistPartnerCodes(Long itemRowId, Date now) {

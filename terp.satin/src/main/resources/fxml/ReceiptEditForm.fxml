@@ -27,14 +27,14 @@
             </columnConstraints>
             <children>
                 <Label text="Belge no" />
-                <TextField fx:id="txtDocumentNo" GridPane.columnIndex="1" />
+                <TextField fx:id="txtDocumentNo" promptText="Boş = otomatik" GridPane.columnIndex="1" />
                 <Label text="Tarih" GridPane.columnIndex="2" />
                 <DatePicker fx:id="dtDocumentDate" maxWidth="Infinity" GridPane.columnIndex="3" />
                 <Label text="Tedarikçi" GridPane.rowIndex="1" />
                 <ComboBox fx:id="cmbAccount" editable="true" maxWidth="Infinity" GridPane.columnIndex="1" GridPane.rowIndex="1" />
                 <Label text="Depo" GridPane.columnIndex="2" GridPane.rowIndex="1" />
                 <ComboBox fx:id="cmbWarehouse" editable="true" maxWidth="Infinity" GridPane.columnIndex="3" GridPane.rowIndex="1" />
-                <Label text="Sipariş" GridPane.rowIndex="2" />
+                <Label text="Siparişten yükle" GridPane.rowIndex="2" />
                 <ComboBox fx:id="cmbSourceOrder" editable="true" maxWidth="Infinity" GridPane.columnIndex="1" GridPane.rowIndex="2" />
                 <Button fx:id="btnLoadRemaining" mnemonicParsing="false" onAction="#onActionBtnLoadRemaining" text="Kalan satırları yükle" GridPane.columnIndex="2" GridPane.columnSpan="2" GridPane.rowIndex="2" />
                 <Label text="Notlar" GridPane.rowIndex="3" />

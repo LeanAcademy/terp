@@ -56,6 +56,7 @@ public class PluginFactoryImpl implements IPluginFactory {
 
     private final Map<Long, IPlugin> pluginsById = new HashMap<>();
     private final Map<String, IPlugin> pluginsByName = new LinkedHashMap<>();
+    private final Map<String, String> jarByPluginName = new LinkedHashMap<>();
     private final List<URLClassLoader> pluginLoaders = new ArrayList<>();
     private final Set<Class<?>> persistentClasses = new LinkedHashSet<>();
     private final String version = "1.0";
@@ -171,42 +172,47 @@ public class PluginFactoryImpl implements IPluginFactory {
         }
 
         InspectedPlugin inspected = inspectJar(dest);
-        if (inspected.plugin == null) {
+        if (inspected == null || inspected.name == null) {
             Files.deleteIfExists(dest);
             throw new IOException("Could not load IPlugin from " + dest.getFileName());
         }
-        if (inspected.plugin.getSystemVersion() == null
-                || !version.equals(inspected.plugin.getSystemVersion())) {
+        if (inspected.systemVersion == null || !version.equals(inspected.systemVersion)) {
             Files.deleteIfExists(dest);
             throw new IOException("Plugin system version must be " + version
-                    + ", got " + inspected.plugin.getSystemVersion());
+                    + ", got " + inspected.systemVersion);
         }
 
         StringBuilder log = new StringBuilder();
-        log.append("Copied ").append(dest.getFileName()).append(" to ").append(pluginsDir).append('\n');
-        log.append("Plugin name: ").append(inspected.plugin.getName()).append('\n');
-        log.append("Plugin version: ").append(inspected.plugin.getPluginVersion()).append('\n');
+        log.append("Kopyalandı: ").append(dest.getFileName()).append(" → ").append(pluginsDir).append('\n');
+        log.append("Eklenti: ").append(inspected.name).append('\n');
+        log.append("Sürüm: ").append(inspected.pluginVersion).append('\n');
 
+        String jarName = dest.getFileName().toString();
         if (com.terp.util.HibernateUtil.isInitialized()) {
             Map<String, PluginSource> registry = loadRegistryByName();
-            PluginSource existing = findRegistry(inspected.plugin, registry);
+            PluginSource existing = findRegistry(inspected.name, inspected.mainClassName, registry);
             if (existing == null) {
-                PluginSource saved = persistRegistry(inspected.plugin);
+                PluginSource saved = persistRegistry(inspected.name, inspected.type,
+                        inspected.mainClassName, jarName);
                 if (saved != null) {
-                    log.append("Registered as eklenti id ").append(saved.getRowId()).append('\n');
+                    log.append("eklenti kaydı id ").append(saved.getRowId()).append('\n');
                 } else {
-                    log.append("Could not write eklenti row.\n");
+                    log.append("eklenti satırı yazılamadı.\n");
                 }
             } else {
-                log.append("Already registered as eklenti id ").append(existing.getRowId()).append('\n');
+                existing.setJarFileName(jarName);
+                existing.setType(inspected.type);
+                existing.setMainClassName(inspected.mainClassName);
+                new PluginSourceDao().addOrUpdate(existing);
+                log.append("Kayıt güncellendi, eklenti id ").append(existing.getRowId()).append('\n');
             }
         }
 
         int entities = inspected.entityCount;
         if (entities > 0) {
-            log.append(entities).append(" persistent class(es). Restart TERP so Hibernate can map new tables.\n");
+            log.append(entities).append(" kalıcı sınıf. Yeni tablolar için TERP'i yeniden başlatın.\n");
         } else {
-            log.append("Restart TERP to load the plugin.\n");
+            log.append("Eklentinin yüklenmesi için TERP'i yeniden başlatın.\n");
         }
         return log.toString();
     }
@@ -221,7 +227,6 @@ public class PluginFactoryImpl implements IPluginFactory {
         URLClassLoader classLoader = new URLClassLoader(
                 new URL[]{jar.toUri().toURL()},
                 IPlugin.class.getClassLoader());
-        pluginLoaders.add(classLoader);
         try {
             ServiceLoader<IPlugin> loader = ServiceLoader.load(IPlugin.class, classLoader);
             for (IPlugin plugin : loader) {
@@ -230,20 +235,154 @@ public class PluginFactoryImpl implements IPluginFactory {
                 if (classes != null) {
                     count = (int) classes.stream().filter(c -> c != null).count();
                 }
-                return new InspectedPlugin(plugin, count);
+                return new InspectedPlugin(plugin.getName(), plugin.getPluginVersion(),
+                        plugin.getSystemVersion(), plugin.getType(),
+                        plugin.getClass().getName(), count);
             }
         } catch (RuntimeException | ServiceConfigurationError ex) {
             throw new IOException("Failed to inspect " + jar.getFileName(), ex);
+        } finally {
+            try {
+                classLoader.close();
+            } catch (IOException ex) {
+                LOG.log(Level.FINE, "Could not close inspector for " + jar.getFileName(), ex);
+            }
         }
-        return new InspectedPlugin(null, 0);
+        return null;
+    }
+
+    /**
+     * Merge {@code plugins/*.jar} with {@code eklenti} rows for the management list.
+     */
+    public List<PluginInstallInfo> listPlugins() {
+        Map<String, PluginInstallInfo> byName = new LinkedHashMap<>();
+        Path pluginsDir = TerpHome.pluginsDir();
+        if (Files.isDirectory(pluginsDir)) {
+            try (DirectoryStream<Path> stream = Files.newDirectoryStream(pluginsDir, "*.jar")) {
+                for (Path jar : stream) {
+                    try {
+                        InspectedPlugin inspected = inspectJar(jar);
+                        if (inspected == null || inspected.name == null) {
+                            continue;
+                        }
+                        PluginInstallInfo info = byName.computeIfAbsent(inspected.name,
+                                key -> new PluginInstallInfo());
+                        info.setPluginName(inspected.name);
+                        info.setPluginVersion(inspected.pluginVersion == null
+                                || inspected.pluginVersion.isBlank() ? "—" : inspected.pluginVersion);
+                        info.setType(inspected.type);
+                        info.setJarFileName(jar.getFileName().toString());
+                        info.setHasJar(true);
+                    } catch (IOException | RuntimeException ex) {
+                        LOG.log(Level.WARNING, "Could not inspect " + jar.getFileName(), ex);
+                    }
+                }
+            } catch (IOException ex) {
+                LOG.log(Level.WARNING, "Could not list plugin directory " + pluginsDir, ex);
+            }
+        }
+        for (PluginSource source : loadRegistryByName().values()) {
+            if (source.getPluginName() == null) {
+                continue;
+            }
+            PluginInstallInfo info = findListed(byName, source);
+            if (info == null) {
+                info = new PluginInstallInfo();
+                info.setPluginName(source.getPluginName());
+                info.setPluginVersion("—");
+                info.setType(source.getType());
+                info.setJarFileName(source.getJarFileName());
+                byName.put(source.getPluginName(), info);
+            }
+            info.setHasRegistry(true);
+            if ((info.getJarFileName() == null || info.getJarFileName().isBlank())
+                    && source.getJarFileName() != null) {
+                info.setJarFileName(source.getJarFileName());
+            }
+            if (!info.isHasJar()) {
+                info.setType(source.getType());
+            }
+        }
+        return new ArrayList<>(byName.values());
+    }
+
+    /**
+     * Delete the plugin JAR and {@code eklenti} row. Menus and business tables stay.
+     * The running session is unchanged; TERP must be restarted.
+     */
+    public String uninstall(String pluginName) throws IOException {
+        if (pluginName == null || pluginName.isBlank()) {
+            throw new IOException("Eklenti adı boş");
+        }
+        PluginInstallInfo info = null;
+        for (PluginInstallInfo row : listPlugins()) {
+            if (pluginName.equals(row.getPluginName()) || namesMatch(pluginName, row.getPluginName())) {
+                info = row;
+                break;
+            }
+        }
+        if (info == null) {
+            throw new IOException("Eklenti bulunamadı: " + pluginName);
+        }
+        if (info.getType() == 1) {
+            throw new IOException("Çekirdek eklenti çıkarılamaz: " + info.getPluginName());
+        }
+        StringBuilder log = new StringBuilder();
+        Path pluginsDir = TerpHome.pluginsDir();
+        String jarName = info.getJarFileName();
+        if (jarName != null && !jarName.isBlank() && Files.isDirectory(pluginsDir)) {
+            Path dest = pluginsDir.resolve(jarName).normalize();
+            if (!dest.startsWith(pluginsDir.toAbsolutePath().normalize())) {
+                throw new IOException("Geçersiz eklenti yolu");
+            }
+            if (Files.deleteIfExists(dest)) {
+                log.append("JAR silindi: ").append(jarName).append('\n');
+            }
+        }
+        PluginSourceDao dao = new PluginSourceDao();
+        String escaped = info.getPluginName().replace("'", "''");
+        PluginSource row = dao.firstOrDefault(
+                "from PluginSource e where e.pluginName = '" + escaped + "'");
+        if (row != null && row.getRowId() != null) {
+            dao.delete(row.getRowId());
+            log.append("eklenti kaydı silindi (id ").append(row.getRowId()).append(").\n");
+        }
+        if (log.isEmpty()) {
+            log.append("Silinecek JAR veya kayıt yok.\n");
+        }
+        log.append("Menü ve iş tabloları duruyor. TERP'i yeniden başlatın.\n");
+        return log.toString();
+    }
+
+    private static PluginInstallInfo findListed(Map<String, PluginInstallInfo> byName, PluginSource source) {
+        PluginInstallInfo exact = byName.get(source.getPluginName());
+        if (exact != null) {
+            return exact;
+        }
+        for (PluginInstallInfo info : byName.values()) {
+            if (namesMatch(info.getPluginName(), source.getPluginName())
+                    || (source.getMainClassName() != null && source.getMainClassName().equals(info.getPluginName()))) {
+                return info;
+            }
+        }
+        return null;
     }
 
     private static final class InspectedPlugin {
-        private final IPlugin plugin;
+        private final String name;
+        private final String pluginVersion;
+        private final String systemVersion;
+        private final int type;
+        private final String mainClassName;
         private final int entityCount;
 
-        private InspectedPlugin(IPlugin plugin, int entityCount) {
-            this.plugin = plugin;
+        private InspectedPlugin(String name, String pluginVersion, String systemVersion,
+                int type, String mainClassName, int entityCount) {
+            this.name = name;
+            this.pluginVersion = pluginVersion;
+            this.systemVersion = systemVersion;
+            this.type = type;
+            this.mainClassName = mainClassName;
             this.entityCount = entityCount;
         }
     }
@@ -328,6 +467,9 @@ public class PluginFactoryImpl implements IPluginFactory {
             for (IPlugin plugin : loader) {
                 found = true;
                 acceptScan(plugin);
+                if (plugin.getName() != null) {
+                    jarByPluginName.put(plugin.getName(), jar.getFileName().toString());
+                }
             }
             if (!found) {
                 LOG.log(Level.WARNING,
@@ -360,10 +502,13 @@ public class PluginFactoryImpl implements IPluginFactory {
     private void bind(IPlugin plugin, Map<String, PluginSource> registryByName) {
         PluginSource registered = findRegistry(plugin, registryByName);
         if (registered == null) {
-            registered = persistRegistry(plugin);
+            registered = persistRegistry(plugin.getName(), plugin.getType(),
+                    plugin.getClass().getName(), jarByPluginName.get(plugin.getName()));
             if (registered != null && registered.getPluginName() != null) {
                 registryByName.put(registered.getPluginName(), registered);
             }
+        } else {
+            fillJarFileName(registered, jarByPluginName.get(plugin.getName()));
         }
         if (registered != null && registered.getRowId() != null) {
             pluginsById.put(registered.getRowId(), plugin);
@@ -374,14 +519,18 @@ public class PluginFactoryImpl implements IPluginFactory {
     }
 
     private PluginSource findRegistry(IPlugin plugin, Map<String, PluginSource> registryByName) {
-        PluginSource exact = registryByName.get(plugin.getName());
+        return findRegistry(plugin.getName(), plugin.getClass().getName(), registryByName);
+    }
+
+    private PluginSource findRegistry(String pluginName, String mainClassName,
+            Map<String, PluginSource> registryByName) {
+        PluginSource exact = registryByName.get(pluginName);
         if (exact != null) {
             return exact;
         }
-        String pluginClass = plugin.getClass().getName();
         for (PluginSource source : registryByName.values()) {
-            if (namesMatch(plugin.getName(), source.getPluginName())
-                    || pluginClass.equals(source.getMainClassName())) {
+            if (namesMatch(pluginName, source.getPluginName())
+                    || (mainClassName != null && mainClassName.equals(source.getMainClassName()))) {
                 return source;
             }
         }
@@ -422,18 +571,63 @@ public class PluginFactoryImpl implements IPluginFactory {
             }
             insertMenuIfMissing(dao, menu, pluginRowId, parentRowId);
         }
+        retireUndeclaredMenus(dao, plugin, pluginRowId);
+    }
+
+    private void retireUndeclaredMenus(MenuSourceDao dao, IPlugin plugin, Long pluginRowId) {
+        if (pluginRowId == null) {
+            return;
+        }
+        Set<String> declared = new LinkedHashSet<>();
+        for (PluginMenu menu : plugin.getMenus()) {
+            if (menu != null && menu.getMenuId() != null && !menu.getMenuId().isBlank()) {
+                declared.add(menu.getMenuId());
+            }
+        }
+        List<MenuSource> rows = dao.findAll("from MenuSource e where e.pluginId = " + pluginRowId);
+        if (rows == null) {
+            return;
+        }
+        for (MenuSource row : rows) {
+            if (row == null || row.getRowId() == null || row.getMenuId() == null) {
+                continue;
+            }
+            if (declared.contains(row.getMenuId())) {
+                continue;
+            }
+            dao.delete(row.getRowId());
+            LOG.log(Level.INFO, "Removed retired menu {0} for plugin {1}",
+                    new Object[]{row.getMenuId(), plugin.getName()});
+        }
     }
 
     private void insertMenuIfMissing(MenuSourceDao dao, PluginMenu spec, Long pluginRowId,
             Long parentRowId) {
-        if (findMenuByCode(dao, spec.getMenuId()) != null) {
+        Long parent = parentRowId == null ? 0L : parentRowId;
+        MenuSource existing = findMenuByCode(dao, spec.getMenuId());
+        if (existing != null) {
+            Long currentParent = existing.getMenuParent() == null ? 0L : existing.getMenuParent();
+            boolean dirty = false;
+            if (!parent.equals(currentParent)) {
+                existing.setMenuParent(parent);
+                dirty = true;
+            }
+            if (spec.getTitle() != null && !spec.getTitle().equals(existing.getMenuName())) {
+                existing.setMenuName(spec.getTitle());
+                dirty = true;
+            }
+            if (dirty) {
+                dao.addOrUpdate(existing);
+                LOG.log(Level.INFO, "Updated menu {0} parent to {1}",
+                        new Object[]{spec.getMenuId(), parent});
+            }
             return;
         }
         MenuSource row = new MenuSource();
         row.setMenuId(spec.getMenuId());
         row.setMenuName(spec.getTitle() == null ? spec.getMenuId() : spec.getTitle());
         row.setMenuType(spec.isFolder() ? 0 : 1);
-        row.setMenuParent(parentRowId == null ? 0L : parentRowId);
+        row.setMenuParent(parent);
         row.setProgramName(spec.isFolder() ? null : spec.getProgramName());
         row.setIsPlugin(1);
         row.setPluginId(pluginRowId);
@@ -471,44 +665,68 @@ public class PluginFactoryImpl implements IPluginFactory {
             users.setStatus(0);
             dao.addOrUpdate(users);
         }
+        MenuSource sys02 = findMenuByCode(dao, "SYS02");
+        if (sys02 != null && !"Eklenti yönetimi".equals(sys02.getMenuName())) {
+            sys02.setMenuName("Eklenti yönetimi");
+            dao.addOrUpdate(sys02);
+        }
     }
 
-    private PluginSource persistRegistry(IPlugin plugin) {
+    private PluginSource persistRegistry(String pluginName, int type, String mainClassName,
+            String jarFileName) {
         PluginSourceDao dao = new PluginSourceDao();
-        PluginSource existing = lookupRegistry(dao, plugin);
+        PluginSource existing = lookupRegistry(dao, pluginName, mainClassName);
         if (existing != null) {
+            fillJarFileName(existing, jarFileName);
             return existing;
         }
         try {
             PluginSource source = new PluginSource();
-            source.setPluginName(plugin.getName());
-            source.setType(plugin.getType());
-            source.setMainClassName(plugin.getClass().getName());
+            source.setPluginName(pluginName);
+            source.setType(type);
+            source.setMainClassName(mainClassName);
+            source.setJarFileName(jarFileName);
             PluginSource saved = dao.addOrUpdate(source);
             if (saved != null && saved.getRowId() != null) {
                 LOG.log(Level.INFO, "Registered plugin {0} as eklenti id {1}",
-                        new Object[]{plugin.getName(), saved.getRowId()});
+                        new Object[]{pluginName, saved.getRowId()});
             }
             return saved;
         } catch (RuntimeException ex) {
-            PluginSource retry = lookupRegistry(dao, plugin);
+            PluginSource retry = lookupRegistry(dao, pluginName, mainClassName);
             if (retry != null) {
+                fillJarFileName(retry, jarFileName);
                 LOG.log(Level.INFO, "Plugin {0} already registered as eklenti id {1}",
-                        new Object[]{plugin.getName(), retry.getRowId()});
+                        new Object[]{pluginName, retry.getRowId()});
                 return retry;
             }
-            LOG.log(Level.WARNING, "Could not register plugin " + plugin.getName() + " in eklenti table", ex);
+            LOG.log(Level.WARNING, "Could not register plugin " + pluginName + " in eklenti table", ex);
             return null;
         }
     }
 
-    private static PluginSource lookupRegistry(PluginSourceDao dao, IPlugin plugin) {
-        String name = plugin.getName() == null ? "" : plugin.getName().replace("'", "''");
+    private static void fillJarFileName(PluginSource source, String jarFileName) {
+        if (source == null || jarFileName == null || jarFileName.isBlank()) {
+            return;
+        }
+        if (jarFileName.equals(source.getJarFileName())) {
+            return;
+        }
+        source.setJarFileName(jarFileName);
+        new PluginSourceDao().addOrUpdate(source);
+    }
+
+    private static PluginSource lookupRegistry(PluginSourceDao dao, String pluginName,
+            String mainClassName) {
+        String name = pluginName == null ? "" : pluginName.replace("'", "''");
         PluginSource byName = dao.firstOrDefault("from PluginSource e where e.pluginName = '" + name + "'");
         if (byName != null) {
             return byName;
         }
-        String className = plugin.getClass().getName().replace("'", "''");
+        if (mainClassName == null || mainClassName.isBlank()) {
+            return null;
+        }
+        String className = mainClassName.replace("'", "''");
         return dao.firstOrDefault("from PluginSource e where e.mainClassName = '" + className + "'");
     }
 

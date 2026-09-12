@@ -7,6 +7,7 @@ package com.terp.main;
 
 import com.terp.data.DatabaseFactoryImpl;
 import com.terp.data.PersistenceImpl;
+import com.terp.data.UserLookup;
 import com.terp.gui.IconFactoryImpl;
 import com.terp.gui.controllers.LoginFormController;
 import com.terp.gui.controllers.TerpMainFormController;
@@ -185,8 +186,7 @@ public class TerpMainApplication extends Application {
 
         //create database factory
         app.setDatabaseFactory(new DatabaseFactoryImpl());
-
-        //create icon factory
+        app.setUserLookup(new UserLookup());
         app.setIconFactory(new IconFactoryImpl());
 
         //load main frame

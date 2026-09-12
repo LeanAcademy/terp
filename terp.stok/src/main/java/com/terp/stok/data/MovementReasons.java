@@ -40,12 +40,12 @@ public final class MovementReasons {
         seed(dao, IMovementReason.CODE_PURCHASE, "Satınalma girişi", StockDirection.IN, now);
         seed(dao, "SATIS_IADE", "Satışlardan iade", StockDirection.IN, now);
         seed(dao, "URETIM_GIRIS", "Üretim girişi", StockDirection.IN, now);
-        seed(dao, "SATIS_IRS", "Satış çıkışı (irsaliye)", StockDirection.OUT, now);
+        seed(dao, IMovementReason.CODE_SALES, "Satış çıkışı (irsaliye)", StockDirection.OUT, now);
         seed(dao, "URETIM_SARF", "Üretime sarf", StockDirection.OUT, now);
         seed(dao, "ALIM_IADE", "Alımlardan iade", StockDirection.OUT, now);
         seed(dao, "TRANSFER", "Transfer", StockDirection.TRANSFER, now);
-        seed(dao, "SAYIM_ART", "Sayım artış", StockDirection.COUNT_IN, now);
-        seed(dao, "SAYIM_AZ", "Sayım azalış", StockDirection.COUNT_OUT, now);
+        seed(dao, IMovementReason.CODE_COUNT_IN, "Sayım artış", StockDirection.COUNT_IN, now);
+        seed(dao, IMovementReason.CODE_COUNT_OUT, "Sayım azalış", StockDirection.COUNT_OUT, now);
         seed(dao, "FIRE", "Fire", StockDirection.SCRAP, now);
     }
 

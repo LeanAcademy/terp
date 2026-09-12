@@ -5,7 +5,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane id="AnchorPane" prefHeight="220.0" prefWidth="520.0" styleClass="mainFxmlClass" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.terp.satin.gui.SettingsFormController">
+<AnchorPane id="AnchorPane" prefHeight="268.0" prefWidth="520.0" styleClass="mainFxmlClass" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.terp.satin.gui.SettingsFormController">
     <stylesheets>
         <URL value="@../styles/receiptform.css" />
     </stylesheets>
@@ -15,7 +15,7 @@
                 <Button fx:id="btnSave" defaultButton="true" mnemonicParsing="false" onAction="#onActionBtnSave" text="Kaydet" />
             </items>
         </ToolBar>
-        <GridPane hgap="10.0" vgap="10.0" AnchorPane.leftAnchor="16.0" AnchorPane.rightAnchor="16.0" AnchorPane.topAnchor="56.0">
+        <GridPane hgap="10.0" vgap="10.0" AnchorPane.bottomAnchor="12.0" AnchorPane.leftAnchor="16.0" AnchorPane.rightAnchor="16.0" AnchorPane.topAnchor="56.0">
             <columnConstraints>
                 <ColumnConstraints prefWidth="220.0" />
                 <ColumnConstraints hgrow="ALWAYS" />

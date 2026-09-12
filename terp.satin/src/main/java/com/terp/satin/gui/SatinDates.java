@@ -16,12 +16,14 @@
  */
 package com.terp.satin.gui;
 
+import com.terp.plugin.data.DocumentNumbers;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.TextField;
 
 final class SatinDates {
 
@@ -66,6 +68,15 @@ final class SatinDates {
         }
         String trimmed = value.trim();
         return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    static String assignDocumentNo(String documentType, TextField field) {
+        String assigned = DocumentNumbers.assign(documentType,
+                field == null ? null : trimToNull(field.getText()));
+        if (field != null && assigned != null && !assigned.isBlank()) {
+            field.setText(assigned);
+        }
+        return assigned;
     }
 
     static void showError(String title, String header, String content) {

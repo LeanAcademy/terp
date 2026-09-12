@@ -12,12 +12,12 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 package com.terp.data.model;
 
+import com.terp.plugin.data.CommonAudit;
 import com.terp.plugin.data.model.IRegions;
-import java.io.Serializable;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -28,27 +28,37 @@ import jakarta.persistence.Table;
  * @author cevdet
  */
 @Entity
-@Table(name="sehirler", catalog="terp", schema="terp")
-public class Regions implements Serializable, IRegions {
+@Table(name = "sehirler", catalog = "terp", schema = "terp")
+public class Regions extends CommonAudit implements IRegions {
 
     @Id
     private Long id;
-    
-    @Column(length=6)
+
+    @Column(length = 6)
     private String country;
-    
-    @Column(length=2)
+
+    @Column(length = 2)
     private String code;
-    
-    @Column(length=150)
+
+    @Column(length = 150)
     private String name;
-    
+
     private Double latitude;
-    
+
     private Double longitude;
-    
+
     private int cities;
-    
+
+    @Override
+    public Long getRowId() {
+        return id;
+    }
+
+    @Override
+    public void setRowId(Long rowId) {
+        this.id = rowId;
+    }
+
     @Override
     public Long getId() {
         return id;
@@ -118,5 +128,4 @@ public class Regions implements Serializable, IRegions {
     public void setCities(int cities) {
         this.cities = cities;
     }
-    
 }

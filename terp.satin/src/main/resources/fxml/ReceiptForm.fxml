@@ -5,57 +5,73 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane id="AnchorPane" prefHeight="520.0" prefWidth="980.0" styleClass="mainFxmlClass" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.terp.satin.gui.ReceiptFormController">
+<AnchorPane id="AnchorPane" prefHeight="720.0" prefWidth="980.0" styleClass="mainFxmlClass" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.terp.satin.gui.ReceiptFormController">
     <stylesheets>
         <URL value="@../styles/receiptform.css" />
     </stylesheets>
     <children>
-        <BorderPane AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-            <top>
-                <VBox BorderPane.alignment="CENTER">
-                    <children>
-                        <ToolBar prefHeight="40.0">
-                            <items>
-                                <Button fx:id="btnSearch" defaultButton="true" mnemonicParsing="false" onAction="#onActionBtnSearch" prefWidth="95.0" text="Ara" />
-                                <Button fx:id="btnAdd" mnemonicParsing="false" onAction="#onActionBtnAdd" prefWidth="95.0" text="Ekle" />
-                                <Button fx:id="btnEdit" mnemonicParsing="false" onAction="#onActionBtnEdit" prefWidth="95.0" text="Düzenle" />
-                                <Button fx:id="btnDelete" mnemonicParsing="false" onAction="#onActionBtnDelete" prefWidth="95.0" text="Sil / İptal" />
-                            </items>
-                        </ToolBar>
-                        <GridPane hgap="8.0" vgap="6.0">
-                            <padding>
-                                <Insets bottom="6.0" left="8.0" right="8.0" top="4.0" />
-                            </padding>
-                            <columnConstraints>
-                                <ColumnConstraints prefWidth="140.0" />
-                                <ColumnConstraints hgrow="ALWAYS" prefWidth="180.0" />
-                                <ColumnConstraints prefWidth="160.0" />
-                            </columnConstraints>
+        <SplitPane fx:id="spListDetail" dividerPositions="0.5" orientation="VERTICAL" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <items>
+                <BorderPane minHeight="160.0">
+                    <top>
+                        <VBox BorderPane.alignment="CENTER">
                             <children>
-                                <TextField fx:id="txtDocumentNo" promptText="Belge no" />
-                                <TextField fx:id="txtAccountCode" promptText="Tedarikçi" GridPane.columnIndex="1" />
-                                <ComboBox fx:id="cmbSearchStatus" prefWidth="160.0" promptText="Durum" GridPane.columnIndex="2" />
+                                <ToolBar prefHeight="40.0">
+                                    <items>
+                                        <Button fx:id="btnSearch" defaultButton="true" mnemonicParsing="false" onAction="#onActionBtnSearch" prefWidth="95.0" text="Ara" />
+                                        <Button fx:id="btnAdd" mnemonicParsing="false" onAction="#onActionBtnAdd" prefWidth="95.0" text="Ekle" />
+                                        <Button fx:id="btnFromOrder" mnemonicParsing="false" onAction="#onActionBtnFromOrder" prefWidth="170.0" text="Siparişten mal kabul" />
+                                        <Button fx:id="btnEdit" mnemonicParsing="false" onAction="#onActionBtnEdit" prefWidth="95.0" text="Düzenle" />
+                                        <Button fx:id="btnDelete" mnemonicParsing="false" onAction="#onActionBtnDelete" prefWidth="95.0" text="Sil / İptal" />
+                                    </items>
+                                </ToolBar>
+                                <GridPane hgap="8.0" vgap="6.0">
+                                    <padding>
+                                        <Insets bottom="6.0" left="8.0" right="8.0" top="4.0" />
+                                    </padding>
+                                    <columnConstraints>
+                                        <ColumnConstraints prefWidth="140.0" />
+                                        <ColumnConstraints hgrow="ALWAYS" prefWidth="180.0" />
+                                        <ColumnConstraints prefWidth="160.0" />
+                                    </columnConstraints>
+                                    <children>
+                                        <TextField fx:id="txtDocumentNo" promptText="Belge no" />
+                                        <TextField fx:id="txtAccountCode" promptText="Tedarikçi" GridPane.columnIndex="1" />
+                                        <ComboBox fx:id="cmbSearchStatus" prefWidth="160.0" promptText="Durum" GridPane.columnIndex="2" />
+                                    </children>
+                                </GridPane>
                             </children>
-                        </GridPane>
-                    </children>
-                </VBox>
-            </top>
-            <bottom>
-                <Pagination fx:id="pgnReceiptData" BorderPane.alignment="CENTER" />
-            </bottom>
-            <center>
-                <TableView fx:id="tblvReceiptView" tableMenuButtonVisible="true" BorderPane.alignment="CENTER">
+                        </VBox>
+                    </top>
+                    <bottom>
+                        <Pagination fx:id="pgnReceiptData" BorderPane.alignment="CENTER" />
+                    </bottom>
+                    <center>
+                        <TableView fx:id="tblvReceiptView" tableMenuButtonVisible="true" BorderPane.alignment="CENTER">
+                            <columns>
+                                <TableColumn fx:id="tcDateLabel" prefWidth="100.0" text="Tarih" />
+                                <TableColumn fx:id="tcDocumentNo" prefWidth="120.0" text="Belge" />
+                                <TableColumn fx:id="tcAccountCode" prefWidth="110.0" text="Cari" />
+                                <TableColumn fx:id="tcAccountName" prefWidth="200.0" text="Unvan" />
+                                <TableColumn fx:id="tcWarehouseCode" prefWidth="90.0" text="Depo" />
+                                <TableColumn fx:id="tcSourceOrderNo" prefWidth="160.0" text="Sipariş" />
+                                <TableColumn fx:id="tcStatusLabel" prefWidth="80.0" text="Durum" />
+                            </columns>
+                        </TableView>
+                    </center>
+                </BorderPane>
+                <TableView fx:id="tblvLineView" minHeight="140.0" tableMenuButtonVisible="true">
                     <columns>
-                        <TableColumn fx:id="tcDateLabel" prefWidth="100.0" text="Tarih" />
-                        <TableColumn fx:id="tcDocumentNo" prefWidth="120.0" text="Belge" />
-                        <TableColumn fx:id="tcAccountCode" prefWidth="110.0" text="Cari" />
-                        <TableColumn fx:id="tcAccountName" prefWidth="200.0" text="Unvan" />
-                        <TableColumn fx:id="tcWarehouseCode" prefWidth="90.0" text="Depo" />
-                        <TableColumn fx:id="tcSourceOrderNo" prefWidth="110.0" text="Sipariş" />
-                        <TableColumn fx:id="tcStatusLabel" prefWidth="80.0" text="Durum" />
+                        <TableColumn fx:id="tcLineNo" prefWidth="50.0" text="No" />
+                        <TableColumn fx:id="tcLineSourceOrderNo" prefWidth="120.0" text="Sipariş" />
+                        <TableColumn fx:id="tcLineItemCode" prefWidth="110.0" text="Kod" />
+                        <TableColumn fx:id="tcLineItemDesc" prefWidth="240.0" text="Malzeme" />
+                        <TableColumn fx:id="tcLineItemUnit" prefWidth="70.0" text="Birim" />
+                        <TableColumn fx:id="tcLineQuantity" prefWidth="90.0" text="Miktar" />
+                        <TableColumn fx:id="tcLineUnitPrice" prefWidth="90.0" text="Fiyat" />
                     </columns>
                 </TableView>
-            </center>
-        </BorderPane>
+            </items>
+        </SplitPane>
     </children>
 </AnchorPane>

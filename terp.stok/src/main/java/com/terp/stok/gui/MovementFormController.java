@@ -147,7 +147,7 @@ public class MovementFormController implements Initializable {
             Alert blocked = new Alert(AlertType.WARNING);
             blocked.setTitle("Belge hareketi");
             blocked.setHeaderText("Bu satır bir belgeden geldi");
-            blocked.setContentText("Mal kabul belgesinden düzeltin veya iptal edin.");
+                    blocked.setContentText("Kaynak belgeden düzeltin veya iptal edin.");
             blocked.show();
             return;
         }
@@ -172,7 +172,7 @@ public class MovementFormController implements Initializable {
                     Alert blocked = new Alert(AlertType.ERROR);
                     blocked.setTitle("Silinemez");
                     blocked.setHeaderText("Bu satır bir belgeden geldi");
-                    blocked.setContentText("Mal kabul belgesini iptal edin.");
+                    blocked.setContentText("Kaynak belgeyi iptal edin.");
                     blocked.show();
                     return;
                 }

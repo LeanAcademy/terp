@@ -25,7 +25,6 @@ import com.terp.satin.data.PurchaseDocs;
 import com.terp.satin.data.PurchaseOrder;
 import com.terp.satin.data.PurchaseRequest;
 import com.terp.satin.data.PurchaseRequestLine;
-import java.io.IOException;
 import java.net.URL;
 import java.util.List;
 import java.util.ResourceBundle;
@@ -37,23 +36,18 @@ import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
-import javafx.scene.Node;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
 import javafx.scene.control.Pagination;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.stage.Modality;
-import javafx.stage.Stage;
 
 public class RequestFormController implements Initializable {
 
@@ -87,6 +81,18 @@ public class RequestFormController implements Initializable {
     private TableColumn<PurchaseRequest, String> tcWarehouseCode;
     @FXML
     private TableColumn<PurchaseRequest, String> tcStatusLabel;
+    @FXML
+    private TableView<PurchaseRequestLine> tblvLineView;
+    @FXML
+    private TableColumn<PurchaseRequestLine, Integer> tcLineNo;
+    @FXML
+    private TableColumn<PurchaseRequestLine, String> tcLineItemCode;
+    @FXML
+    private TableColumn<PurchaseRequestLine, String> tcLineItemDesc;
+    @FXML
+    private TableColumn<PurchaseRequestLine, String> tcLineItemUnit;
+    @FXML
+    private TableColumn<PurchaseRequestLine, Double> tcLineQuantity;
 
     private ICommonDao<PurchaseRequest> requestDao;
     private ICommonDao<PurchaseRequestLine> lineDao;
@@ -96,6 +102,7 @@ public class RequestFormController implements Initializable {
     private int rowsPerPage = DEFAULT_ROWS_PER_PAGE;
     private int currentPageNum = 1;
     private String searchSqlStatement = "";
+    private boolean syncingSelection;
 
     @FXML
     public void onActionBtnSearch(ActionEvent event) {
@@ -122,14 +129,14 @@ public class RequestFormController implements Initializable {
         if (!CompanyScope.requireCompany()) {
             return;
         }
-        openEditor(null);
+        SatinWindows.openRequestEditor(null, this::refreshView);
     }
 
     @FXML
     public void onActionBtnEdit(ActionEvent event) {
         PurchaseRequest selected = tblvRequestView.getSelectionModel().getSelectedItem();
         if (selected != null) {
-            openEditor(selected);
+            SatinWindows.openRequestEditor(selected, this::refreshView);
         }
     }
 
@@ -195,6 +202,12 @@ public class RequestFormController implements Initializable {
         this.tcDocumentNo.setCellValueFactory(new PropertyValueFactory<>("documentNo"));
         this.tcWarehouseCode.setCellValueFactory(new PropertyValueFactory<>("warehouseCode"));
         this.tcStatusLabel.setCellValueFactory(new PropertyValueFactory<>("statusLabel"));
+        this.tcLineNo.setCellValueFactory(new PropertyValueFactory<>("lineNo"));
+        this.tcLineItemCode.setCellValueFactory(new PropertyValueFactory<>("itemCode"));
+        this.tcLineItemDesc.setCellValueFactory(new PropertyValueFactory<>("itemDesc"));
+        this.tcLineItemUnit.setCellValueFactory(new PropertyValueFactory<>("itemUnit"));
+        this.tcLineQuantity.setCellValueFactory(new PropertyValueFactory<>("quantity"));
+        this.tblvLineView.setPlaceholder(new Label("Belge satırı yok"));
         this.pgnRequestData.currentPageIndexProperty().addListener(
                 (ObservableValue<? extends Number> observable, Number oldValue, Number newValue) -> {
                     this.currentPageNum = newValue.intValue() + 1;
@@ -206,32 +219,58 @@ public class RequestFormController implements Initializable {
         this.btnAdd.setDisable(!rights.add);
         updateButtons(true, true, true);
         refreshView();
-    }
-
-    private void openEditor(PurchaseRequest current) {
-        try {
-            FXMLLoader loader = SatinDates.pluginLoader(RequestFormController.class, "/fxml/RequestEditForm.fxml");
-            Node node = loader.load();
-            RequestEditFormController controller = loader.getController();
-            controller.initializeForm(current);
-            Stage stage = new Stage();
-            stage.initModality(Modality.WINDOW_MODAL);
-            stage.initOwner(TerpApplication.getInstance().getDesktopManager().getPrimaryStage());
-            stage.setScene(new Scene((Parent) node));
-            stage.setTitle(current == null ? "Yeni satınalma talebi" : "Satınalma talebi");
-            stage.showAndWait();
-            refreshView();
-        } catch (IOException ex) {
-            LOG.log(Level.SEVERE, null, ex);
+        if (!tblvRequestView.getItems().isEmpty()) {
+            tblvRequestView.getSelectionModel().select(0);
         }
     }
 
+    private void showLines(PurchaseRequest row) {
+        if (row == null || row.getRowId() == null) {
+            tblvLineView.setItems(FXCollections.observableArrayList());
+            return;
+        }
+        List<PurchaseRequestLine> stored = lineDao.findAll(
+                "from PurchaseRequestLine e where e.requestId = " + row.getRowId()
+                        + " order by e.lineNo");
+        tblvLineView.setItems(FXCollections.observableArrayList(stored == null ? List.of() : stored));
+    }
+
     private void refreshView() {
+        Long selectedId = selectedRowId();
         String hql = scopedQuery();
         long count = requestDao.getRecordCount(hql);
         int pages = (int) (count / rowsPerPage + 1);
         this.pgnRequestData.setPageCount(Math.max(1, pages));
         this.tblvRequestView.setItems(currentPage());
+        restoreSelection(selectedId);
+        showLines(tblvRequestView.getSelectionModel().getSelectedItem());
+    }
+
+    private Long selectedRowId() {
+        PurchaseRequest selected = tblvRequestView.getSelectionModel().getSelectedItem();
+        return selected == null ? null : selected.getRowId();
+    }
+
+    private PurchaseRequest findOnPage(Long rowId) {
+        if (rowId == null) {
+            return null;
+        }
+        for (PurchaseRequest row : tblvRequestView.getItems()) {
+            if (row != null && rowId.equals(row.getRowId())) {
+                return row;
+            }
+        }
+        return null;
+    }
+
+    private void restoreSelection(Long rowId) {
+        PurchaseRequest match = findOnPage(rowId);
+        if (match == null) {
+            return;
+        }
+        syncingSelection = true;
+        tblvRequestView.getSelectionModel().select(match);
+        syncingSelection = false;
     }
 
     private ObservableList<PurchaseRequest> currentPage() {
@@ -251,12 +290,18 @@ public class RequestFormController implements Initializable {
         int size = change.getList().size();
         if (size == 0) {
             updateButtons(true, true, true);
+            if (!syncingSelection) {
+                showLines(null);
+            }
             return;
         }
         PurchaseRequest selected = change.getList().get(0);
         boolean convertDisabled = size != 1 || selected == null || !selected.canConvert()
                 || !orderRights.add;
         updateButtons(size != 1, size == 0, convertDisabled);
+        if (!syncingSelection && size == 1) {
+            showLines(selected);
+        }
     }
 
     private void updateButtons(boolean editDisabled, boolean deleteDisabled, boolean convertDisabled) {

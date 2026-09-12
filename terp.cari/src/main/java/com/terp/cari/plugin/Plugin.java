@@ -113,7 +113,7 @@ public class Plugin implements IPlugin {
                     "/fxml/" + program + ".fxml"));
             loader.setClassLoader(getClass().getClassLoader());
             Node node = loader.load();
-            this.desktopManager.addToDesktop(node, name + "-" + program);
+            this.desktopManager.addToDesktop(node, program);
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, null, ex);
         }

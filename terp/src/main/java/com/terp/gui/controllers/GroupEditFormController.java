@@ -28,6 +28,7 @@ import com.terp.plugin.TerpApplication;
 import com.terp.plugin.data.ICommonDao;
 import com.terp.plugin.data.ICompanyLookup;
 import com.terp.plugin.data.model.ICompany;
+import com.terp.plugin.gui.RecordAuditBar;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
@@ -92,6 +93,7 @@ public class GroupEditFormController implements Initializable {
     private ICommonDao<MenuSource> menuDao;
     private EmployeeGroup currentRow;
     private boolean callerIsAdmin;
+    private RecordAuditBar auditBar;
 
     public void initializeForm(EmployeeGroup row) {
         this.currentRow = row;
@@ -103,6 +105,7 @@ public class GroupEditFormController implements Initializable {
             chkSystemAdmin.setSelected(false);
             fillTables(Set.of(), List.of());
             updateSystemHint();
+            showAudit();
             return;
         }
         txtGroupName.setText(row.getGroupName() == null ? "" : row.getGroupName());
@@ -130,6 +133,7 @@ public class GroupEditFormController implements Initializable {
             tblvCompanyView.setDisable(true);
             tblvMenuView.setDisable(true);
         }
+        showAudit();
     }
 
     @FXML
@@ -191,6 +195,14 @@ public class GroupEditFormController implements Initializable {
         tcDelete.setCellValueFactory(cell -> cell.getValue().deleteProperty());
         tcDelete.setCellFactory(CheckBoxTableCell.forTableColumn(tcDelete));
         chkSystemAdmin.selectedProperty().addListener((obs, old, value) -> updateSystemHint());
+        this.auditBar = RecordAuditBar.install(txtGroupName);
+        showAudit();
+    }
+
+    private void showAudit() {
+        if (auditBar != null) {
+            auditBar.bind(currentRow);
+        }
     }
 
     private void fillTables(Set<Long> assignedCompanies, List<GroupPermission> permissions) {

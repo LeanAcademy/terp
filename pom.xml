@@ -31,6 +31,7 @@
         <module>terp.stok</module>
         <module>terp.cari</module>
         <module>terp.satin</module>
+        <module>terp.satis</module>
         <module>terp</module>
     </modules>
     <dependencyManagement>

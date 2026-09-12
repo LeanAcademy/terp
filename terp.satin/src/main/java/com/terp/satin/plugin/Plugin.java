@@ -58,7 +58,7 @@ public class Plugin implements IPlugin {
         if (this.menuManager != null) {
             addProgramTool("Talep", "CLIPBOARD", "RequestForm");
             addProgramTool("Sipariş", "SHOPPING_CART", "OrderForm");
-            addProgramTool("Sip. kabul", "DOWNLOAD", "ReceiptEditForm");
+            addProgramTool("Durum", "LIST", "OrderStatusForm");
             addProgramTool("Mal kabul", "TRUCK", "ReceiptForm");
         }
     }
@@ -107,9 +107,9 @@ public class Plugin implements IPlugin {
                 PluginMenu.folder("SAT01", "Satınalma"),
                 PluginMenu.program("SAT03", "Satınalma talebi", "SAT01", "RequestForm"),
                 PluginMenu.program("SAT04", "Satınalma siparişi", "SAT01", "OrderForm"),
-                PluginMenu.program("SAT05", "Siparişten mal kabul", "SAT01", "ReceiptEditForm"),
+                PluginMenu.program("SAT05", "Sipariş durumu", "SAT01", "OrderStatusForm"),
                 PluginMenu.program("SAT02", "Mal kabul", "SAT01", "ReceiptForm"),
-                PluginMenu.program("SAT06", "Satınalma ayarları", "SAT01", "SettingsForm"));
+                PluginMenu.program("SAT06", "Satınalma ayarları", "SYS01", "SettingsForm"));
     }
 
     @Override
@@ -125,7 +125,7 @@ public class Plugin implements IPlugin {
                     "/fxml/" + program + ".fxml"));
             loader.setClassLoader(getClass().getClassLoader());
             Node node = loader.load();
-            this.desktopManager.addToDesktop(node, name + "-" + program);
+            this.desktopManager.addToDesktop(node, program);
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, null, ex);
         }
@@ -160,7 +160,7 @@ public class Plugin implements IPlugin {
         if ("OrderForm".equals(program)) {
             return "SAT04";
         }
-        if ("ReceiptEditForm".equals(program)) {
+        if ("OrderStatusForm".equals(program)) {
             return "SAT05";
         }
         if ("SettingsForm".equals(program)) {

@@ -20,6 +20,7 @@ import com.terp.cari.data.Cari;
 import com.terp.plugin.CompanyScope;
 import com.terp.plugin.TerpApplication;
 import com.terp.plugin.data.ICommonDao;
+import com.terp.plugin.gui.RecordAuditBar;
 import java.net.URL;
 import java.util.Date;
 import java.util.ResourceBundle;
@@ -74,6 +75,7 @@ public class AccountEditFormController implements Initializable {
     private ICommonDao<Cari> accountDao;
     private Cari currentRow;
     private ValidationSupport validationSupport;
+    private RecordAuditBar auditBar;
 
     public void initializeForm(Cari row) {
         this.currentRow = row;
@@ -81,6 +83,7 @@ public class AccountEditFormController implements Initializable {
             chkCustomer.setSelected(true);
             chkSupplier.setSelected(true);
             chkActive.setSelected(true);
+            showAudit();
             return;
         }
         txtAccountCode.setText(empty(row.getAccountCode()));
@@ -97,6 +100,7 @@ public class AccountEditFormController implements Initializable {
         txtPhone.setText(empty(row.getPhone()));
         txtEmail.setText(empty(row.getEmail()));
         txtNotes.setText(empty(row.getNotes()));
+        showAudit();
     }
 
     @FXML
@@ -176,6 +180,14 @@ public class AccountEditFormController implements Initializable {
                 Validator.createEmptyValidator("Kod zorunlu"));
         this.validationSupport.registerValidator(txtAccountName, true,
                 Validator.createEmptyValidator("Unvan zorunlu"));
+        this.auditBar = RecordAuditBar.install(txtAccountCode);
+        showAudit();
+    }
+
+    private void showAudit() {
+        if (auditBar != null) {
+            auditBar.bind(currentRow);
+        }
     }
 
     private void close() {

@@ -24,6 +24,9 @@ import com.terp.plugin.data.StockDirection;
 public interface IMovementReason {
 
     String CODE_PURCHASE = "ALIM";
+    String CODE_COUNT_IN = "SAYIM_ART";
+    String CODE_COUNT_OUT = "SAYIM_AZ";
+    String CODE_SALES = "SATIS_IRS";
 
     String getReasonCode();
 

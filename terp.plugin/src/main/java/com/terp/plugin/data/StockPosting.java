@@ -24,6 +24,8 @@ import java.util.Date;
 public final class StockPosting {
 
     public static final String SOURCE_PURCHASE_RECEIPT = "SATIN_KABUL";
+    public static final String SOURCE_STOCK_COUNT = "STOK_SAYIM";
+    public static final String SOURCE_SALES_DELIVERY = "SATIS_IRS";
 
     private Date movementDate;
     private int direction;

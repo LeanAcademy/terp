@@ -22,6 +22,7 @@ import com.terp.plugin.TerpApplication;
 import com.terp.plugin.data.ICommonDao;
 import com.terp.satin.data.PurchaseDocs;
 import com.terp.satin.data.PurchaseSettings;
+import com.terp.plugin.gui.RecordAuditBar;
 import java.net.URL;
 import java.util.Date;
 import java.util.ResourceBundle;
@@ -42,6 +43,7 @@ public class SettingsFormController implements Initializable {
 
     private ICommonDao<PurchaseSettings> settingsDao;
     private FormRights rights = FormRights.forMenu("SAT06");
+    private RecordAuditBar auditBar;
 
     @FXML
     private void onActionBtnSave(ActionEvent event) {
@@ -66,6 +68,7 @@ public class SettingsFormController implements Initializable {
         }
         CompanyScope.stamp(row);
         settingsDao.addOrUpdate(row);
+        showAudit(row);
         Alert alert = new Alert(AlertType.INFORMATION);
         alert.setTitle("Satınalma ayarları");
         alert.setHeaderText("Kaydedildi");
@@ -77,11 +80,20 @@ public class SettingsFormController implements Initializable {
     public void initialize(URL url, ResourceBundle rb) {
         this.settingsDao = TerpApplication.getInstance().getPersistence().createDao(PurchaseSettings.class);
         this.btnSave.setDisable(!rights.add && !rights.edit);
+        this.auditBar = RecordAuditBar.install(txtOverReceiptPercent);
         if (!CompanyScope.hasCompany()) {
             txtOverReceiptPercent.setText("0");
+            showAudit(null);
             return;
         }
         PurchaseSettings row = PurchaseDocs.loadSettings(settingsDao);
         txtOverReceiptPercent.setText(row == null ? "0" : Double.toString(row.getOverReceiptPercent()));
+        showAudit(row);
+    }
+
+    private void showAudit(PurchaseSettings row) {
+        if (auditBar != null) {
+            auditBar.bind(row);
+        }
     }
 }

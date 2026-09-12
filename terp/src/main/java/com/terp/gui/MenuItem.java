@@ -12,7 +12,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 package com.terp.gui;
 
@@ -20,9 +20,8 @@ import com.terp.data.dao.MenuSourceDao;
 import com.terp.data.model.MenuSource;
 import com.terp.plugin.IUser;
 import com.terp.plugin.TerpApplication;
+import java.util.ArrayList;
 import java.util.List;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.scene.control.TreeItem;
 
@@ -31,9 +30,12 @@ import javafx.scene.control.TreeItem;
  * @author cevdet
  */
 public class MenuItem extends TreeItem<String> {
-   
-    private boolean hasLoadedChildren = false;
+
+    private boolean hasLoadedChildren;
+    private boolean leafChecked;
+    private boolean leaf;
     private MenuSource currentItem;
+    private final MenuSourceDao menuSourceDao = new MenuSourceDao();
 
     public MenuSource getCurrentItem() {
         return currentItem;
@@ -42,86 +44,74 @@ public class MenuItem extends TreeItem<String> {
     public void setCurrentItem(MenuSource currentItem) {
         this.currentItem = currentItem;
     }
-    private final MenuSourceDao menuSourceDao = new MenuSourceDao();
-    
-    
-    private final ChangeListener<Boolean> expandedPropertyListener = new ChangeListener<Boolean>(){
-        @Override
-        public void changed(ObservableValue<? extends Boolean> observable, 
-                Boolean oldValue, Boolean newValue) {
-            if(hasLoadedChildren == false) {
-                    loadChildren();
-                }
-        }
-    
-    };       
-    
-    public MenuItem(MenuSource item){
+
+    public MenuItem(MenuSource item) {
         super(item.getMenuId() + " - " + item.getMenuName());
-        if(item.getMenuType() == 0){
+        if (item.getMenuType() == 0) {
             super.setValue(item.getMenuName());
         }
-        super.expandedProperty().addListener(expandedPropertyListener);
         this.currentItem = item;
-    }   
+    }
 
     @Override
     public ObservableList<TreeItem<String>> getChildren() {
-        if(!hasLoadedChildren){
+        if (!hasLoadedChildren) {
             loadChildren();
         }
-                
         return super.getChildren();
     }
-    
-    
+
     @Override
     public boolean isLeaf() {
-        if (hasLoadedChildren) {
-            return super.getChildren().isEmpty();
-        } else {
-        
-            // check if there is child to load
-            String sql = "from MenuSource e where e.menuType=1 and e.menuParent=" 
-                + this.currentItem.getRowId();
-            List<?> children = menuSourceDao.findAll(sql);
-            if (children == null || children.isEmpty()) {
-                return true;
-            }
-            for (Object row : children) {
-                if (allowed((MenuSource) row)) {
-                    return false;
-                }
-            }
-            return true;
+        if (!leafChecked) {
+            leafChecked = true;
+            leaf = currentItem == null || currentItem.getMenuType() != 0 || !hasVisibleChild();
         }
-    }    
+        return leaf;
+    }
 
     private void loadChildren() {
         hasLoadedChildren = true;
-        
-        String sql = "from MenuSource e where e.menuType=1 and e.menuParent=" 
-                + this.currentItem.getRowId();
-        List<?> children = menuSourceDao.findAll(sql);
-        if (children == null) {
-            return;
-        }
-        for(Object menuItem : children){
-            MenuSource source = (MenuSource)menuItem;
-            if (!allowed(source)) {
-                continue;
+        leafChecked = true;
+        List<TreeItem<String>> loaded = new ArrayList<>();
+        if (currentItem != null && currentItem.getRowId() != null) {
+            List<?> children = menuSourceDao.findAll(
+                    "from MenuSource e where e.menuType=1 and e.menuParent="
+                            + currentItem.getRowId());
+            if (children != null) {
+                for (Object menuItem : children) {
+                    MenuSource source = (MenuSource) menuItem;
+                    if (!allowed(source)) {
+                        continue;
+                    }
+                    loaded.add(new MenuItem(source));
+                }
             }
-            MenuItem subitem = new MenuItem(source);
-            
-            // add to children
-            super.getChildren().add(subitem);
         }
-    
+        leaf = loaded.isEmpty();
+        super.getChildren().setAll(loaded);
+    }
+
+    private boolean hasVisibleChild() {
+        if (currentItem.getRowId() == null) {
+            return false;
+        }
+        List<?> children = menuSourceDao.findAll(
+                "from MenuSource e where e.menuType=1 and e.menuParent="
+                        + currentItem.getRowId());
+        if (children == null) {
+            return false;
+        }
+        for (Object row : children) {
+            if (allowed((MenuSource) row)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static boolean allowed(MenuSource menu) {
         IUser user = TerpApplication.getInstance().getUser();
         return user != null && menu != null && user.canOpen(menu.getMenuId());
     }
-    
 }

@@ -12,12 +12,12 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 package com.terp.data.model;
 
+import com.terp.plugin.data.CommonAudit;
 import com.terp.plugin.data.model.ICities;
-import java.io.Serializable;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -28,25 +28,35 @@ import jakarta.persistence.Table;
  * @author cevdet
  */
 @Entity
-@Table(name="ilceler", catalog="terp", schema="terp")
-public class Cities implements Serializable, ICities {
+@Table(name = "ilceler", catalog = "terp", schema = "terp")
+public class Cities extends CommonAudit implements ICities {
 
     @Id
     private Long id;
-    
-    @Column(length=2)
+
+    @Column(length = 2)
     private String country;
-    
-    @Column(length=2)
+
+    @Column(length = 2)
     private String region;
-    
-    @Column(length=150)
+
+    @Column(length = 150)
     private String name;
-    
+
     private Double latitude;
-    
+
     private Double longitude;
-    
+
+    @Override
+    public Long getRowId() {
+        return id;
+    }
+
+    @Override
+    public void setRowId(Long rowId) {
+        this.id = rowId;
+    }
+
     @Override
     public Long getId() {
         return id;
@@ -66,7 +76,7 @@ public class Cities implements Serializable, ICities {
     public void setCountry(String country) {
         this.country = country;
     }
-    
+
     @Override
     public String getRegion() {
         return country;
@@ -106,5 +116,4 @@ public class Cities implements Serializable, ICities {
     public void setLongitude(Double longitude) {
         this.longitude = longitude;
     }
-    
 }

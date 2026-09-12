@@ -18,6 +18,7 @@ package com.terp.satin.gui;
 
 import com.terp.plugin.CompanyScope;
 import com.terp.plugin.TerpApplication;
+import com.terp.plugin.data.DocumentNumbers;
 import com.terp.plugin.data.IAccountLookup;
 import com.terp.plugin.data.ICommonDao;
 import com.terp.plugin.data.IItemLookup;
@@ -29,6 +30,7 @@ import com.terp.plugin.data.model.IAccount;
 import com.terp.plugin.data.model.IMovementReason;
 import com.terp.plugin.data.model.IStockItem;
 import com.terp.plugin.data.model.IStockWarehouse;
+import com.terp.plugin.gui.RecordAuditBar;
 import com.terp.satin.data.PurchaseDocs;
 import com.terp.satin.data.PurchaseOrder;
 import com.terp.satin.data.PurchaseOrderLine;
@@ -39,6 +41,7 @@ import java.net.URL;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.ResourceBundle;
 import javafx.application.Platform;
@@ -57,11 +60,7 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TextFieldTableCell;
-import javafx.stage.Stage;
-import javafx.stage.Window;
 import javafx.util.StringConverter;
-import org.controlsfx.validation.ValidationSupport;
-import org.controlsfx.validation.Validator;
 
 public class ReceiptEditFormController implements Initializable {
 
@@ -125,22 +124,49 @@ public class ReceiptEditFormController implements Initializable {
     private ICommonDao<PurchaseSettings> settingsDao;
     private PurchaseReceipt currentRow;
     private final ObservableList<PurchaseReceiptLine> lines = FXCollections.observableArrayList();
-    private ValidationSupport validationSupport;
     private boolean applyingLookup;
+    private Runnable afterChange;
+    private boolean notifying;
+    private RecordAuditBar auditBar;
+
+    public void embedInList(Runnable afterChange) {
+        this.afterChange = afterChange;
+        if (btnApprove != null) {
+            btnApprove.setDefaultButton(false);
+        }
+    }
+
+    public Long currentRowId() {
+        return currentRow == null ? null : currentRow.getRowId();
+    }
 
     public void initializeForm(PurchaseReceipt row) {
-        this.currentRow = row;
         fillLookups();
+        lines.clear();
+        txtDocumentNo.clear();
+        txtNotes.clear();
+        txtQuantity.clear();
+        txtUnit.clear();
+        txtUnitPrice.clear();
+        if (lblRemaining != null) {
+            lblRemaining.setText("");
+        }
+        cmbItem.getSelectionModel().clearSelection();
+        cmbAccount.getSelectionModel().clearSelection();
+        cmbWarehouse.getSelectionModel().clearSelection();
+        cmbSourceOrder.getSelectionModel().clearSelection();
+        cmbOrder.getSelectionModel().clearSelection();
+        dtDocumentDate.setValue(LocalDate.now());
+        this.currentRow = row;
         if (row == null) {
-            dtDocumentDate.setValue(LocalDate.now());
             applyLock(PurchaseReceipt.STATUS_DRAFT);
+            showAudit();
             return;
         }
         txtDocumentNo.setText(SatinDates.empty(row.getDocumentNo()));
         dtDocumentDate.setValue(SatinDates.toLocalDate(row.getDocumentDate()));
         SatinCombos.select(cmbAccount, row.getAccountCode());
         SatinCombos.select(cmbWarehouse, row.getWarehouseCode());
-        SatinCombos.select(cmbSourceOrder, row.getSourceOrderNo());
         txtNotes.setText(SatinDates.empty(row.getNotes()));
         if (row.getRowId() != null) {
             List<PurchaseReceiptLine> stored = lineDao.findAll(
@@ -151,6 +177,7 @@ public class ReceiptEditFormController implements Initializable {
             }
         }
         applyLock(row.getStatus());
+        showAudit();
     }
 
     public void initializeFromOrder(PurchaseOrder order, List<PurchaseOrderLine> orderLines) {
@@ -160,15 +187,13 @@ public class ReceiptEditFormController implements Initializable {
             this.currentRow = new PurchaseReceipt();
         }
         this.currentRow.setStatus(PurchaseReceipt.STATUS_DRAFT);
-        this.currentRow.setSourceOrderId(order.getRowId());
-        this.currentRow.setSourceOrderNo(order.getDocumentNo());
         this.currentRow.setAccountCode(order.getAccountCode());
         this.currentRow.setAccountName(order.getAccountName());
         this.currentRow.setWarehouseCode(order.getWarehouseCode());
         this.currentRow.setWarehouseName(order.getWarehouseName());
         this.currentRow.setNotes(order.getNotes());
         dtDocumentDate.setValue(LocalDate.now());
-        txtDocumentNo.setText("MK-" + SatinDates.empty(order.getDocumentNo()));
+        txtDocumentNo.clear();
         SatinCombos.select(cmbAccount, order.getAccountCode());
         SatinCombos.select(cmbWarehouse, order.getWarehouseCode());
         SatinCombos.select(cmbSourceOrder, order.getDocumentNo());
@@ -177,11 +202,14 @@ public class ReceiptEditFormController implements Initializable {
         lines.clear();
         appendRemaining(order, orderLines);
         applyLock(PurchaseReceipt.STATUS_DRAFT);
+        showAudit();
     }
 
     @FXML
     private void onActionBtnSave(ActionEvent event) {
-        saveDraft();
+        if (saveDraft()) {
+            notifyChanged();
+        }
     }
 
     @FXML
@@ -360,34 +388,23 @@ public class ReceiptEditFormController implements Initializable {
             applyOrderDefaults();
         });
         cmbOrder.valueProperty().addListener((obs, old, value) -> applyOrderDefaults());
-        this.validationSupport = new ValidationSupport();
-        this.validationSupport.registerValidator(txtDocumentNo, true,
-                Validator.createEmptyValidator("Belge no zorunlu"));
         fillLookups();
         if (dtDocumentDate.getValue() == null) {
             dtDocumentDate.setValue(LocalDate.now());
         }
         applyLock(PurchaseReceipt.STATUS_DRAFT);
-        Platform.runLater(this::hideCloseOnDesktop);
+        this.auditBar = RecordAuditBar.install(txtDocumentNo);
+        showAudit();
+        Platform.runLater(() -> SatinEmbed.hideCloseIfDesktop(btnClose));
     }
 
-    private void hideCloseOnDesktop() {
-        if (btnClose.getScene() == null) {
-            return;
+    private void showAudit() {
+        if (auditBar != null) {
+            auditBar.bind(currentRow);
         }
-        Window window = btnClose.getScene().getWindow();
-        Stage primary = TerpApplication.getInstance().getDesktopManager().getPrimaryStage();
-        boolean modal = window instanceof Stage stage && stage != primary;
-        btnClose.setVisible(modal);
-        btnClose.setManaged(modal);
     }
 
     private boolean saveDraft() {
-        if (validationSupport.isInvalid() || txtDocumentNo.getText() == null
-                || txtDocumentNo.getText().isBlank()) {
-            SatinDates.showError("Mal kabul", "Zorunlu alanlar eksik", "Belge no zorunludur.");
-            return false;
-        }
         String warehouseCode = SatinCombos.codeOf(cmbWarehouse);
         if (warehouseCode == null) {
             SatinDates.showError("Mal kabul", "Depo eksik", "Depo seçin.");
@@ -423,7 +440,13 @@ public class ReceiptEditFormController implements Initializable {
             return false;
         }
         stampHeaderOrder(row);
-        row.setDocumentNo(txtDocumentNo.getText().trim());
+        String documentNo = SatinDates.assignDocumentNo(DocumentNumbers.PURCHASE_RECEIPT, txtDocumentNo);
+        if (documentNo == null || documentNo.isBlank()) {
+            SatinDates.showError("Mal kabul", "Belge no",
+                    "Belge no üretilemedi. Elle yazın veya Sistem yönetimi → Belge numaraları serisini kontrol edin.");
+            return false;
+        }
+        row.setDocumentNo(documentNo);
         row.setDocumentDate(SatinDates.toDate(dtDocumentDate.getValue()));
         row.setAccountCode(SatinCombos.codeOf(cmbAccount));
         row.setAccountName(SatinCombos.nameOf(cmbAccount));
@@ -451,6 +474,7 @@ public class ReceiptEditFormController implements Initializable {
         replaceLines(saved.getRowId(), now);
         PurchaseDocs.syncOrdersForLines(orderDao, orderLineDao, receiptDao, lineDao,
                 saved.getSourceOrderId(), lines);
+        showAudit();
         return true;
     }
 
@@ -610,13 +634,6 @@ public class ReceiptEditFormController implements Initializable {
         if (SatinCombos.codeOf(cmbWarehouse) == null) {
             SatinCombos.select(cmbWarehouse, order.getWarehouseCode());
         }
-        if (SatinCombos.codeOf(cmbSourceOrder) == null) {
-            SatinCombos.select(cmbSourceOrder, order.getDocumentNo());
-        }
-        if (currentRow != null && currentRow.getSourceOrderId() == null) {
-            currentRow.setSourceOrderId(order.getRowId());
-            currentRow.setSourceOrderNo(order.getDocumentNo());
-        }
     }
 
     private void appendRemaining(PurchaseOrder order, List<PurchaseOrderLine> orderLines) {
@@ -696,15 +713,38 @@ public class ReceiptEditFormController implements Initializable {
     }
 
     private void stampHeaderOrder(PurchaseReceipt row) {
-        String headerNo = SatinCombos.codeOf(cmbSourceOrder);
-        if (headerNo == null && !lines.isEmpty()) {
-            headerNo = lines.get(0).getSourceOrderNo();
+        LinkedHashSet<String> numbers = new LinkedHashSet<>();
+        LinkedHashSet<Long> ids = new LinkedHashSet<>();
+        for (PurchaseReceiptLine line : lines) {
+            if (line == null) {
+                continue;
+            }
+            if (line.getSourceOrderNo() != null && !line.getSourceOrderNo().isBlank()) {
+                numbers.add(line.getSourceOrderNo().trim());
+            }
+            if (line.getSourceOrderId() != null) {
+                ids.add(line.getSourceOrderId());
+            }
         }
-        PurchaseOrder order = resolveOrder(headerNo);
-        if (order != null) {
-            row.setSourceOrderId(order.getRowId());
-            row.setSourceOrderNo(order.getDocumentNo());
+        row.setSourceOrderNo(joinOrderNos(numbers));
+        row.setSourceOrderId(ids.size() == 1 ? ids.iterator().next() : null);
+    }
+
+    private static String joinOrderNos(LinkedHashSet<String> numbers) {
+        if (numbers == null || numbers.isEmpty()) {
+            return null;
         }
+        StringBuilder text = new StringBuilder();
+        for (String no : numbers) {
+            if (text.length() > 0) {
+                text.append(", ");
+            }
+            text.append(no);
+        }
+        if (text.length() <= 128) {
+            return text.toString();
+        }
+        return text.substring(0, 125) + "...";
     }
 
     private PurchaseOrder resolveOrder(String documentNo) {
@@ -787,13 +827,19 @@ public class ReceiptEditFormController implements Initializable {
     }
 
     private void close() {
-        if (btnClose.getScene() == null) {
+        notifyChanged();
+        SatinEmbed.closeIfModal(btnClose);
+    }
+
+    private void notifyChanged() {
+        if (afterChange == null || notifying) {
             return;
         }
-        Window window = btnClose.getScene().getWindow();
-        Stage primary = TerpApplication.getInstance().getDesktopManager().getPrimaryStage();
-        if (window instanceof Stage stage && stage != primary) {
-            stage.close();
+        notifying = true;
+        try {
+            afterChange.run();
+        } finally {
+            notifying = false;
         }
     }
 

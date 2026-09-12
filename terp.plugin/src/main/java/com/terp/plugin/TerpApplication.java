@@ -21,10 +21,12 @@ package com.terp.plugin;
 import com.terp.plugin.data.IAccountLookup;
 import com.terp.plugin.data.ICompanyLookup;
 import com.terp.plugin.data.IDatabaseFactory;
+import com.terp.plugin.data.IDocumentNumbers;
 import com.terp.plugin.data.IItemLookup;
 import com.terp.plugin.data.IMovementReasonLookup;
 import com.terp.plugin.data.IPersistence;
 import com.terp.plugin.data.IStockLedger;
+import com.terp.plugin.data.IUserLookup;
 import com.terp.plugin.data.IWarehouseLookup;
 import com.terp.plugin.data.model.ICompany;
 import com.terp.plugin.gui.IDesktopManager;
@@ -51,6 +53,8 @@ public class TerpApplication {
     private IWarehouseLookup warehouseLookup;
     private IMovementReasonLookup movementReasonLookup;
     private IStockLedger stockLedger;
+    private IUserLookup userLookup;
+    private IDocumentNumbers documentNumbers;
     private ICompany currentCompany;
     private IIconFactory iconFactory;
     private ClassLoader loader;
@@ -205,6 +209,22 @@ public class TerpApplication {
 
     public void setStockLedger(IStockLedger stockLedger) {
         this.stockLedger = stockLedger;
+    }
+
+    public IUserLookup getUserLookup() {
+        return userLookup;
+    }
+
+    public void setUserLookup(IUserLookup userLookup) {
+        this.userLookup = userLookup;
+    }
+
+    public IDocumentNumbers getDocumentNumbers() {
+        return documentNumbers;
+    }
+
+    public void setDocumentNumbers(IDocumentNumbers documentNumbers) {
+        this.documentNumbers = documentNumbers;
     }
 
     public ICompany getCurrentCompany() {

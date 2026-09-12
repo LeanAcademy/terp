@@ -1,32 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
-<?import java.net.*?>
-<?import java.util.*?>
-<?import javafx.scene.*?>
+<?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane id="AnchorPane" prefHeight="301.0" prefWidth="576.0" styleClass="mainFxmlClass" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.terp.gui.controllers.PluginInstallerController">
-    <stylesheets>
-        <URL value="@../styles/globalstyle.css" />
-    </stylesheets>
-   <children>
-      <AnchorPane layoutX="15.0" layoutY="20.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="40.0">
-         <children>
-            <Label layoutX="15.0" layoutY="52.0" prefHeight="15.0" prefWidth="64.0" text="Result" AnchorPane.leftAnchor="15.0" AnchorPane.topAnchor="25.0" />
-            <TextField fx:id="txtPluginFileName" layoutX="84.0" prefHeight="25.0" prefWidth="368.0" AnchorPane.leftAnchor="99.0" AnchorPane.rightAnchor="109.0" AnchorPane.topAnchor="20.0" />
-            <HBox layoutX="284.0" layoutY="240.0" prefHeight="25.0" prefWidth="219.0" AnchorPane.bottomAnchor="16.0" AnchorPane.leftAnchor="299.0" AnchorPane.rightAnchor="58.0" />
-            <Button fx:id="btnBorwse" layoutX="462.0" mnemonicParsing="false" onAction="#btnBrowseOnAction" prefHeight="25.0" prefWidth="76.0" text="Browse" AnchorPane.rightAnchor="23.0" AnchorPane.topAnchor="20.0" />
-            <TextArea fx:id="txtResult" layoutX="84.0" layoutY="31.0" prefHeight="200.0" prefWidth="368.0" wrapText="true" AnchorPane.bottomAnchor="50.0" AnchorPane.leftAnchor="99.0" AnchorPane.rightAnchor="109.0" AnchorPane.topAnchor="51.0" />
-            <Label layoutX="15.0" layoutY="50.0" text="Plugin file" AnchorPane.leftAnchor="15.0" AnchorPane.topAnchor="50.0" />
-         </children>
-      </AnchorPane>
-      <ToolBar layoutX="14.0" layoutY="-6.0" prefHeight="40.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-         <items>
-            <Button fx:id="btnInstall" defaultButton="true" mnemonicParsing="false" onAction="#btnInstallOnAction" prefHeight="30.0" text="Install" textAlignment="CENTER" />
-            <Button fx:id="btnCancel" cancelButton="true" mnemonicParsing="false" onAction="#btnCancelOnAction" prefHeight="30.0" text="Cancel" textAlignment="CENTER" />
-         </items>
-      </ToolBar>
-   </children>
+<AnchorPane id="AnchorPane" prefHeight="520.0" prefWidth="820.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.terp.gui.controllers.PluginInstallerController">
+    <children>
+        <BorderPane AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <top>
+                <ToolBar prefHeight="40.0">
+                    <items>
+                        <Button fx:id="btnAdd" defaultButton="true" mnemonicParsing="false" onAction="#onActionBtnAdd" prefWidth="95.0" text="Ekle" />
+                        <Button fx:id="btnRemove" mnemonicParsing="false" onAction="#onActionBtnRemove" prefWidth="95.0" text="Çıkar" />
+                        <Button fx:id="btnRefresh" mnemonicParsing="false" onAction="#onActionBtnRefresh" prefWidth="95.0" text="Yenile" />
+                    </items>
+                </ToolBar>
+            </top>
+            <center>
+                <TableView fx:id="tblvPluginView" tableMenuButtonVisible="true">
+                    <columns>
+                        <TableColumn fx:id="tcName" prefWidth="160.0" text="Ad" />
+                        <TableColumn fx:id="tcVersion" prefWidth="80.0" text="Sürüm" />
+                        <TableColumn fx:id="tcType" prefWidth="90.0" text="Tür" />
+                        <TableColumn fx:id="tcJar" prefWidth="220.0" text="JAR" />
+                        <TableColumn fx:id="tcStatus" prefWidth="110.0" text="Durum" />
+                    </columns>
+                </TableView>
+            </center>
+            <bottom>
+                <Label wrapText="true" text="Ekle veya çıkar sonrası TERP'i yeniden başlatın. Çekirdek eklenti çıkarılamaz. Menü ve iş tabloları durur.">
+                    <padding>
+                        <Insets bottom="8.0" left="10.0" right="10.0" top="8.0" />
+                    </padding>
+                </Label>
+            </bottom>
+        </BorderPane>
+    </children>
 </AnchorPane>

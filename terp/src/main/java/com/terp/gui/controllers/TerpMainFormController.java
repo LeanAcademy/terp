@@ -232,6 +232,7 @@ public class TerpMainFormController implements Initializable,
     private boolean pluginToolsStarted;
     private boolean companyComboBound;
     private boolean schemaAligned;
+    private boolean adjustingDivider;
     private Separator pluginToolSeparator;
     private static final String PLUGIN_TOOL_KEY = "terp.pluginTool";
     private static final String MENU_ID_KEY = "terp.menuId";
@@ -244,12 +245,28 @@ public class TerpMainFormController implements Initializable,
         @Override
         public void changed(ObservableValue<? extends Number> observable,
                 Number oldValue, Number newValue) {
-            if(!spMainPane.getDividers().isEmpty()){
-                Divider divider = spMainPane.getDividers().get(0);
-                Double position = divider.getPosition();
-
-                divider.positionProperty().set(
-                        position * oldValue.doubleValue() / newValue.doubleValue());
+            if (adjustingDivider || oldValue == null || newValue == null) {
+                return;
+            }
+            double oldWidth = oldValue.doubleValue();
+            double newWidth = newValue.doubleValue();
+            if (oldWidth < 50d || newWidth < 50d || Math.abs(newWidth - oldWidth) < 3d) {
+                return;
+            }
+            if (spMainPane.getDividers().isEmpty()) {
+                return;
+            }
+            Divider divider = spMainPane.getDividers().get(0);
+            double position = divider.getPosition();
+            double next = position * oldWidth / newWidth;
+            if (next < 0.08d || next > 0.6d || Math.abs(next - position) < 0.001d) {
+                return;
+            }
+            adjustingDivider = true;
+            try {
+                divider.setPosition(next);
+            } finally {
+                adjustingDivider = false;
             }
         }
     };
@@ -259,6 +276,9 @@ public class TerpMainFormController implements Initializable,
         @Override
         public void changed(ObservableValue<? extends Number> observable, 
                 Number oldValue, Number newValue) {
+            if (adjustingDivider || props == null || newValue == null) {
+                return;
+            }
             props.setProperty("terp.main.dividerpos", newValue.toString());
             TerpProperties.getInstance().setViewProps(props);
         }
@@ -449,6 +469,12 @@ public class TerpMainFormController implements Initializable,
         this.txtSearchMenuItem.textProperty().addListener(txtSearchChangeListener);
         this.spMainPane.getDividers().get(0).positionProperty()
                 .addListener(splitDividerPositionListener);
+        if (this.tbMainToolBar != null) {
+            this.tbMainToolBar.setMaxHeight(40.0);
+        }
+        if (this.cmbCompany != null) {
+            this.cmbCompany.setMaxWidth(220.0);
+        }
 
         // setting desktop manager to give plugins access
         terpApp.setDesktop(this);
@@ -630,10 +656,28 @@ public class TerpMainFormController implements Initializable,
         if (node != null) {
             Tab newProgramContainer = new Tab();
             newProgramContainer.setContent(node);
-            newProgramContainer.setText(headerText);            
+            newProgramContainer.setText(tabTitle(headerText));
             this.tpDesktopContainer.getTabs().add(newProgramContainer);
             this.tpDesktopContainer.getSelectionModel().select(newProgramContainer);
         }
+    }
+
+    private static String tabTitle(String headerText) {
+        if (headerText == null || headerText.isBlank()) {
+            return "";
+        }
+        String program = headerText;
+        int sep = headerText.lastIndexOf('-');
+        if (sep >= 0 && sep < headerText.length() - 1) {
+            program = headerText.substring(sep + 1);
+        }
+        String escaped = program.replace("'", "''");
+        MenuSource menu = new MenuSourceDao().firstOrDefault(
+                "from MenuSource e where e.programName = '" + escaped + "'");
+        if (menu != null && menu.getMenuName() != null && !menu.getMenuName().isBlank()) {
+            return menu.getMenuName();
+        }
+        return headerText;
     }
     
     @Override

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.net.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane id="AnchorPane" prefHeight="540.0" prefWidth="1080.0" styleClass="mainFxmlClass" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.terp.satin.gui.OrderStatusFormController">
+    <stylesheets>
+        <URL value="@../styles/receiptform.css" />
+    </stylesheets>
+    <children>
+        <BorderPane AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <top>
+                <VBox BorderPane.alignment="CENTER">
+                    <children>
+                        <ToolBar prefHeight="40.0">
+                            <items>
+                                <Button fx:id="btnRefresh" defaultButton="true" mnemonicParsing="false" onAction="#onActionBtnRefresh" prefWidth="95.0" text="Yenile" />
+                            </items>
+                        </ToolBar>
+                        <GridPane hgap="8.0" vgap="6.0">
+                            <padding>
+                                <Insets bottom="6.0" left="8.0" right="8.0" top="4.0" />
+                            </padding>
+                            <columnConstraints>
+                                <ColumnConstraints prefWidth="140.0" />
+                                <ColumnConstraints hgrow="ALWAYS" prefWidth="180.0" />
+                                <ColumnConstraints prefWidth="160.0" />
+                                <ColumnConstraints prefWidth="140.0" />
+                            </columnConstraints>
+                            <children>
+                                <TextField fx:id="txtDocumentNo" promptText="Sipariş no" />
+                                <TextField fx:id="txtItemCode" promptText="Malzeme kodu / tanım" GridPane.columnIndex="1" />
+                                <TextField fx:id="txtAccountCode" promptText="Tedarikçi" GridPane.columnIndex="2" />
+                                <CheckBox fx:id="chkOpenOnly" mnemonicParsing="false" selected="true" text="Açık bakiye" GridPane.columnIndex="3" />
+                            </children>
+                        </GridPane>
+                    </children>
+                </VBox>
+            </top>
+            <center>
+                <TableView fx:id="tblvStatusView" tableMenuButtonVisible="true" BorderPane.alignment="CENTER">
+                    <columns>
+                        <TableColumn fx:id="tcDocumentNo" prefWidth="120.0" text="Sipariş" />
+                        <TableColumn fx:id="tcDateLabel" prefWidth="100.0" text="Tarih" />
+                        <TableColumn fx:id="tcAccountName" prefWidth="180.0" text="Tedarikçi" />
+                        <TableColumn fx:id="tcItemCode" prefWidth="110.0" text="Malzeme" />
+                        <TableColumn fx:id="tcItemDesc" prefWidth="200.0" text="Tanım" />
+                        <TableColumn fx:id="tcItemUnit" prefWidth="60.0" text="Birim" />
+                        <TableColumn fx:id="tcOrderedQty" prefWidth="90.0" text="Sipariş" />
+                        <TableColumn fx:id="tcDeliveredQty" prefWidth="100.0" text="Teslim" />
+                        <TableColumn fx:id="tcRemainingQty" prefWidth="90.0" text="Kalan" />
+                        <TableColumn fx:id="tcBalanceLabel" prefWidth="80.0" text="Bakiye" />
+                        <TableColumn fx:id="tcDocumentStatusLabel" prefWidth="80.0" text="Belge" />
+                    </columns>
+                </TableView>
+            </center>
+        </BorderPane>
+    </children>
+</AnchorPane>

@@ -20,6 +20,7 @@ import com.terp.plugin.CompanyScope;
 import com.terp.plugin.TerpApplication;
 import com.terp.plugin.data.ICommonDao;
 import com.terp.plugin.data.StockDirection;
+import com.terp.plugin.gui.RecordAuditBar;
 import com.terp.stok.data.MovementReason;
 import java.net.URL;
 import java.util.Date;
@@ -55,18 +56,21 @@ public class ReasonEditFormController implements Initializable {
     private ICommonDao<MovementReason> reasonDao;
     private MovementReason currentRow;
     private ValidationSupport validationSupport;
+    private RecordAuditBar auditBar;
 
     public void initializeForm(MovementReason row) {
         this.currentRow = row;
         if (row == null) {
             cmbDirection.getSelectionModel().select(StockDirection.IN);
             chkActive.setSelected(true);
+            showAudit();
             return;
         }
         txtReasonCode.setText(empty(row.getReasonCode()));
         txtReasonName.setText(empty(row.getReasonName()));
         cmbDirection.getSelectionModel().select(row.getDirection());
         chkActive.setSelected(row.getStatus() == 0);
+        showAudit();
     }
 
     @FXML
@@ -131,6 +135,14 @@ public class ReasonEditFormController implements Initializable {
                 Validator.createEmptyValidator("Kod zorunlu"));
         this.validationSupport.registerValidator(txtReasonName, true,
                 Validator.createEmptyValidator("Ad zorunlu"));
+        this.auditBar = RecordAuditBar.install(txtReasonCode);
+        showAudit();
+    }
+
+    private void showAudit() {
+        if (auditBar != null) {
+            auditBar.bind(currentRow);
+        }
     }
 
     private void close() {

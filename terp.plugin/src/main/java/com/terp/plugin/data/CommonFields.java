@@ -16,42 +16,23 @@
  */
 package com.terp.plugin.data;
 
-import com.terp.plugin.data.ICommonFields;
-import java.io.Serializable;
-import java.util.Date;
 import jakarta.persistence.Column;
 import jakarta.persistence.GeneratedValue;
 import static jakarta.persistence.GenerationType.IDENTITY;
 import jakarta.persistence.Id;
 import jakarta.persistence.MappedSuperclass;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
 
 /**
  *
  * @author cevdet
  */
 @MappedSuperclass
-public abstract class CommonFields implements Serializable, ICommonFields {
-    
+public abstract class CommonFields extends CommonAudit {
+
     @Id
-    @GeneratedValue(strategy=IDENTITY)
-    @Column(name="ref_num", nullable = false, updatable=false)
+    @GeneratedValue(strategy = IDENTITY)
+    @Column(name = "ref_num", nullable = false, updatable = false)
     private Long rowId;
-    
-    @Temporal(TemporalType.TIMESTAMP)
-    @Column(name="deg_tarihi", nullable = true)    
-    private Date lastUpdateDate;    
-    
-    @Temporal(TemporalType.TIMESTAMP)
-    @Column(name="ek_tarihi", nullable = true)
-    private Date addedDate;
-    
-    @Column(name="deg_kul_id", nullable = true)
-    private Long updatedByUserId;
-    
-    @Column(name="ekl_kul_id", nullable = true)
-    private Long addedByUserId;
 
     @Override
     public Long getRowId() {
@@ -62,45 +43,4 @@ public abstract class CommonFields implements Serializable, ICommonFields {
     public void setRowId(Long rowId) {
         this.rowId = rowId;
     }
-
-    @Override
-    public Date getLastUpdateDate() {
-        return lastUpdateDate;
-    }
-
-    @Override
-    public void setLastUpdateDate(Date lastUpdateDate) {
-        this.lastUpdateDate = lastUpdateDate;
-    }
-
-    @Override
-    public Date getAddedDate() {
-        return addedDate;
-    }
-
-    @Override
-    public void setAddedDate(Date addedDate) {
-        this.addedDate = addedDate;
-    }
-
-    @Override
-    public Long getUpdatedByUserId() {
-        return updatedByUserId;
-    }
-
-    @Override
-    public void setUpdatedByUserId(Long updatedByUserId) {
-        this.updatedByUserId = updatedByUserId;
-    }
-
-    @Override
-    public Long getAddedByUserId() {
-        return addedByUserId;
-    }
-
-    @Override
-    public void setAddedByUserId(Long addedByUserId) {
-        this.addedByUserId = addedByUserId;
-    }
-    
 }

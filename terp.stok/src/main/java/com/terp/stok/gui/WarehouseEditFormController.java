@@ -19,6 +19,7 @@ package com.terp.stok.gui;
 import com.terp.plugin.CompanyScope;
 import com.terp.plugin.TerpApplication;
 import com.terp.plugin.data.ICommonDao;
+import com.terp.plugin.gui.RecordAuditBar;
 import com.terp.stok.data.Warehouse;
 import java.net.URL;
 import java.util.Date;
@@ -63,6 +64,7 @@ public class WarehouseEditFormController implements Initializable {
     private ICommonDao<Warehouse> warehouseDao;
     private Warehouse currentRow;
     private ValidationSupport validationSupport;
+    private RecordAuditBar auditBar;
 
     public void initializeForm(Warehouse row) {
         this.currentRow = row;
@@ -70,6 +72,7 @@ public class WarehouseEditFormController implements Initializable {
             cmbWarehouseType.getSelectionModel().select(Warehouse.TYPE_NORMAL);
             chkActive.setSelected(true);
             chkAllowNegative.setSelected(false);
+            showAudit();
             return;
         }
         txtWarehouseCode.setText(empty(row.getWarehouseCode()));
@@ -80,6 +83,7 @@ public class WarehouseEditFormController implements Initializable {
         txtCity.setText(empty(row.getCity()));
         txtAddress.setText(empty(row.getAddress()));
         txtNotes.setText(empty(row.getNotes()));
+        showAudit();
     }
 
     @FXML
@@ -148,6 +152,14 @@ public class WarehouseEditFormController implements Initializable {
                 Validator.createEmptyValidator("Kod zorunlu"));
         this.validationSupport.registerValidator(txtWarehouseName, true,
                 Validator.createEmptyValidator("Ad zorunlu"));
+        this.auditBar = RecordAuditBar.install(txtWarehouseCode);
+        showAudit();
+    }
+
+    private void showAudit() {
+        if (auditBar != null) {
+            auditBar.bind(currentRow);
+        }
     }
 
     private void close() {

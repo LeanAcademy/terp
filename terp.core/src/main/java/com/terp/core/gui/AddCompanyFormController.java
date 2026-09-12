@@ -18,23 +18,22 @@ package com.terp.core.gui;
 
 import com.terp.core.data.Company;
 import com.terp.core.model.CompanyTableModel;
-import com.terp.plugin.IUser;
 import com.terp.plugin.TerpApplication;
 import com.terp.plugin.data.ICommonDao;
 import com.terp.plugin.data.model.ICompany;
+import com.terp.plugin.gui.RecordAuditBar;
 import java.net.URL;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ResourceBundle;
+import java.util.function.Consumer;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
-import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextInputControl;
 import javafx.stage.Stage;
 import org.controlsfx.validation.Severity;
 import org.controlsfx.validation.ValidationSupport;
@@ -52,9 +51,6 @@ public class AddCompanyFormController implements Initializable {
     private TextArea txtNotes;
     
     @FXML
-    private Label lblChangedByAtDate;
-    
-    @FXML
     private TextField txtStateTaxId;
     
     @FXML
@@ -65,9 +61,6 @@ public class AddCompanyFormController implements Initializable {
     
     @FXML
     private TextField txtCompanyLongName;
-    
-    @FXML
-    private Label lblAddedByAtDate;
     
     @FXML
     private TextField txtCompanyName;
@@ -104,13 +97,9 @@ public class AddCompanyFormController implements Initializable {
     
 //</editor-fold>
     
-    // Data base factory object
-    
-    // Active user
-    IUser user;
-    
     // Company data access object
     ICommonDao<ICompany> companyDao;
+    private RecordAuditBar auditBar;
     
     // field validation support
     ValidationSupport validationSupport;
@@ -160,62 +149,18 @@ public class AddCompanyFormController implements Initializable {
             return;
         }
         
-        // check company name and set it
-        if(!this.txtCompanyName.getText().isEmpty()){
-            newCompany.setCompanyName(this.txtCompanyName.getText());
-        }
-        
-        // check company long name
-        if(!this.txtCompanyLongName.getText().isEmpty()){
-            newCompany.setCompanyLongName(this.txtCompanyLongName.getText());
-        }
-        
-        // check tax region
-        if(!this.txtStateTaxRegion.getText().isEmpty()){
-            newCompany.setStateTaxRegion(this.txtStateTaxRegion.getText());
-        }
-        
-        // check tax id
-        if(!this.txtStateTaxId.getText().isEmpty()){
-            newCompany.setStateTaxCode(this.txtStateTaxId.getText());
-        }
-        
-        // check adress
-        if(!this.txtAddress.getText().isEmpty()){
-            newCompany.setAddress(this.txtAddress.getText());
-        }
-        
-        // check city
-        if(!this.txtCity.getText().isEmpty()){
-            newCompany.setCity(this.txtCity.getText());
-        }
-        
-        // check region
-        if(!this.txtRegion.getText().isEmpty()){
-            newCompany.setRegion(this.txtRegion.getText());
-        }
-        
-        // check country
-        if(!this.txtCountry.getText().isEmpty()){
-            newCompany.setCountry(this.txtCountry.getText());
-        }
-        
-        // check phone
-        if(!this.txtPhone.getText().isEmpty()){
-            newCompany.setPhone(this.txtPhone.getText());
-        }
-        
-        // check fax
-        if(!this.txtFax.getText().isEmpty()){
-            newCompany.setFax(this.txtFax.getText());
-        }
-        
-        // check email
-        if(!this.txtEmail.getText().isEmpty()){
-            newCompany.setEmail(this.txtEmail.getText());
-        }
-
-        newCompany.setNotes(this.txtNotes.getText());
+        applyIfPresent(txtCompanyName, newCompany::setCompanyName);
+        applyIfPresent(txtCompanyLongName, newCompany::setCompanyLongName);
+        applyIfPresent(txtStateTaxRegion, newCompany::setStateTaxRegion);
+        applyIfPresent(txtStateTaxId, newCompany::setStateTaxCode);
+        applyIfPresent(txtAddress, newCompany::setAddress);
+        applyIfPresent(txtCity, newCompany::setCity);
+        applyIfPresent(txtRegion, newCompany::setRegion);
+        applyIfPresent(txtCountry, newCompany::setCountry);
+        applyIfPresent(txtPhone, newCompany::setPhone);
+        applyIfPresent(txtFax, newCompany::setFax);
+        applyIfPresent(txtEmail, newCompany::setEmail);
+        newCompany.setNotes(textOf(txtNotes));
         newCompany.setStatus(this.chkActive.isSelected() ? 0 : 1);
         
         // save and commit
@@ -238,19 +183,8 @@ public class AddCompanyFormController implements Initializable {
         // TODO : create data from database
         this.companyDao = TerpApplication.getInstance()
                 .getPersistence().<ICompany>createDao(Company.class);
-        this.user = TerpApplication.getInstance().getUser();
-        
-        // set user information
-        LocalDateTime date = LocalDateTime.now();
-        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy.MM.dd");
-        
-        String strAddedByAtDate = "Added by " + this.user.getUserName() + " at "
-                + dtf.format(date);
-        this.lblAddedByAtDate.setText(strAddedByAtDate);
-        
-        String strChangedByAtDate = "Changed by " + this.user.getUserName() + " at "
-                + dtf.format(date);
-        this.lblChangedByAtDate.setText(strChangedByAtDate); 
+        this.auditBar = RecordAuditBar.install(txtCompanyName);
+        this.auditBar.bind(null);
         
         // set validation for text fields
         this.validationSupport = new ValidationSupport();
@@ -272,5 +206,17 @@ public class AddCompanyFormController implements Initializable {
                 Validator.createEmptyValidator("City is required"));
         this.validationSupport.registerValidator(txtEmail, true, 
                 Validator.createRegexValidator("Wrong email", EMAIL_REGEX, Severity.ERROR));
+    }
+
+    private static void applyIfPresent(TextInputControl field, Consumer<String> setter) {
+        String value = textOf(field);
+        if (!value.isEmpty()) {
+            setter.accept(value);
+        }
+    }
+
+    private static String textOf(TextInputControl field) {
+        String value = field == null ? null : field.getText();
+        return value == null ? "" : value;
     }
 }
