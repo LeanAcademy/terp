@@ -26,6 +26,10 @@ import com.terp.plugin.gui.IIconFactory;
 import com.terp.satis.data.SalesDelivery;
 import com.terp.satis.data.SalesDeliveryLine;
 import com.terp.satis.data.SalesDocs;
+import com.terp.satis.data.SalesInvoice;
+import com.terp.satis.data.SalesInvoiceLine;
+import com.terp.satis.data.SalesOrder;
+import com.terp.satis.data.SalesOrderLine;
 import java.net.URL;
 import java.util.List;
 import java.util.ResourceBundle;
@@ -61,6 +65,10 @@ public class DeliveryFormController implements Initializable {
     @FXML
     private Button btnAdd;
     @FXML
+    private Button btnFromOrder;
+    @FXML
+    private Button btnInvoice;
+    @FXML
     private Button btnEdit;
     @FXML
     private Button btnDelete;
@@ -85,11 +93,15 @@ public class DeliveryFormController implements Initializable {
     @FXML
     private TableColumn<SalesDelivery, String> tcWarehouseCode;
     @FXML
+    private TableColumn<SalesDelivery, String> tcSourceOrderNo;
+    @FXML
     private TableColumn<SalesDelivery, String> tcStatusLabel;
     @FXML
     private TableView<SalesDeliveryLine> tblvLineView;
     @FXML
     private TableColumn<SalesDeliveryLine, Integer> tcLineNo;
+    @FXML
+    private TableColumn<SalesDeliveryLine, String> tcLineSourceOrderNo;
     @FXML
     private TableColumn<SalesDeliveryLine, String> tcLineItemCode;
     @FXML
@@ -103,7 +115,12 @@ public class DeliveryFormController implements Initializable {
 
     private ICommonDao<SalesDelivery> deliveryDao;
     private ICommonDao<SalesDeliveryLine> lineDao;
+    private ICommonDao<SalesOrder> orderDao;
+    private ICommonDao<SalesOrderLine> orderLineDao;
+    private ICommonDao<SalesInvoice> invoiceDao;
+    private ICommonDao<SalesInvoiceLine> invoiceLineDao;
     private FormRights rights = FormRights.forMenu("STS02");
+    private FormRights invoiceRights = FormRights.forMenu("STS05");
     private int rowsPerPage = DEFAULT_ROWS_PER_PAGE;
     private int currentPageNum = 1;
     private String searchSqlStatement = "";
@@ -120,6 +137,8 @@ public class DeliveryFormController implements Initializable {
             sql.append(" and e.status = ").append(SalesDelivery.STATUS_DRAFT);
         } else if ("Onaylı".equals(status)) {
             sql.append(" and e.status = ").append(SalesDelivery.STATUS_POSTED);
+        } else if ("Faturalandı".equals(status)) {
+            sql.append(" and e.status = ").append(SalesDelivery.STATUS_INVOICED);
         } else if ("İptal".equals(status)) {
             sql.append(" and e.status = ").append(SalesDelivery.STATUS_CANCELLED);
         }
@@ -137,6 +156,23 @@ public class DeliveryFormController implements Initializable {
     }
 
     @FXML
+    public void onActionBtnFromOrder(ActionEvent event) {
+        if (!CompanyScope.requireCompany()) {
+            return;
+        }
+        SatisWindows.openDeliveryFromOrder(this::refreshView);
+    }
+
+    @FXML
+    public void onActionBtnInvoice(ActionEvent event) {
+        SalesDelivery selected = tblvDeliveryView.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            return;
+        }
+        SatisWindows.convertDelivery(selected, deliveryDao, lineDao, invoiceDao, this::refreshView);
+    }
+
+    @FXML
     public void onActionBtnEdit(ActionEvent event) {
         SalesDelivery selected = tblvDeliveryView.getSelectionModel().getSelectedItem();
         if (selected != null) {
@@ -150,6 +186,12 @@ public class DeliveryFormController implements Initializable {
         if (selected == null) {
             return;
         }
+        if (selected.isInvoiced()
+                || SalesDocs.hasLinkedInvoice(invoiceDao, invoiceLineDao, lineDao, selected.getRowId())) {
+            SatisDates.showError("Satış irsaliyesi", "Faturaya bağlı",
+                    "Önce bağlı satış faturasını iptal veya silin.");
+            return;
+        }
         String message = selected.isPosted()
                 ? "Onaylı belge iptal edilecek ve stok fişleri geri alınacak: " + selected.getDocumentNo()
                 : "Seçilen belge silinecek: " + selected.getDocumentNo();
@@ -159,6 +201,10 @@ public class DeliveryFormController implements Initializable {
                 return;
             }
             try {
+                Long orderId = selected.getSourceOrderId();
+                List<SalesDeliveryLine> stored = selected.getRowId() == null ? List.of()
+                        : lineDao.findAll("from SalesDeliveryLine e where e.deliveryId = "
+                                + selected.getRowId());
                 if (selected.isPosted()) {
                     IStockLedger ledger = TerpApplication.getInstance().getStockLedger();
                     if (ledger == null) {
@@ -172,6 +218,7 @@ public class DeliveryFormController implements Initializable {
                     SalesDocs.deleteByParent(lineDao, "SalesDeliveryLine", "deliveryId", selected.getRowId());
                     deliveryDao.delete(selected.getRowId());
                 }
+                SalesDocs.syncOrdersForLines(orderDao, orderLineDao, deliveryDao, lineDao, orderId, stored);
                 refreshView();
             } catch (RuntimeException ex) {
                 LOG.log(Level.SEVERE, null, ex);
@@ -183,6 +230,10 @@ public class DeliveryFormController implements Initializable {
     public void initialize(URL url, ResourceBundle rb) {
         this.deliveryDao = TerpApplication.getInstance().getPersistence().createDao(SalesDelivery.class);
         this.lineDao = TerpApplication.getInstance().getPersistence().createDao(SalesDeliveryLine.class);
+        this.orderDao = TerpApplication.getInstance().getPersistence().createDao(SalesOrder.class);
+        this.orderLineDao = TerpApplication.getInstance().getPersistence().createDao(SalesOrderLine.class);
+        this.invoiceDao = TerpApplication.getInstance().getPersistence().createDao(SalesInvoice.class);
+        this.invoiceLineDao = TerpApplication.getInstance().getPersistence().createDao(SalesInvoiceLine.class);
         IIconFactory icons = TerpApplication.getInstance().getIconFactory();
         if (icons != null) {
             this.btnSearch.setGraphic(icons.getIcon("SEARCH"));
@@ -190,15 +241,17 @@ public class DeliveryFormController implements Initializable {
             this.btnEdit.setGraphic(icons.getIcon("EDIT"));
             this.btnDelete.setGraphic(icons.getIcon("SEARCH"));
         }
-        cmbSearchStatus.getItems().addAll(ALL_STATUS, "Taslak", "Onaylı", "İptal");
+        cmbSearchStatus.getItems().addAll(ALL_STATUS, "Taslak", "Onaylı", "Faturalandı", "İptal");
         cmbSearchStatus.getSelectionModel().select(ALL_STATUS);
         this.tcDateLabel.setCellValueFactory(new PropertyValueFactory<>("dateLabel"));
         this.tcDocumentNo.setCellValueFactory(new PropertyValueFactory<>("documentNo"));
         this.tcAccountCode.setCellValueFactory(new PropertyValueFactory<>("accountCode"));
         this.tcAccountName.setCellValueFactory(new PropertyValueFactory<>("accountName"));
         this.tcWarehouseCode.setCellValueFactory(new PropertyValueFactory<>("warehouseCode"));
+        this.tcSourceOrderNo.setCellValueFactory(new PropertyValueFactory<>("sourceOrderNo"));
         this.tcStatusLabel.setCellValueFactory(new PropertyValueFactory<>("statusLabel"));
         this.tcLineNo.setCellValueFactory(new PropertyValueFactory<>("lineNo"));
+        this.tcLineSourceOrderNo.setCellValueFactory(new PropertyValueFactory<>("sourceOrderNo"));
         this.tcLineItemCode.setCellValueFactory(new PropertyValueFactory<>("itemCode"));
         this.tcLineItemDesc.setCellValueFactory(new PropertyValueFactory<>("itemDesc"));
         this.tcLineItemUnit.setCellValueFactory(new PropertyValueFactory<>("itemUnit"));
@@ -214,7 +267,10 @@ public class DeliveryFormController implements Initializable {
                 .addListener(this::selectionChanged);
         this.searchSqlStatement = CompanyScope.from("SalesDelivery");
         this.btnAdd.setDisable(!rights.add);
-        updateButtons(true, true);
+        if (this.btnFromOrder != null) {
+            this.btnFromOrder.setDisable(!rights.add);
+        }
+        updateButtons(true, true, true);
         refreshView();
         if (!tblvDeliveryView.getItems().isEmpty()) {
             tblvDeliveryView.getSelectionModel().select(0);
@@ -286,23 +342,28 @@ public class DeliveryFormController implements Initializable {
     private void selectionChanged(Change<? extends SalesDelivery> change) {
         int size = change.getList().size();
         if (size == 0) {
-            updateButtons(true, true);
+            updateButtons(true, true, true);
             if (!syncingSelection) {
                 showLines(null);
             }
-        } else if (size == 1) {
-            updateButtons(false, false);
-            if (!syncingSelection) {
-                showLines(change.getList().get(0));
-            }
-        } else {
-            updateButtons(true, false);
+            return;
+        }
+        SalesDelivery selected = change.getList().get(0);
+        boolean invoiceDisabled = size != 1 || selected == null
+                || !SalesDocs.hasInvoiceableBalance(selected, lineDao, invoiceDao, invoiceLineDao)
+                || !invoiceRights.add;
+        updateButtons(size != 1, size == 0, invoiceDisabled);
+        if (!syncingSelection && size == 1) {
+            showLines(selected);
         }
     }
 
-    private void updateButtons(boolean editDisabled, boolean deleteDisabled) {
+    private void updateButtons(boolean editDisabled, boolean deleteDisabled, boolean invoiceDisabled) {
         this.btnEdit.setDisable(editDisabled || !rights.edit);
         this.btnDelete.setDisable(deleteDisabled || !rights.delete);
+        if (this.btnInvoice != null) {
+            this.btnInvoice.setDisable(invoiceDisabled);
+        }
     }
 
     private static void showError(String header, String content) {

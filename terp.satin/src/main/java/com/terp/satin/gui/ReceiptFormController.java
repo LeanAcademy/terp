@@ -19,11 +19,15 @@ package com.terp.satin.gui;
 import com.terp.plugin.CompanyScope;
 import com.terp.plugin.FormRights;
 import com.terp.plugin.TerpApplication;
+import com.terp.plugin.data.AccountPosting;
+import com.terp.plugin.data.IAccountLedger;
 import com.terp.plugin.data.ICommonDao;
 import com.terp.plugin.data.IStockLedger;
 import com.terp.plugin.data.StockPosting;
 import com.terp.plugin.gui.IIconFactory;
 import com.terp.satin.data.PurchaseDocs;
+import com.terp.satin.data.PurchaseInvoice;
+import com.terp.satin.data.PurchaseInvoiceLine;
 import com.terp.satin.data.PurchaseOrder;
 import com.terp.satin.data.PurchaseOrderLine;
 import com.terp.satin.data.PurchaseReceipt;
@@ -64,6 +68,8 @@ public class ReceiptFormController implements Initializable {
     private Button btnAdd;
     @FXML
     private Button btnFromOrder;
+    @FXML
+    private Button btnInvoice;
     @FXML
     private Button btnEdit;
     @FXML
@@ -113,7 +119,10 @@ public class ReceiptFormController implements Initializable {
     private ICommonDao<PurchaseReceiptLine> lineDao;
     private ICommonDao<PurchaseOrder> orderDao;
     private ICommonDao<PurchaseOrderLine> orderLineDao;
+    private ICommonDao<PurchaseInvoice> invoiceDao;
+    private ICommonDao<PurchaseInvoiceLine> invoiceLineDao;
     private FormRights rights = FormRights.forMenu("SAT02");
+    private FormRights invoiceRights = FormRights.forMenu("SAT07");
     private int rowsPerPage = DEFAULT_ROWS_PER_PAGE;
     private int currentPageNum = 1;
     private String searchSqlStatement = "";
@@ -130,6 +139,8 @@ public class ReceiptFormController implements Initializable {
             sql.append(" and e.status = ").append(PurchaseReceipt.STATUS_DRAFT);
         } else if ("Onaylı".equals(status)) {
             sql.append(" and e.status = ").append(PurchaseReceipt.STATUS_POSTED);
+        } else if ("Faturalandı".equals(status)) {
+            sql.append(" and e.status = ").append(PurchaseReceipt.STATUS_INVOICED);
         } else if ("İptal".equals(status)) {
             sql.append(" and e.status = ").append(PurchaseReceipt.STATUS_CANCELLED);
         }
@@ -155,6 +166,15 @@ public class ReceiptFormController implements Initializable {
     }
 
     @FXML
+    public void onActionBtnInvoice(ActionEvent event) {
+        PurchaseReceipt selected = tblvReceiptView.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            return;
+        }
+        SatinWindows.convertReceipt(selected, receiptDao, lineDao, invoiceDao, this::refreshView);
+    }
+
+    @FXML
     public void onActionBtnEdit(ActionEvent event) {
         PurchaseReceipt selected = tblvReceiptView.getSelectionModel().getSelectedItem();
         if (selected != null) {
@@ -166,6 +186,12 @@ public class ReceiptFormController implements Initializable {
     public void onActionBtnDelete(ActionEvent event) {
         PurchaseReceipt selected = tblvReceiptView.getSelectionModel().getSelectedItem();
         if (selected == null) {
+            return;
+        }
+        if (selected.isInvoiced()
+                || PurchaseDocs.hasLinkedInvoice(invoiceDao, invoiceLineDao, lineDao, selected.getRowId())) {
+            SatinDates.showError("Mal kabul", "Faturaya bağlı",
+                    "Önce bağlı alım faturasını iptal veya silin.");
             return;
         }
         String message = selected.isPosted()
@@ -188,6 +214,10 @@ public class ReceiptFormController implements Initializable {
                         return;
                     }
                     ledger.reverseByDocument(StockPosting.SOURCE_PURCHASE_RECEIPT, selected.getRowId());
+                    IAccountLedger accounts = TerpApplication.getInstance().getAccountLedger();
+                    if (accounts != null) {
+                        accounts.reverseByDocument(AccountPosting.SOURCE_PURCHASE_RECEIPT, selected.getRowId());
+                    }
                     selected.setStatus(PurchaseReceipt.STATUS_CANCELLED);
                     receiptDao.addOrUpdate(selected);
                 } else {
@@ -208,6 +238,8 @@ public class ReceiptFormController implements Initializable {
         this.lineDao = TerpApplication.getInstance().getPersistence().createDao(PurchaseReceiptLine.class);
         this.orderDao = TerpApplication.getInstance().getPersistence().createDao(PurchaseOrder.class);
         this.orderLineDao = TerpApplication.getInstance().getPersistence().createDao(PurchaseOrderLine.class);
+        this.invoiceDao = TerpApplication.getInstance().getPersistence().createDao(PurchaseInvoice.class);
+        this.invoiceLineDao = TerpApplication.getInstance().getPersistence().createDao(PurchaseInvoiceLine.class);
         IIconFactory icons = TerpApplication.getInstance().getIconFactory();
         if (icons != null) {
             this.btnSearch.setGraphic(icons.getIcon("SEARCH"));
@@ -215,7 +247,7 @@ public class ReceiptFormController implements Initializable {
             this.btnEdit.setGraphic(icons.getIcon("EDIT"));
             this.btnDelete.setGraphic(icons.getIcon("SEARCH"));
         }
-        cmbSearchStatus.getItems().addAll(ALL_STATUS, "Taslak", "Onaylı", "İptal");
+        cmbSearchStatus.getItems().addAll(ALL_STATUS, "Taslak", "Onaylı", "Faturalandı", "İptal");
         cmbSearchStatus.getSelectionModel().select(ALL_STATUS);
         this.tcDateLabel.setCellValueFactory(new PropertyValueFactory<>("dateLabel"));
         this.tcDocumentNo.setCellValueFactory(new PropertyValueFactory<>("documentNo"));
@@ -244,7 +276,7 @@ public class ReceiptFormController implements Initializable {
         if (this.btnFromOrder != null) {
             this.btnFromOrder.setDisable(!rights.add);
         }
-        updateButtons(true, true);
+        updateButtons(true, true, true);
         refreshView();
         if (!tblvReceiptView.getItems().isEmpty()) {
             tblvReceiptView.getSelectionModel().select(0);
@@ -332,23 +364,30 @@ public class ReceiptFormController implements Initializable {
     private void selectionChanged(Change<? extends PurchaseReceipt> change) {
         int size = change.getList().size();
         if (size == 0) {
-            updateButtons(true, true);
+            updateButtons(true, true, true);
             if (!syncingSelection) {
                 showLines(null);
             }
         } else if (size == 1) {
-            updateButtons(false, false);
+            PurchaseReceipt selected = change.getList().get(0);
+            boolean invoiceDisabled = selected == null
+                    || !PurchaseDocs.hasInvoiceableBalance(selected, lineDao, invoiceDao, invoiceLineDao)
+                    || !invoiceRights.add;
+            updateButtons(false, false, invoiceDisabled);
             if (!syncingSelection) {
-                showLines(change.getList().get(0));
+                showLines(selected);
             }
         } else {
-            updateButtons(true, false);
+            updateButtons(true, false, true);
         }
     }
 
-    private void updateButtons(boolean editDisabled, boolean deleteDisabled) {
+    private void updateButtons(boolean editDisabled, boolean deleteDisabled, boolean invoiceDisabled) {
         this.btnEdit.setDisable(editDisabled || !rights.edit);
         this.btnDelete.setDisable(deleteDisabled || !rights.delete);
+        if (this.btnInvoice != null) {
+            this.btnInvoice.setDisable(invoiceDisabled);
+        }
     }
 
     private static void showError(String header, String content) {

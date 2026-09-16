@@ -9,7 +9,7 @@
     <artifactId>terp.core</artifactId>
     <packaging>jar</packaging>
     <name>TERP Core Plugin</name>
-    <description>Reference plugin: company, document number series</description>
+    <description>Reference plugin: company, document number series, VAT rates</description>
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>

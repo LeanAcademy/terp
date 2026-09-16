@@ -47,6 +47,15 @@ public class SalesDeliveryLine extends CommonFields implements Serializable {
     @Column(name = "birim_fiyat")
     private Double unitPrice;
 
+    @Column(name = "siparis_satir_ref")
+    private Long sourceOrderLineId;
+
+    @Column(name = "siparis_ref")
+    private Long sourceOrderId;
+
+    @Column(name = "siparis_no", length = 50)
+    private String sourceOrderNo;
+
     public SalesDeliveryLine() {
         this.quantity = 0d;
         this.lineNo = 1;
@@ -106,5 +115,29 @@ public class SalesDeliveryLine extends CommonFields implements Serializable {
 
     public void setUnitPrice(Double unitPrice) {
         this.unitPrice = unitPrice;
+    }
+
+    public Long getSourceOrderLineId() {
+        return sourceOrderLineId;
+    }
+
+    public void setSourceOrderLineId(Long sourceOrderLineId) {
+        this.sourceOrderLineId = sourceOrderLineId;
+    }
+
+    public Long getSourceOrderId() {
+        return sourceOrderId;
+    }
+
+    public void setSourceOrderId(Long sourceOrderId) {
+        this.sourceOrderId = sourceOrderId;
+    }
+
+    public String getSourceOrderNo() {
+        return sourceOrderNo;
+    }
+
+    public void setSourceOrderNo(String sourceOrderNo) {
+        this.sourceOrderNo = sourceOrderNo;
     }
 }

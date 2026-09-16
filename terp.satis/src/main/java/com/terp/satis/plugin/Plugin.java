@@ -20,17 +20,21 @@ import com.terp.plugin.IPlugin;
 import com.terp.plugin.PluginMenu;
 import com.terp.plugin.TerpApplication;
 import com.terp.plugin.gui.IDesktopManager;
-import com.terp.plugin.gui.IIconFactory;
-import com.terp.plugin.gui.IMenuManager;
+import com.terp.satis.data.SalesQuote;
+import com.terp.satis.data.SalesQuoteLine;
 import com.terp.satis.data.SalesDelivery;
 import com.terp.satis.data.SalesDeliveryLine;
+import com.terp.satis.data.SalesInvoice;
+import com.terp.satis.data.SalesInvoiceLine;
+import com.terp.satis.data.SalesOrder;
+import com.terp.satis.data.SalesOrderLine;
 import java.io.IOException;
+import java.net.URL;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
-import javafx.scene.control.Button;
 
 public class Plugin implements IPlugin {
 
@@ -43,16 +47,11 @@ public class Plugin implements IPlugin {
 
     private TerpApplication app;
     private IDesktopManager desktopManager;
-    private IMenuManager menuManager;
 
     @Override
     public void run() {
         this.app = TerpApplication.getInstance();
         this.desktopManager = app.getDesktopManager();
-        this.menuManager = app.getMenuManager();
-        if (this.menuManager != null) {
-            addProgramTool("İrsaliye", "SEND", "DeliveryForm");
-        }
     }
 
     @Override
@@ -87,14 +86,21 @@ public class Plugin implements IPlugin {
 
     @Override
     public List<Class<?>> getPersistentClasses() {
-        return List.of(SalesDelivery.class, SalesDeliveryLine.class);
+        return List.of(SalesQuote.class, SalesQuoteLine.class,
+                SalesOrder.class, SalesOrderLine.class,
+                SalesDelivery.class, SalesDeliveryLine.class,
+                SalesInvoice.class, SalesInvoiceLine.class);
     }
 
     @Override
     public List<PluginMenu> getMenus() {
         return List.of(
                 PluginMenu.folder("STS01", "Satış"),
-                PluginMenu.program("STS02", "Satış irsaliyesi", "STS01", "DeliveryForm"));
+                PluginMenu.program("STS06", "Satış teklifi", "STS01", "SalesQuoteForm"),
+                PluginMenu.program("STS03", "Satış siparişi", "STS01", "SalesOrderForm"),
+                PluginMenu.program("STS04", "Sipariş durumu", "STS01", "SalesOrderStatusForm"),
+                PluginMenu.program("STS02", "Satış irsaliyesi", "STS01", "DeliveryForm"),
+                PluginMenu.program("STS05", "Satış faturası", "STS01", "InvoiceForm"));
     }
 
     @Override
@@ -105,39 +111,42 @@ public class Plugin implements IPlugin {
         if (this.desktopManager == null) {
             this.desktopManager = this.app.getDesktopManager();
         }
+        String form = program == null ? "" : program.trim();
+        if ("OrderForm".equals(form)) {
+            form = "SalesOrderForm";
+        } else if ("OrderStatusForm".equals(form)) {
+            form = "SalesOrderStatusForm";
+        }
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource(
-                    "/fxml/" + program + ".fxml"));
+            URL fxml = getClass().getResource("/fxml/" + form + ".fxml");
+            if (fxml == null) {
+                LOG.log(Level.SEVERE, "FXML not found for {0}", form);
+                return;
+            }
+            FXMLLoader loader = new FXMLLoader(fxml);
             loader.setClassLoader(getClass().getClassLoader());
             Node node = loader.load();
-            this.desktopManager.addToDesktop(node, program);
-        } catch (IOException ex) {
-            LOG.log(Level.SEVERE, null, ex);
+            this.desktopManager.addToDesktop(node, programMenuId(form));
+        } catch (IOException | RuntimeException ex) {
+            LOG.log(Level.SEVERE, "Could not load program " + form, ex);
         }
-    }
-
-    private void addProgramTool(String text, String iconName, String program) {
-        if (this.menuManager == null) {
-            return;
-        }
-        Button button = new Button(text);
-        button.setPrefHeight(24);
-        button.setMnemonicParsing(false);
-        IIconFactory icons = this.app.getIconFactory();
-        if (icons != null && iconName != null) {
-            try {
-                button.setGraphic(icons.getIcon(iconName));
-            } catch (RuntimeException ignored) {
-                // keep text-only if the glyph name is unknown
-            }
-        }
-        button.setOnAction(event -> loadProgram(program));
-        this.menuManager.addToolKit(button, programMenuId(program));
     }
 
     private static String programMenuId(String program) {
+        if ("SalesQuoteForm".equals(program)) {
+            return "STS06";
+        }
+        if ("SalesOrderForm".equals(program)) {
+            return "STS03";
+        }
+        if ("SalesOrderStatusForm".equals(program)) {
+            return "STS04";
+        }
         if ("DeliveryForm".equals(program)) {
             return "STS02";
+        }
+        if ("InvoiceForm".equals(program)) {
+            return "STS05";
         }
         return program;
     }

@@ -92,6 +92,23 @@
                             <Glyph fontFamily="FontAwesome" icon="TH_LIST" /> 
                         </graphic>
                     </ToggleButton>
+                    <Separator orientation="VERTICAL" prefHeight="24.0" />
+                    <Button fx:id="btnPrint" mnemonicParsing="false" onAction="#btnPrintOnAction" prefHeight="24.0" text="Yazdır">
+                        <font>
+                            <Font size="11.0" />
+                        </font>
+                        <graphic>
+                            <Glyph fontFamily="FontAwesome" icon="PRINT" />
+                        </graphic>
+                    </Button>
+                    <Button fx:id="btnExcel" mnemonicParsing="false" onAction="#btnExcelOnAction" prefHeight="24.0" text="Excel'e aktar">
+                        <font>
+                            <Font size="11.0" />
+                        </font>
+                        <graphic>
+                            <Glyph fontFamily="FontAwesome" icon="FILE_EXCEL_ALT" />
+                        </graphic>
+                    </Button>
                     <Separator />
                     <AnchorPane HBox.hgrow="ALWAYS">
                         <children>

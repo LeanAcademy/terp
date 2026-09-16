@@ -20,8 +20,6 @@ import com.terp.plugin.IPlugin;
 import com.terp.plugin.PluginMenu;
 import com.terp.plugin.TerpApplication;
 import com.terp.plugin.gui.IDesktopManager;
-import com.terp.plugin.gui.IIconFactory;
-import com.terp.plugin.gui.IMenuManager;
 import com.terp.stok.data.Item;
 import com.terp.stok.data.ItemLookup;
 import com.terp.stok.data.ItemPartnerCode;
@@ -34,12 +32,12 @@ import com.terp.stok.data.StockMovement;
 import com.terp.stok.data.Warehouse;
 import com.terp.stok.data.WarehouseLookup;
 import java.io.IOException;
+import java.net.URL;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
-import javafx.scene.control.Button;
 
 public class Plugin implements IPlugin {
 
@@ -52,13 +50,11 @@ public class Plugin implements IPlugin {
 
     private TerpApplication app;
     private IDesktopManager desktopManager;
-    private IMenuManager menuManager;
 
     @Override
     public void run() {
         this.app = TerpApplication.getInstance();
         this.desktopManager = app.getDesktopManager();
-        this.menuManager = app.getMenuManager();
         if (app.getPersistence() != null) {
             ItemLookup items = new ItemLookup(app.getPersistence().createDao(Item.class));
             WarehouseLookup warehouses = new WarehouseLookup(app.getPersistence().createDao(Warehouse.class));
@@ -71,10 +67,6 @@ public class Plugin implements IPlugin {
                     app.getPersistence().createDao(StockMovement.class),
                     items, warehouses, reasons));
         }
-        addProgramTool("Malzeme", "CUBE", "ItemForm");
-        addProgramTool("İşlem", "EXCHANGE", "MovementForm");
-        addProgramTool("Sayım", "CHECK", "CountForm");
-        addProgramTool("Durum", "BAR_CHART", "StockStatusForm");
     }
 
     @Override
@@ -133,34 +125,20 @@ public class Plugin implements IPlugin {
         if (this.desktopManager == null) {
             this.desktopManager = this.app.getDesktopManager();
         }
+        String form = program == null ? "" : program.trim();
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource(
-                    "/fxml/" + program + ".fxml"));
+            URL fxml = getClass().getResource("/fxml/" + form + ".fxml");
+            if (fxml == null) {
+                LOG.log(Level.SEVERE, "FXML not found for {0}", form);
+                return;
+            }
+            FXMLLoader loader = new FXMLLoader(fxml);
             loader.setClassLoader(getClass().getClassLoader());
             Node node = loader.load();
-            this.desktopManager.addToDesktop(node, program);
-        } catch (IOException ex) {
-            LOG.log(Level.SEVERE, null, ex);
+            this.desktopManager.addToDesktop(node, programMenuId(form));
+        } catch (IOException | RuntimeException ex) {
+            LOG.log(Level.SEVERE, "Could not load program " + form, ex);
         }
-    }
-
-    private void addProgramTool(String text, String iconName, String program) {
-        if (this.menuManager == null) {
-            return;
-        }
-        Button button = new Button(text);
-        button.setPrefHeight(24);
-        button.setMnemonicParsing(false);
-        IIconFactory icons = this.app.getIconFactory();
-        if (icons != null && iconName != null) {
-            try {
-                button.setGraphic(icons.getIcon(iconName));
-            } catch (RuntimeException ignored) {
-                // keep text-only if the glyph name is unknown
-            }
-        }
-        button.setOnAction(event -> loadProgram(program));
-        this.menuManager.addToolKit(button, programMenuId(program));
     }
 
     private static String programMenuId(String program) {

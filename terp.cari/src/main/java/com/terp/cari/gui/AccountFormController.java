@@ -16,6 +16,7 @@
  */
 package com.terp.cari.gui;
 
+import com.terp.cari.data.AccountMovement;
 import com.terp.cari.data.Cari;
 import com.terp.plugin.CompanyScope;
 import com.terp.plugin.FormRights;
@@ -94,6 +95,7 @@ public class AccountFormController implements Initializable {
     private TableColumn<Cari, String> tcStatusLabel;
 
     private ICommonDao<Cari> accountDao;
+    private ICommonDao<AccountMovement> movementDao;
     private FormRights rights = FormRights.forMenu("CRI02");
     private int rowsPerPage = DEFAULT_ROWS_PER_PAGE;
     private int currentPageNum = 1;
@@ -140,6 +142,14 @@ public class AccountFormController implements Initializable {
         if (selected == null) {
             return;
         }
+        if (hasMovements(selected.getAccountCode())) {
+            Alert blocked = new Alert(AlertType.ERROR);
+            blocked.setTitle("Cari kartı");
+            blocked.setHeaderText("Harekete bağlı");
+            blocked.setContentText("Önce bu carinin hareketlerini silin veya kaynak belgeyi iptal edin.");
+            blocked.show();
+            return;
+        }
         Alert alert = new Alert(AlertType.CONFIRMATION,
                 "Seçilen kaydı sil: " + selected.getAccountCode(),
                 ButtonType.OK, ButtonType.CANCEL);
@@ -159,6 +169,7 @@ public class AccountFormController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         this.accountDao = TerpApplication.getInstance().getPersistence().createDao(Cari.class);
+        this.movementDao = TerpApplication.getInstance().getPersistence().createDao(AccountMovement.class);
         IIconFactory icons = TerpApplication.getInstance().getIconFactory();
         if (icons != null) {
             this.btnSearch.setGraphic(icons.getIcon("SEARCH"));
@@ -243,6 +254,17 @@ public class AccountFormController implements Initializable {
     private void updateButtons(boolean editDisabled, boolean deleteDisabled) {
         this.btnEdit.setDisable(editDisabled || !rights.edit);
         this.btnDelete.setDisable(deleteDisabled || !rights.delete);
+    }
+
+    private boolean hasMovements(String accountCode) {
+        if (movementDao == null || accountCode == null || accountCode.isBlank()) {
+            return false;
+        }
+        String escaped = accountCode.replace("'", "''");
+        List<AccountMovement> rows = movementDao.findAll(
+                "from AccountMovement e where " + CompanyScope.predicate("e")
+                        + " and e.accountCode = '" + escaped + "'");
+        return rows != null && !rows.isEmpty();
     }
 
     private static boolean appendLike(StringBuilder sql, boolean whereAdded, String field, String value) {

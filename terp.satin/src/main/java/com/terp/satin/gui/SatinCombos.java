@@ -16,6 +16,11 @@
  */
 package com.terp.satin.gui;
 
+import com.terp.plugin.TerpApplication;
+import com.terp.plugin.data.IVatRateLookup;
+import com.terp.plugin.data.model.IStockItem;
+import com.terp.plugin.data.model.IVatRate;
+import java.util.ArrayList;
 import java.util.List;
 import javafx.scene.control.ComboBox;
 
@@ -77,5 +82,72 @@ final class SatinCombos {
             return;
         }
         combo.getItems().addAll(labels);
+    }
+
+    static void fillItems(ComboBox<String> combo, List<IStockItem> rows) {
+        List<String> labels = new ArrayList<>();
+        if (rows != null) {
+            for (IStockItem item : rows) {
+                if (item != null) {
+                    labels.add(item.getDisplayLabel());
+                }
+            }
+        }
+        fill(combo, labels);
+    }
+
+    static void fillVatRates(ComboBox<String> combo) {
+        List<String> labels = new ArrayList<>();
+        IVatRateLookup lookup = TerpApplication.getInstance().getVatRateLookup();
+        if (lookup != null) {
+            List<IVatRate> rows = lookup.findActive();
+            if (rows != null) {
+                for (IVatRate rate : rows) {
+                    if (rate != null) {
+                        labels.add(rate.getDisplayLabel());
+                    }
+                }
+            }
+        }
+        fill(combo, labels);
+    }
+
+    static void selectVat(ComboBox<String> combo, Double rate) {
+        IVatRateLookup lookup = TerpApplication.getInstance().getVatRateLookup();
+        IVatRate match = lookup == null ? null : lookup.findByRate(rate == null ? 20d : rate);
+        if (match != null) {
+            select(combo, match.getRateCode());
+            return;
+        }
+        if (rate == null) {
+            combo.getSelectionModel().clearSelection();
+            return;
+        }
+        String label = "%" + rate;
+        if (label.endsWith(".0")) {
+            label = label.substring(0, label.length() - 2);
+        }
+        if (!combo.getItems().contains(label)) {
+            combo.getItems().add(label);
+        }
+        combo.setValue(label);
+    }
+
+    static Double vatRateOf(ComboBox<String> combo) {
+        String code = codeOf(combo);
+        if (code == null) {
+            return null;
+        }
+        IVatRateLookup lookup = TerpApplication.getInstance().getVatRateLookup();
+        IVatRate byCode = lookup == null ? null : lookup.findByCode(code);
+        if (byCode != null && byCode.getRate() != null) {
+            return byCode.getRate();
+        }
+        String numeric = code.startsWith("%") ? code.substring(1) : code;
+        try {
+            return Double.valueOf(numeric.replace(',', '.'));
+        } catch (NumberFormatException ex) {
+            return null;
+        }
     }
 }

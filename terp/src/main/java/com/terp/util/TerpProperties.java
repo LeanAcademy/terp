@@ -53,4 +53,19 @@ public class TerpProperties {
     public void setViewProps(Properties viewProps) {
         this.viewProps = viewProps;
     }
+
+    public void saveViewProps() {
+        if (viewProps == null) {
+            return;
+        }
+        java.nio.file.Path viewFile = TerpHome.etcFile("application.properties");
+        try {
+            java.nio.file.Files.createDirectories(viewFile.getParent());
+            try (java.io.OutputStream out = java.nio.file.Files.newOutputStream(viewFile)) {
+                viewProps.store(out, null);
+            }
+        } catch (java.io.IOException ex) {
+            throw new IllegalStateException("application.properties yazılamadı", ex);
+        }
+    }
 }

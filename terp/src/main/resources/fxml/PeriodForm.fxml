@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.net.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane prefHeight="220.0" prefWidth="480.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.terp.gui.controllers.PeriodFormController">
+    <stylesheets>
+        <URL value="@../styles/globalstyle.css" />
+    </stylesheets>
+    <children>
+        <ToolBar prefHeight="40.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <items>
+                <Button fx:id="btnSave" defaultButton="true" mnemonicParsing="false" onAction="#onActionBtnSave" text="Kaydet" />
+                <Button fx:id="btnClose" cancelButton="true" mnemonicParsing="false" onAction="#onActionBtnClose" text="Kapat" />
+            </items>
+        </ToolBar>
+        <GridPane hgap="10.0" vgap="8.0" AnchorPane.leftAnchor="16.0" AnchorPane.rightAnchor="16.0" AnchorPane.topAnchor="52.0">
+            <columnConstraints>
+                <ColumnConstraints prefWidth="80.0" />
+                <ColumnConstraints hgrow="ALWAYS" />
+            </columnConstraints>
+            <children>
+                <Label text="Başlangıç" />
+                <DatePicker fx:id="dtFrom" maxWidth="Infinity" GridPane.columnIndex="1" />
+                <Label text="Bitiş" GridPane.rowIndex="1" />
+                <DatePicker fx:id="dtTo" maxWidth="Infinity" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                <Label wrapText="true" text="Çalışma dönemi oturum tercihinde saklanır." GridPane.columnIndex="1" GridPane.rowIndex="2" />
+            </children>
+        </GridPane>
+    </children>
+</AnchorPane>

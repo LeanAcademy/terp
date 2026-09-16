@@ -275,4 +275,12 @@ public class Branch extends CommonFields implements Serializable, IBranch{
         this.email2 = email2;
     }
 
+    public String getTypeLabel() {
+        return branchType == 1 ? "Merkez" : "Şube";
+    }
+
+    public String getStatusLabel() {
+        return status == 0 ? "Aktif" : "Pasif";
+    }
+
 }

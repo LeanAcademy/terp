@@ -23,18 +23,18 @@ import com.terp.core.data.Company;
 import com.terp.core.data.CompanyLookup;
 import com.terp.core.data.DocumentNumbering;
 import com.terp.core.data.DocumentSeries;
+import com.terp.core.data.VatRate;
+import com.terp.core.data.VatRateLookup;
 import com.terp.plugin.PluginMenu;
 import com.terp.plugin.TerpApplication;
 import com.terp.plugin.gui.IDesktopManager;
-import com.terp.plugin.gui.IIconFactory;
-import com.terp.plugin.gui.IMenuManager;
 import com.terp.plugin.IPlugin;
 import java.io.IOException;
+import java.net.URL;
 import java.util.List;
 import java.util.logging.Level;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
-import javafx.scene.control.Button;
 
 /**
  *
@@ -48,7 +48,6 @@ public class Plugin implements IPlugin{
     private final int type = 1; //core plugin
     
     private TerpApplication app = null;
-    private IMenuManager menuManager = null;    
     private IDesktopManager desktopManager = null;
     //private IUser user = null;
     //private IDatabase database = null;
@@ -64,17 +63,12 @@ public class Plugin implements IPlugin{
         
         // set desktop manager
         this.desktopManager = app.getDesktopManager();
-        
-        // set menu manager
-        this.menuManager = this.app.getMenuManager();
         if (app.getPersistence() != null) {
             app.setCompanyLookup(new CompanyLookup(app.getPersistence().createDao(Company.class)));
             app.setDocumentNumbers(new DocumentNumbering(
                     app.getPersistence().createDao(DocumentSeries.class)));
+            app.setVatRateLookup(new VatRateLookup(app.getPersistence().createDao(VatRate.class)));
         }
-        addProgramTool("Firma", "BUILDING", "CompanyForm", "FRMYS02");
-        addProgramTool("Numara", "BARCODE", "SeriesForm", "SYS07");
-        
     }
 
     @Override
@@ -109,7 +103,7 @@ public class Plugin implements IPlugin{
 
     @Override
     public List<Class<?>> getPersistentClasses() {
-        return List.of(Company.class, Branch.class, DocumentSeries.class);
+        return List.of(Company.class, Branch.class, DocumentSeries.class, VatRate.class);
     }
 
     @Override
@@ -117,7 +111,9 @@ public class Plugin implements IPlugin{
         return List.of(
                 PluginMenu.folder("FRMYS01", "Firma yönetimi"),
                 PluginMenu.program("FRMYS02", "Firma tanımı", "FRMYS01", "CompanyForm"),
-                PluginMenu.program("SYS07", "Belge numaraları", "SYS01", "SeriesForm"));
+                PluginMenu.program("FRMYS03", "Şube tanımı", "FRMYS01", "BranchForm"),
+                PluginMenu.program("SYS07", "Belge numaraları", "SYS01", "SeriesForm"),
+                PluginMenu.program("SYS08", "KDV oranları", "SYS01", "VatRateForm"));
     }
     
     @Override
@@ -130,34 +126,36 @@ public class Plugin implements IPlugin{
             this.desktopManager = this.app.getDesktopManager();
         }
         
+        String form = program == null ? "" : program.trim();
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource(
-                    "/fxml/" + program + ".fxml"));
+            URL fxml = getClass().getResource("/fxml/" + form + ".fxml");
+            if (fxml == null) {
+                LOG.log(Level.SEVERE, "FXML not found for {0}", form);
+                return;
+            }
+            FXMLLoader loader = new FXMLLoader(fxml);
             loader.setClassLoader(getClass().getClassLoader());
             Node node = loader.load();
-            this.desktopManager.addToDesktop(node, program);
-        } catch (IOException ex) {
-            LOG.log(Level.SEVERE, null, ex);
+            this.desktopManager.addToDesktop(node, programMenuId(form));
+        } catch (IOException | RuntimeException ex) {
+            LOG.log(Level.SEVERE, "Could not load program " + form, ex);
         }
     }
 
-    private void addProgramTool(String text, String iconName, String program, String menuId) {
-        if (this.menuManager == null) {
-            return;
+    private static String programMenuId(String program) {
+        if ("CompanyForm".equals(program)) {
+            return "FRMYS02";
         }
-        Button button = new Button(text);
-        button.setPrefHeight(24);
-        button.setMnemonicParsing(false);
-        IIconFactory icons = this.app.getIconFactory();
-        if (icons != null && iconName != null) {
-            try {
-                button.setGraphic(icons.getIcon(iconName));
-            } catch (RuntimeException ignored) {
-                // keep text-only if the glyph name is unknown
-            }
+        if ("BranchForm".equals(program)) {
+            return "FRMYS03";
         }
-        button.setOnAction(event -> loadProgram(program));
-        this.menuManager.addToolKit(button, menuId);
+        if ("SeriesForm".equals(program)) {
+            return "SYS07";
+        }
+        if ("VatRateForm".equals(program)) {
+            return "SYS08";
+        }
+        return program;
     }
     
     //logger

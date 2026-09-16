@@ -38,6 +38,7 @@ public class PurchaseReceipt extends CommonFields implements Serializable, IComp
     public static final int STATUS_DRAFT = 0;
     public static final int STATUS_POSTED = 1;
     public static final int STATUS_CANCELLED = 2;
+    public static final int STATUS_INVOICED = 3;
 
     @Column(name = "firma_ref")
     private Long companyId;
@@ -83,6 +84,9 @@ public class PurchaseReceipt extends CommonFields implements Serializable, IComp
         if (value == STATUS_POSTED) {
             return "Onaylı";
         }
+        if (value == STATUS_INVOICED) {
+            return "Faturalandı";
+        }
         if (value == STATUS_CANCELLED) {
             return "İptal";
         }
@@ -106,6 +110,14 @@ public class PurchaseReceipt extends CommonFields implements Serializable, IComp
 
     public boolean isCancelled() {
         return getStatus() == STATUS_CANCELLED;
+    }
+
+    public boolean isInvoiced() {
+        return getStatus() == STATUS_INVOICED;
+    }
+
+    public boolean canInvoice() {
+        return isPosted() || isInvoiced();
     }
 
     public String getDocumentNo() {

@@ -20,6 +20,7 @@ import com.terp.plugin.data.DocumentNumbers;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
+import java.util.Locale;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
@@ -85,6 +86,10 @@ final class SatinDates {
         alert.setHeaderText(header);
         alert.setContentText(content);
         alert.show();
+    }
+
+    static String money(double value) {
+        return String.format(Locale.forLanguageTag("tr-TR"), "%,.2f", value);
     }
 
     static boolean appendLike(StringBuilder sql, boolean whereAdded, String field, String value) {

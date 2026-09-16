@@ -32,6 +32,7 @@
         <module>terp.cari</module>
         <module>terp.satin</module>
         <module>terp.satis</module>
+        <module>terp.uretim</module>
         <module>terp</module>
     </modules>
     <dependencyManagement>

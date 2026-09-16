@@ -9,7 +9,7 @@
     <artifactId>terp.cari</artifactId>
     <packaging>jar</packaging>
     <name>TERP Current Account Plugin</name>
-    <description>Current-account (cari) master: one code per account as customer and/or supplier</description>
+    <description>Current-account (cari) master, movements, and balance; one code per account as customer and/or supplier</description>
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>

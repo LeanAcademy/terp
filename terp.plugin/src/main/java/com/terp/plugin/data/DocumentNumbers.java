@@ -27,8 +27,13 @@ public final class DocumentNumbers {
     public static final String PURCHASE_REQUEST = "SATIN_TALEP";
     public static final String PURCHASE_ORDER = "SATIN_SIPARIS";
     public static final String PURCHASE_RECEIPT = "SATIN_KABUL";
+    public static final String PURCHASE_INVOICE = "SATIN_FATURA";
     public static final String STOCK_COUNT = "STOK_SAYIM";
+    public static final String SALES_QUOTE = "SATIS_TEKLIF";
+    public static final String SALES_ORDER = "SATIS_SIPARIS";
     public static final String SALES_DELIVERY = "SATIS_IRS";
+    public static final String SALES_INVOICE = "SATIS_FATURA";
+    public static final String ACCOUNT_MOVEMENT = "CARI_HAREKET";
 
     public static final int DEFAULT_PADDING = 6;
 
@@ -40,8 +45,13 @@ public final class DocumentNumbers {
                 new Spec(PURCHASE_REQUEST, "Satınalma talebi", "TAL-"),
                 new Spec(PURCHASE_ORDER, "Satınalma siparişi", "SIP-"),
                 new Spec(PURCHASE_RECEIPT, "Mal kabul", "MK-"),
+                new Spec(PURCHASE_INVOICE, "Alım faturası", "AF-"),
                 new Spec(STOCK_COUNT, "Stok sayım", "SYM-"),
-                new Spec(SALES_DELIVERY, "Satış irsaliyesi", "IRS-"));
+                new Spec(SALES_QUOTE, "Satış teklifi", "TEK-"),
+                new Spec(SALES_ORDER, "Satış siparişi", "SSO-"),
+                new Spec(SALES_DELIVERY, "Satış irsaliyesi", "IRS-"),
+                new Spec(SALES_INVOICE, "Satış faturası", "FAT-"),
+                new Spec(ACCOUNT_MOVEMENT, "Cari hareket", "CH-"));
     }
 
     public static Spec specOf(String documentType) {

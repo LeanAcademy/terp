@@ -38,6 +38,7 @@ public class SalesDelivery extends CommonFields implements Serializable, ICompan
     public static final int STATUS_DRAFT = 0;
     public static final int STATUS_POSTED = 1;
     public static final int STATUS_CANCELLED = 2;
+    public static final int STATUS_INVOICED = 3;
 
     @Column(name = "firma_ref")
     private Long companyId;
@@ -61,6 +62,12 @@ public class SalesDelivery extends CommonFields implements Serializable, ICompan
     @Column(name = "depo_adi", length = 128)
     private String warehouseName;
 
+    @Column(name = "siparis_ref")
+    private Long sourceOrderId;
+
+    @Column(name = "siparis_no", length = 128)
+    private String sourceOrderNo;
+
     @Column(name = "durum")
     private Integer status;
 
@@ -76,6 +83,9 @@ public class SalesDelivery extends CommonFields implements Serializable, ICompan
         int value = getStatus();
         if (value == STATUS_POSTED) {
             return "Onaylı";
+        }
+        if (value == STATUS_INVOICED) {
+            return "Faturalandı";
         }
         if (value == STATUS_CANCELLED) {
             return "İptal";
@@ -100,6 +110,14 @@ public class SalesDelivery extends CommonFields implements Serializable, ICompan
 
     public boolean isCancelled() {
         return getStatus() == STATUS_CANCELLED;
+    }
+
+    public boolean isInvoiced() {
+        return getStatus() == STATUS_INVOICED;
+    }
+
+    public boolean canInvoice() {
+        return isPosted() || isInvoiced();
     }
 
     public String getDocumentNo() {
@@ -148,6 +166,22 @@ public class SalesDelivery extends CommonFields implements Serializable, ICompan
 
     public void setWarehouseName(String warehouseName) {
         this.warehouseName = warehouseName;
+    }
+
+    public Long getSourceOrderId() {
+        return sourceOrderId;
+    }
+
+    public void setSourceOrderId(Long sourceOrderId) {
+        this.sourceOrderId = sourceOrderId;
+    }
+
+    public String getSourceOrderNo() {
+        return sourceOrderNo;
+    }
+
+    public void setSourceOrderNo(String sourceOrderNo) {
+        this.sourceOrderNo = sourceOrderNo;
     }
 
     public int getStatus() {

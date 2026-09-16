@@ -39,6 +39,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.ServiceConfigurationError;
 import java.util.ServiceLoader;
@@ -91,7 +92,7 @@ public class PluginFactoryImpl implements IPluginFactory {
     /**
      * Map scanned plugins to {@code eklenti} rows and write missing menus.
      * Does not call {@link IPlugin#run()}; the host must do that after the
-     * main toolbar exists so plugins can use {@code addToolKit}.
+     * main form exists.
      */
     public void bindRegistry() {
         if (bound) {
@@ -415,7 +416,8 @@ public class PluginFactoryImpl implements IPluginFactory {
             LOG.log(Level.WARNING, "Could not resolve plugin id " + pluginId, ex);
         }
 
-        return fallbackLoadedPlugin();
+        LOG.log(Level.WARNING, "Plugin id {0} is not loaded", pluginId);
+        return null;
     }
 
     @Override
@@ -616,10 +618,28 @@ public class PluginFactoryImpl implements IPluginFactory {
                 existing.setMenuName(spec.getTitle());
                 dirty = true;
             }
+            String expectedProgram = spec.isFolder() ? null : spec.getProgramName();
+            if (!Objects.equals(expectedProgram, existing.getProgramName())) {
+                existing.setProgramName(expectedProgram);
+                dirty = true;
+            }
+            if (!Objects.equals(pluginRowId, existing.getPluginId())) {
+                existing.setPluginId(pluginRowId);
+                dirty = true;
+            }
+            int expectedType = spec.isFolder() ? 0 : 1;
+            if (existing.getMenuType() != expectedType) {
+                existing.setMenuType(expectedType);
+                dirty = true;
+            }
+            if (existing.getIsPlugin() != 1) {
+                existing.setIsPlugin(1);
+                dirty = true;
+            }
             if (dirty) {
                 dao.addOrUpdate(existing);
-                LOG.log(Level.INFO, "Updated menu {0} parent to {1}",
-                        new Object[]{spec.getMenuId(), parent});
+                LOG.log(Level.INFO, "Updated menu {0} for plugin id {1}",
+                        new Object[]{spec.getMenuId(), pluginRowId});
             }
             return;
         }
@@ -789,13 +809,6 @@ public class PluginFactoryImpl implements IPluginFactory {
             }
         }
         return null;
-    }
-
-    private IPlugin fallbackLoadedPlugin() {
-        if (pluginsByName.size() == 1) {
-            return pluginsByName.values().iterator().next();
-        }
-        return pluginsByName.get("terp.core");
     }
 
     static boolean namesMatch(String pluginName, String registeredName) {

@@ -20,8 +20,8 @@ import com.terp.plugin.IPlugin;
 import com.terp.plugin.PluginMenu;
 import com.terp.plugin.TerpApplication;
 import com.terp.plugin.gui.IDesktopManager;
-import com.terp.plugin.gui.IIconFactory;
-import com.terp.plugin.gui.IMenuManager;
+import com.terp.satin.data.PurchaseInvoice;
+import com.terp.satin.data.PurchaseInvoiceLine;
 import com.terp.satin.data.PurchaseOrder;
 import com.terp.satin.data.PurchaseOrderLine;
 import com.terp.satin.data.PurchaseReceipt;
@@ -30,12 +30,12 @@ import com.terp.satin.data.PurchaseRequest;
 import com.terp.satin.data.PurchaseRequestLine;
 import com.terp.satin.data.PurchaseSettings;
 import java.io.IOException;
+import java.net.URL;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
-import javafx.scene.control.Button;
 
 public class Plugin implements IPlugin {
 
@@ -48,19 +48,11 @@ public class Plugin implements IPlugin {
 
     private TerpApplication app;
     private IDesktopManager desktopManager;
-    private IMenuManager menuManager;
 
     @Override
     public void run() {
         this.app = TerpApplication.getInstance();
         this.desktopManager = app.getDesktopManager();
-        this.menuManager = app.getMenuManager();
-        if (this.menuManager != null) {
-            addProgramTool("Talep", "CLIPBOARD", "RequestForm");
-            addProgramTool("Sipariş", "SHOPPING_CART", "OrderForm");
-            addProgramTool("Durum", "LIST", "OrderStatusForm");
-            addProgramTool("Mal kabul", "TRUCK", "ReceiptForm");
-        }
     }
 
     @Override
@@ -98,6 +90,7 @@ public class Plugin implements IPlugin {
         return List.of(PurchaseRequest.class, PurchaseRequestLine.class,
                 PurchaseOrder.class, PurchaseOrderLine.class,
                 PurchaseReceipt.class, PurchaseReceiptLine.class,
+                PurchaseInvoice.class, PurchaseInvoiceLine.class,
                 PurchaseSettings.class);
     }
 
@@ -109,6 +102,7 @@ public class Plugin implements IPlugin {
                 PluginMenu.program("SAT04", "Satınalma siparişi", "SAT01", "OrderForm"),
                 PluginMenu.program("SAT05", "Sipariş durumu", "SAT01", "OrderStatusForm"),
                 PluginMenu.program("SAT02", "Mal kabul", "SAT01", "ReceiptForm"),
+                PluginMenu.program("SAT07", "Alım faturası", "SAT01", "PurchaseInvoiceForm"),
                 PluginMenu.program("SAT06", "Satınalma ayarları", "SYS01", "SettingsForm"));
     }
 
@@ -120,34 +114,20 @@ public class Plugin implements IPlugin {
         if (this.desktopManager == null) {
             this.desktopManager = this.app.getDesktopManager();
         }
+        String form = program == null ? "" : program.trim();
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource(
-                    "/fxml/" + program + ".fxml"));
+            URL fxml = getClass().getResource("/fxml/" + form + ".fxml");
+            if (fxml == null) {
+                LOG.log(Level.SEVERE, "FXML not found for {0}", form);
+                return;
+            }
+            FXMLLoader loader = new FXMLLoader(fxml);
             loader.setClassLoader(getClass().getClassLoader());
             Node node = loader.load();
-            this.desktopManager.addToDesktop(node, program);
-        } catch (IOException ex) {
-            LOG.log(Level.SEVERE, null, ex);
+            this.desktopManager.addToDesktop(node, programMenuId(form));
+        } catch (IOException | RuntimeException ex) {
+            LOG.log(Level.SEVERE, "Could not load program " + form, ex);
         }
-    }
-
-    private void addProgramTool(String text, String iconName, String program) {
-        if (this.menuManager == null) {
-            return;
-        }
-        Button button = new Button(text);
-        button.setPrefHeight(24);
-        button.setMnemonicParsing(false);
-        IIconFactory icons = this.app.getIconFactory();
-        if (icons != null && iconName != null) {
-            try {
-                button.setGraphic(icons.getIcon(iconName));
-            } catch (RuntimeException ignored) {
-                // keep text-only if the glyph name is unknown
-            }
-        }
-        button.setOnAction(event -> loadProgram(program));
-        this.menuManager.addToolKit(button, programMenuId(program));
     }
 
     private static String programMenuId(String program) {
@@ -165,6 +145,9 @@ public class Plugin implements IPlugin {
         }
         if ("SettingsForm".equals(program)) {
             return "SAT06";
+        }
+        if ("PurchaseInvoiceForm".equals(program)) {
+            return "SAT07";
         }
         return program;
     }

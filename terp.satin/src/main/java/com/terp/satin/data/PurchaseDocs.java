@@ -106,6 +106,80 @@ public final class PurchaseDocs {
         return Math.max(0d, ordered - posted);
     }
 
+    public static double roundMoney(double value) {
+        return Math.round(value * 100d) / 100d;
+    }
+
+    public static double netOf(Double quantity, Double unitPrice) {
+        double qty = quantity == null ? 0d : quantity;
+        double price = unitPrice == null ? 0d : unitPrice;
+        return roundMoney(qty * price);
+    }
+
+    public static double vatOf(Double quantity, Double unitPrice, Double vatRate) {
+        double rate = vatRate == null ? 0d : vatRate;
+        return roundMoney(netOf(quantity, unitPrice) * rate / 100d);
+    }
+
+    public static double grossOf(Double quantity, Double unitPrice, Double vatRate) {
+        return roundMoney(netOf(quantity, unitPrice) + vatOf(quantity, unitPrice, vatRate));
+    }
+
+    public static double invoiceNetOf(List<PurchaseInvoiceLine> lines) {
+        if (lines == null) {
+            return 0d;
+        }
+        double sum = 0d;
+        for (PurchaseInvoiceLine line : lines) {
+            if (line != null) {
+                sum += netOf(line.getQuantity(), line.getUnitPrice());
+            }
+        }
+        return roundMoney(sum);
+    }
+
+    public static double invoiceVatOf(List<PurchaseInvoiceLine> lines) {
+        if (lines == null) {
+            return 0d;
+        }
+        double sum = 0d;
+        for (PurchaseInvoiceLine line : lines) {
+            if (line != null) {
+                sum += vatOf(line.getQuantity(), line.getUnitPrice(), line.getVatRate());
+            }
+        }
+        return roundMoney(sum);
+    }
+
+    public static double invoiceAmountOf(List<PurchaseInvoiceLine> lines) {
+        if (lines == null) {
+            return 0d;
+        }
+        double sum = 0d;
+        for (PurchaseInvoiceLine line : lines) {
+            if (line != null) {
+                sum += grossOf(line.getQuantity(), line.getUnitPrice(), line.getVatRate());
+            }
+        }
+        return roundMoney(sum);
+    }
+
+    public static double amountOf(List<PurchaseReceiptLine> lines) {
+        if (lines == null) {
+            return 0d;
+        }
+        double sum = 0d;
+        for (PurchaseReceiptLine line : lines) {
+            if (line == null) {
+                continue;
+            }
+            double qty = line.getQuantity() == null ? 0d : line.getQuantity();
+            double price = line.getUnitPrice() == null ? 0d : line.getUnitPrice();
+            sum += qty * price;
+        }
+        return sum;
+    }
+
     public static List<PurchaseOrderStatusRow> orderStatus(
             ICommonDao<PurchaseOrder> orderDao, ICommonDao<PurchaseOrderLine> orderLineDao,
             ICommonDao<PurchaseReceipt> receiptDao, ICommonDao<PurchaseReceiptLine> receiptLineDao) {
@@ -319,6 +393,177 @@ public final class PurchaseDocs {
         requestDao.addOrUpdate(request);
     }
 
+    public static PurchaseReceipt findReceiptByNo(ICommonDao<PurchaseReceipt> receiptDao, String documentNo) {
+        if (receiptDao == null || documentNo == null || documentNo.isBlank()) {
+            return null;
+        }
+        String escaped = documentNo.replace("'", "''");
+        return receiptDao.firstOrDefault("from PurchaseReceipt e where " + CompanyScope.predicate("e")
+                + " and e.documentNo = '" + escaped + "'");
+    }
+
+    public static PurchaseReceiptLine findReceiptLine(ICommonDao<PurchaseReceiptLine> receiptLineDao,
+            Long receiptId, String itemCode) {
+        if (receiptLineDao == null || receiptId == null || itemCode == null || itemCode.isBlank()) {
+            return null;
+        }
+        String escaped = itemCode.replace("'", "''");
+        return receiptLineDao.firstOrDefault(
+                "from PurchaseReceiptLine e where e.receiptId = " + receiptId
+                        + " and e.itemCode = '" + escaped + "'");
+    }
+
+    public static boolean hasLinkedInvoice(ICommonDao<PurchaseInvoice> invoiceDao,
+            ICommonDao<PurchaseInvoiceLine> invoiceLineDao, ICommonDao<PurchaseReceiptLine> receiptLineDao,
+            Long receiptId) {
+        if (invoiceDao == null || receiptId == null) {
+            return false;
+        }
+        List<PurchaseInvoice> linked = invoiceDao.findAll(
+                "from PurchaseInvoice e where e.sourceReceiptId = " + receiptId
+                        + " and e.status <> " + PurchaseInvoice.STATUS_CANCELLED);
+        if (linked != null && !linked.isEmpty()) {
+            return true;
+        }
+        if (invoiceLineDao == null) {
+            return false;
+        }
+        List<PurchaseInvoiceLine> lines = invoiceLineDao.findAll(
+                "from PurchaseInvoiceLine e where e.sourceReceiptId = " + receiptId);
+        if (lines != null) {
+            for (PurchaseInvoiceLine line : lines) {
+                if (line == null || line.getInvoiceId() == null) {
+                    continue;
+                }
+                PurchaseInvoice invoice = invoiceDao.firstOrDefault(line.getInvoiceId());
+                if (invoice != null && !invoice.isCancelled()) {
+                    return true;
+                }
+            }
+        }
+        List<PurchaseReceiptLine> receiptLines = receiptLineDao == null ? null
+                : receiptLineDao.findAll("from PurchaseReceiptLine e where e.receiptId = " + receiptId);
+        if (receiptLines == null) {
+            return false;
+        }
+        for (PurchaseReceiptLine receiptLine : receiptLines) {
+            if (receiptLine == null || receiptLine.getRowId() == null) {
+                continue;
+            }
+            if (allocatedInvoiceQuantity(invoiceDao, invoiceLineDao, receiptLine.getRowId(), null) > 0d) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static double postedInvoiceQuantity(ICommonDao<PurchaseInvoice> invoiceDao,
+            ICommonDao<PurchaseInvoiceLine> lineDao, Long receiptLineId, Long excludeInvoiceId) {
+        return sumInvoiceQuantity(invoiceDao, lineDao, receiptLineId, excludeInvoiceId, false);
+    }
+
+    public static double allocatedInvoiceQuantity(ICommonDao<PurchaseInvoice> invoiceDao,
+            ICommonDao<PurchaseInvoiceLine> lineDao, Long receiptLineId, Long excludeInvoiceId) {
+        return sumInvoiceQuantity(invoiceDao, lineDao, receiptLineId, excludeInvoiceId, true);
+    }
+
+    public static boolean hasInvoiceableBalance(PurchaseReceipt receipt,
+            ICommonDao<PurchaseReceiptLine> receiptLineDao, ICommonDao<PurchaseInvoice> invoiceDao,
+            ICommonDao<PurchaseInvoiceLine> invoiceLineDao) {
+        if (receipt == null || receipt.getRowId() == null || !receipt.canInvoice()) {
+            return false;
+        }
+        return !remainingInvoiceLines(receipt.getRowId(), receiptLineDao, invoiceDao, invoiceLineDao, null)
+                .isEmpty();
+    }
+
+    public static List<PurchaseReceiptLine> remainingInvoiceLines(Long receiptId,
+            ICommonDao<PurchaseReceiptLine> receiptLineDao, ICommonDao<PurchaseInvoice> invoiceDao,
+            ICommonDao<PurchaseInvoiceLine> invoiceLineDao, Long excludeInvoiceId) {
+        List<PurchaseReceiptLine> result = new ArrayList<>();
+        if (receiptId == null || receiptLineDao == null) {
+            return result;
+        }
+        List<PurchaseReceiptLine> rows = receiptLineDao.findAll(
+                "from PurchaseReceiptLine e where e.receiptId = " + receiptId + " order by e.lineNo");
+        if (rows == null) {
+            return result;
+        }
+        for (PurchaseReceiptLine line : rows) {
+            if (line == null) {
+                continue;
+            }
+            double received = line.getQuantity() == null ? 0d : line.getQuantity();
+            double allocated = allocatedInvoiceQuantity(invoiceDao, invoiceLineDao, line.getRowId(),
+                    excludeInvoiceId);
+            if (remainingOrdered(received, allocated) > 0.0000001d) {
+                result.add(line);
+            }
+        }
+        return result;
+    }
+
+    public static List<PurchaseReceipt> invoiceableReceipts(ICommonDao<PurchaseReceipt> receiptDao,
+            ICommonDao<PurchaseReceiptLine> receiptLineDao, ICommonDao<PurchaseInvoice> invoiceDao,
+            ICommonDao<PurchaseInvoiceLine> invoiceLineDao) {
+        List<PurchaseReceipt> result = new ArrayList<>();
+        if (receiptDao == null) {
+            return result;
+        }
+        List<PurchaseReceipt> rows = receiptDao.findAll(CompanyScope.from("PurchaseReceipt")
+                + " and e.status in (" + PurchaseReceipt.STATUS_POSTED
+                + "," + PurchaseReceipt.STATUS_INVOICED + ")");
+        if (rows == null) {
+            return result;
+        }
+        for (PurchaseReceipt receipt : rows) {
+            if (hasInvoiceableBalance(receipt, receiptLineDao, invoiceDao, invoiceLineDao)) {
+                result.add(receipt);
+            }
+        }
+        return result;
+    }
+
+    public static void syncReceiptStatus(ICommonDao<PurchaseReceipt> receiptDao,
+            ICommonDao<PurchaseReceiptLine> receiptLineDao, ICommonDao<PurchaseInvoice> invoiceDao,
+            ICommonDao<PurchaseInvoiceLine> invoiceLineDao, Long receiptId) {
+        if (receiptDao == null || receiptId == null) {
+            return;
+        }
+        PurchaseReceipt receipt = receiptDao.firstOrDefault(receiptId);
+        if (receipt == null || receipt.isCancelled() || receipt.isDraft()) {
+            return;
+        }
+        boolean remaining = hasOpenInvoiceBalance(receiptId, receiptLineDao, invoiceDao, invoiceLineDao);
+        int next = remaining ? PurchaseReceipt.STATUS_POSTED : PurchaseReceipt.STATUS_INVOICED;
+        if (receipt.getStatus() == next) {
+            return;
+        }
+        receipt.setStatus(next);
+        receipt.setLastUpdateDate(new Date());
+        receiptDao.addOrUpdate(receipt);
+    }
+
+    public static void syncReceiptsForLines(ICommonDao<PurchaseReceipt> receiptDao,
+            ICommonDao<PurchaseReceiptLine> receiptLineDao, ICommonDao<PurchaseInvoice> invoiceDao,
+            ICommonDao<PurchaseInvoiceLine> invoiceLineDao, Long headerReceiptId,
+            List<PurchaseInvoiceLine> invoiceLines) {
+        Set<Long> ids = new LinkedHashSet<>();
+        if (headerReceiptId != null) {
+            ids.add(headerReceiptId);
+        }
+        if (invoiceLines != null) {
+            for (PurchaseInvoiceLine line : invoiceLines) {
+                if (line != null && line.getSourceReceiptId() != null) {
+                    ids.add(line.getSourceReceiptId());
+                }
+            }
+        }
+        for (Long id : ids) {
+            syncReceiptStatus(receiptDao, receiptLineDao, invoiceDao, invoiceLineDao, id);
+        }
+    }
+
     public static <T> void deleteByParent(ICommonDao<T> lineDao, String entityName, String field,
             Long parentId) {
         if (lineDao == null || parentId == null) {
@@ -333,6 +578,60 @@ public final class PurchaseDocs {
                 lineDao.delete(fields.getRowId());
             }
         }
+    }
+
+    private static double sumInvoiceQuantity(ICommonDao<PurchaseInvoice> invoiceDao,
+            ICommonDao<PurchaseInvoiceLine> lineDao, Long receiptLineId, Long excludeInvoiceId,
+            boolean includeDraft) {
+        if (invoiceDao == null || lineDao == null || receiptLineId == null) {
+            return 0d;
+        }
+        List<PurchaseInvoiceLine> rows = lineDao.findAll(
+                "from PurchaseInvoiceLine e where e.sourceReceiptLineId = " + receiptLineId);
+        if (rows == null) {
+            return 0d;
+        }
+        double sum = 0d;
+        for (PurchaseInvoiceLine line : rows) {
+            if (line == null || line.getInvoiceId() == null) {
+                continue;
+            }
+            if (excludeInvoiceId != null && excludeInvoiceId.equals(line.getInvoiceId())) {
+                continue;
+            }
+            PurchaseInvoice invoice = invoiceDao.firstOrDefault(line.getInvoiceId());
+            if (invoice == null || invoice.isCancelled()) {
+                continue;
+            }
+            if (invoice.isPosted() || (includeDraft && invoice.isDraft())) {
+                sum += line.getQuantity() == null ? 0d : line.getQuantity();
+            }
+        }
+        return sum;
+    }
+
+    private static boolean hasOpenInvoiceBalance(Long receiptId,
+            ICommonDao<PurchaseReceiptLine> receiptLineDao, ICommonDao<PurchaseInvoice> invoiceDao,
+            ICommonDao<PurchaseInvoiceLine> invoiceLineDao) {
+        if (receiptLineDao == null) {
+            return true;
+        }
+        List<PurchaseReceiptLine> rows = receiptLineDao.findAll(
+                "from PurchaseReceiptLine e where e.receiptId = " + receiptId);
+        if (rows == null || rows.isEmpty()) {
+            return false;
+        }
+        for (PurchaseReceiptLine line : rows) {
+            if (line == null) {
+                continue;
+            }
+            double received = line.getQuantity() == null ? 0d : line.getQuantity();
+            double posted = postedInvoiceQuantity(invoiceDao, invoiceLineDao, line.getRowId(), null);
+            if (remainingOrdered(received, posted) > 0.0000001d) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static double sumQuantity(ICommonDao<PurchaseReceipt> receiptDao,

@@ -21,7 +21,12 @@ package com.terp.plugin.data.model;
  */
 public interface IStockItem {
 
+    int TYPE_TRADE = 0;
+    int TYPE_RAW = 1;
+    int TYPE_SEMI = 2;
+    int TYPE_FINISHED = 3;
     int TYPE_SERVICE = 4;
+    int TYPE_CONSUMABLE = 5;
 
     String getItemId();
 
@@ -32,6 +37,24 @@ public interface IStockItem {
     int getItemType();
 
     int getStatus();
+
+    Double getVatRate();
+
+    /**
+     * Percent used on sales lines when the card has no rate. Zero is a real rate.
+     */
+    default double vatPercent() {
+        Double rate = getVatRate();
+        return rate == null ? 20d : rate;
+    }
+
+    /**
+     * Sales may ship trade goods and finished products only.
+     */
+    default boolean isSellable() {
+        int type = getItemType();
+        return type == TYPE_TRADE || type == TYPE_FINISHED;
+    }
 
     default String getDisplayLabel() {
         String code = getItemId() == null ? "" : getItemId();

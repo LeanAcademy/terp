@@ -9,7 +9,7 @@
     <artifactId>terp.satis</artifactId>
     <packaging>jar</packaging>
     <name>TERP Sales Plugin</name>
-    <description>Sales plugin: delivery note that posts stock outbound via IStockLedger</description>
+    <description>Sales plugin: sales order and delivery note that posts stock outbound via IStockLedger</description>
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>

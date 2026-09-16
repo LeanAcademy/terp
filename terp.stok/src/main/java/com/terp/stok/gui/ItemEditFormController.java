@@ -20,7 +20,9 @@ import com.terp.plugin.CompanyScope;
 import com.terp.plugin.TerpApplication;
 import com.terp.plugin.data.IAccountLookup;
 import com.terp.plugin.data.ICommonDao;
+import com.terp.plugin.data.IVatRateLookup;
 import com.terp.plugin.data.model.IAccount;
+import com.terp.plugin.data.model.IVatRate;
 import com.terp.plugin.gui.RecordAuditBar;
 import com.terp.stok.data.Item;
 import com.terp.stok.data.ItemPartnerCode;
@@ -140,7 +142,7 @@ public class ItemEditFormController implements Initializable {
     @FXML
     private CheckBox chkSerialTracked;
     @FXML
-    private TextField txtVatRate;
+    private ComboBox<String> cmbVatRate;
     @FXML
     private TextField txtCurrency;
     @FXML
@@ -169,10 +171,12 @@ public class ItemEditFormController implements Initializable {
         supplierCodes.clear();
         customerCodes.clear();
         loadedPartnerIds.clear();
+        fillVatRates();
         if (row == null) {
             cmbItemType.getSelectionModel().select(Item.TYPE_TRADE);
             chkActive.setSelected(true);
             txtCurrency.setText("TRY");
+            selectVat(20d);
             showAudit();
             return;
         }
@@ -202,7 +206,7 @@ public class ItemEditFormController implements Initializable {
         txtShelfLifeDays.setText(row.getShelfLifeDays() == null ? "" : Integer.toString(row.getShelfLifeDays()));
         chkLotTracked.setSelected(row.getLotTracked() != 0);
         chkSerialTracked.setSelected(row.getSerialTracked() != 0);
-        txtVatRate.setText(num(row.getVatRate()));
+        selectVat(row.getVatRate());
         txtCurrency.setText(empty(row.getCurrency()));
         txtPurchasePrice.setText(num(row.getPurchasePrice()));
         txtSalesPrice.setText(num(row.getSalesPrice()));
@@ -277,7 +281,7 @@ public class ItemEditFormController implements Initializable {
         Double maxStock = parseDouble(txtMaxStock.getText(), "Max. stok");
         Double safety = parseDouble(txtSafetyStock.getText(), "Emniyet stoğu");
         Integer shelf = parseInt(txtShelfLifeDays.getText(), "Raf ömrü");
-        Double vat = parseDouble(txtVatRate.getText(), "KDV");
+        Double vat = selectedVat();
         Double purchase = parseDouble(txtPurchasePrice.getText(), "Alış fiyatı");
         Double sales = parseDouble(txtSalesPrice.getText(), "Satış fiyatı");
         if (hadParseError) {
@@ -375,6 +379,7 @@ public class ItemEditFormController implements Initializable {
                 tcCustomerItemCode, tcCustomerItemName, customerCodes);
         fillAccountCombo(cmbSupplierAccount, true);
         fillAccountCombo(cmbCustomerAccount, false);
+        fillVatRates();
         this.validationSupport = new ValidationSupport();
         this.validationSupport.registerValidator(txtItemId, true,
                 Validator.createEmptyValidator("Kod zorunlu"));
@@ -485,6 +490,79 @@ public class ItemEditFormController implements Initializable {
                 combo.getItems().add(account.getDisplayLabel());
             }
         }
+    }
+
+    private void fillVatRates() {
+        cmbVatRate.getItems().clear();
+        IVatRateLookup lookup = TerpApplication.getInstance().getVatRateLookup();
+        if (lookup == null) {
+            return;
+        }
+        List<IVatRate> rows = lookup.findActive();
+        if (rows == null) {
+            return;
+        }
+        for (IVatRate rate : rows) {
+            if (rate != null && rate.getDisplayLabel() != null) {
+                cmbVatRate.getItems().add(rate.getDisplayLabel());
+            }
+        }
+    }
+
+    private void selectVat(Double rate) {
+        IVatRateLookup lookup = TerpApplication.getInstance().getVatRateLookup();
+        IVatRate match = lookup == null ? null : lookup.findByRate(rate == null ? 20d : rate);
+        if (match != null) {
+            cmbVatRate.getSelectionModel().select(match.getDisplayLabel());
+            return;
+        }
+        if (rate == null) {
+            cmbVatRate.getSelectionModel().clearSelection();
+            return;
+        }
+        String label = "%" + trimTrailingZeros(rate);
+        if (!cmbVatRate.getItems().contains(label)) {
+            cmbVatRate.getItems().add(label);
+        }
+        cmbVatRate.setValue(label);
+    }
+
+    private Double selectedVat() {
+        String code = comboCode(cmbVatRate);
+        if (code == null) {
+            hadParseError = true;
+            Alert alert = new Alert(AlertType.ERROR);
+            alert.setTitle("Form hatası");
+            alert.setHeaderText("KDV");
+            alert.setContentText("KDV oranı seçin.");
+            alert.show();
+            return null;
+        }
+        IVatRateLookup lookup = TerpApplication.getInstance().getVatRateLookup();
+        IVatRate byCode = lookup == null ? null : lookup.findByCode(code);
+        if (byCode != null && byCode.getRate() != null) {
+            return byCode.getRate();
+        }
+        String numeric = code.startsWith("%") ? code.substring(1) : code;
+        try {
+            return Double.valueOf(numeric.replace(',', '.'));
+        } catch (NumberFormatException ex) {
+            hadParseError = true;
+            Alert alert = new Alert(AlertType.ERROR);
+            alert.setTitle("Form hatası");
+            alert.setHeaderText("KDV");
+            alert.setContentText("Geçerli bir KDV oranı seçin.");
+            alert.show();
+            return null;
+        }
+    }
+
+    private static String trimTrailingZeros(Double rate) {
+        String text = Double.toString(rate);
+        if (text.endsWith(".0")) {
+            return text.substring(0, text.length() - 2);
+        }
+        return text;
     }
 
     private Double parseDouble(String text, String field) {

@@ -42,6 +42,11 @@ public class AccountLookup implements IAccountLookup {
     }
 
     @Override
+    public List<IAccount> findActive() {
+        return filter(false, false);
+    }
+
+    @Override
     public IAccount findByCode(String accountCode) {
         if (accountCode == null || accountCode.isBlank()) {
             return null;
@@ -61,7 +66,9 @@ public class AccountLookup implements IAccountLookup {
             if (row == null || row.getStatus() != 0) {
                 continue;
             }
-            if (customers && row.isCustomer()) {
+            if (!customers && !suppliers) {
+                result.add(row);
+            } else if (customers && row.isCustomer()) {
                 result.add(row);
             } else if (suppliers && row.isSupplier()) {
                 result.add(row);

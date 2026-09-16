@@ -29,5 +29,7 @@ public interface IAccountLookup {
 
     List<IAccount> findActiveSuppliers();
 
+    List<IAccount> findActive();
+
     IAccount findByCode(String accountCode);
 }

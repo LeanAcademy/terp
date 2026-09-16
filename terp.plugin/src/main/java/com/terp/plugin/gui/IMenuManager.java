@@ -24,7 +24,9 @@ import javafx.scene.Node;
 public interface IMenuManager {
     
     /**
-     * Add a plugin control to the main toolbar. Pass a {@link javafx.scene.control.Button}
+     * Add a plugin control to the main toolbar. Program shortcuts belong in
+     * the menu tree, not here; the host already provides print and Excel export
+     * for the active list. Pass a {@link javafx.scene.control.Button}
      * (or a {@link javafx.scene.control.ToolBar} whose items will be inserted).
      * Call this from {@code IPlugin.run()} after the host has set the menu manager.
      */

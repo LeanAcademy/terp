@@ -17,9 +17,11 @@
 package com.terp.satis.gui;
 
 import com.terp.plugin.data.DocumentNumbers;
+import com.terp.plugin.data.model.IStockItem;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
+import java.util.Locale;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
@@ -70,6 +72,15 @@ final class SatisDates {
         return trimmed.isEmpty() ? null : trimmed;
     }
 
+    static boolean rejectIfNotSellable(String title, IStockItem item) {
+        if (item == null || item.isSellable()) {
+            return false;
+        }
+        showError(title, "Satılamaz",
+                "Ham madde ve yarı mamul satılamaz. Yalnız ticari mal ve mamul (ürün) seçin.");
+        return true;
+    }
+
     static String assignDocumentNo(String documentType, TextField field) {
         String assigned = DocumentNumbers.assign(documentType,
                 field == null ? null : trimToNull(field.getText()));
@@ -85,6 +96,10 @@ final class SatisDates {
         alert.setHeaderText(header);
         alert.setContentText(content);
         alert.show();
+    }
+
+    static String money(double value) {
+        return String.format(Locale.forLanguageTag("tr-TR"), "%,.2f", value);
     }
 
     static boolean appendLike(StringBuilder sql, boolean whereAdded, String field, String value) {

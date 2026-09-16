@@ -17,8 +17,18 @@
 package com.terp.satis.gui;
 
 import com.terp.plugin.TerpApplication;
+import com.terp.plugin.data.ICommonDao;
 import com.terp.satis.data.SalesDelivery;
+import com.terp.satis.data.SalesDeliveryLine;
+import com.terp.satis.data.SalesDocs;
+import com.terp.satis.data.SalesInvoice;
+import com.terp.satis.data.SalesInvoiceLine;
+import com.terp.satis.data.SalesOrder;
+import com.terp.satis.data.SalesOrderLine;
+import com.terp.satis.data.SalesQuote;
+import com.terp.satis.data.SalesQuoteLine;
 import java.io.IOException;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.fxml.FXMLLoader;
@@ -35,17 +45,203 @@ final class SatisWindows {
     private SatisWindows() {
     }
 
-    static void openDeliveryEditor(SalesDelivery current, Runnable afterClose) {
+    static void convertQuote(SalesQuote quote, ICommonDao<SalesQuote> quoteDao,
+            ICommonDao<SalesQuoteLine> lineDao, ICommonDao<SalesOrder> orderDao,
+            Runnable afterClose) {
+        if (quote == null || quote.getRowId() == null) {
+            return;
+        }
+        SalesQuote fresh = quoteDao.firstOrDefault(quote.getRowId());
+        if (fresh == null || !fresh.canConvert()) {
+            SatisDates.showError("Satış teklifi", "Çevrilemez",
+                    "Yalnız onaylı teklifler siparişe çevrilir.");
+            return;
+        }
+        SalesOrder existing = SalesDocs.findOpenOrder(orderDao, fresh.getRowId());
+        if (existing != null) {
+            SatisDates.showError("Satış teklifi", "Sipariş var",
+                    "Bu teklif için açık sipariş zaten var: " + existing.getDocumentNo());
+            return;
+        }
+        List<SalesQuoteLine> lines = lineDao.findAll(
+                "from SalesQuoteLine e where e.quoteId = " + fresh.getRowId()
+                        + " order by e.lineNo");
+        if (lines == null || lines.isEmpty()) {
+            SatisDates.showError("Satış teklifi", "Satır yok", "Teklifin malzeme satırı yok.");
+            return;
+        }
+        openOrderEditor(null, fresh, lines, afterClose);
+    }
+
+    static void convertOrder(SalesOrder order, ICommonDao<SalesOrder> orderDao,
+            ICommonDao<SalesOrderLine> lineDao, ICommonDao<SalesDelivery> deliveryDao,
+            Runnable afterClose) {
+        if (order == null || order.getRowId() == null) {
+            return;
+        }
+        SalesOrder fresh = orderDao.firstOrDefault(order.getRowId());
+        if (fresh == null || !fresh.canDeliver()) {
+            SatisDates.showError("Satış siparişi", "Çevrilemez",
+                    "Yalnız onaylı veya bakiyesi kalan siparişler irsaliyeye alınır.");
+            return;
+        }
+        ICommonDao<SalesDeliveryLine> deliveryLineDao = TerpApplication.getInstance()
+                .getPersistence().createDao(SalesDeliveryLine.class);
+        if (!SalesDocs.hasDeliverableBalance(fresh, lineDao, deliveryDao, deliveryLineDao)) {
+            SatisDates.showError("Satış siparişi", "Bakiye yok",
+                    "Bu siparişte kalan miktar yok.");
+            return;
+        }
+        List<SalesOrderLine> lines = SalesDocs.remainingLines(fresh.getRowId(), lineDao,
+                deliveryDao, deliveryLineDao, null);
+        openDeliveryEditor(null, fresh, lines, afterClose);
+    }
+
+    static void convertDelivery(SalesDelivery delivery, ICommonDao<SalesDelivery> deliveryDao,
+            ICommonDao<SalesDeliveryLine> lineDao, ICommonDao<SalesInvoice> invoiceDao,
+            Runnable afterClose) {
+        if (delivery == null || delivery.getRowId() == null) {
+            return;
+        }
+        SalesDelivery fresh = deliveryDao.firstOrDefault(delivery.getRowId());
+        if (fresh == null || !fresh.canInvoice()) {
+            SatisDates.showError("Satış irsaliyesi", "Çevrilemez",
+                    "Yalnız onaylı veya bakiyesi kalan irsaliyeler faturaya alınır.");
+            return;
+        }
+        ICommonDao<SalesInvoiceLine> invoiceLineDao = TerpApplication.getInstance()
+                .getPersistence().createDao(SalesInvoiceLine.class);
+        if (!SalesDocs.hasInvoiceableBalance(fresh, lineDao, invoiceDao, invoiceLineDao)) {
+            SatisDates.showError("Satış irsaliyesi", "Bakiye yok",
+                    "Bu irsaliyede faturalanacak miktar yok.");
+            return;
+        }
+        List<SalesDeliveryLine> lines = SalesDocs.remainingInvoiceLines(fresh.getRowId(), lineDao,
+                invoiceDao, invoiceLineDao, null);
+        openInvoiceEditor(null, fresh, lines, afterClose);
+    }
+
+    static void openQuoteEditor(SalesQuote current, Runnable afterClose) {
         try {
-            FXMLLoader loader = SatisDates.pluginLoader(SatisWindows.class, "/fxml/DeliveryEditForm.fxml");
+            FXMLLoader loader = SatisDates.pluginLoader(SatisWindows.class, "/fxml/QuoteEditForm.fxml");
             Node node = loader.load();
-            DeliveryEditFormController controller = loader.getController();
+            QuoteEditFormController controller = loader.getController();
             controller.initializeForm(current);
             Stage stage = new Stage();
             stage.initModality(Modality.WINDOW_MODAL);
             stage.initOwner(TerpApplication.getInstance().getDesktopManager().getPrimaryStage());
             stage.setScene(new Scene((Parent) node));
-            stage.setTitle(current == null ? "Yeni satış irsaliyesi" : "Satış irsaliyesi");
+            stage.setTitle(current == null ? "Yeni satış teklifi" : "Satış teklifi");
+            stage.showAndWait();
+            if (afterClose != null) {
+                afterClose.run();
+            }
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, null, ex);
+        }
+    }
+
+    static void openOrderEditor(SalesOrder current, Runnable afterClose) {
+        openOrderEditor(current, null, null, afterClose);
+    }
+
+    private static void openOrderEditor(SalesOrder current, SalesQuote fromQuote,
+            List<SalesQuoteLine> quoteLines, Runnable afterClose) {
+        try {
+            FXMLLoader loader = SatisDates.pluginLoader(SatisWindows.class, "/fxml/OrderEditForm.fxml");
+            Node node = loader.load();
+            OrderEditFormController controller = loader.getController();
+            if (fromQuote != null) {
+                controller.initializeFromQuote(fromQuote, quoteLines);
+            } else {
+                controller.initializeForm(current);
+            }
+            Stage stage = new Stage();
+            stage.initModality(Modality.WINDOW_MODAL);
+            stage.initOwner(TerpApplication.getInstance().getDesktopManager().getPrimaryStage());
+            stage.setScene(new Scene((Parent) node));
+            stage.setTitle(fromQuote != null ? "Tekliften sipariş"
+                    : (current == null ? "Yeni satış siparişi" : "Satış siparişi"));
+            stage.showAndWait();
+            if (afterClose != null) {
+                afterClose.run();
+            }
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, null, ex);
+        }
+    }
+
+    static void openDeliveryEditor(SalesDelivery current, Runnable afterClose) {
+        openDeliveryEditor(current, null, null, afterClose);
+    }
+
+    static void openDeliveryFromOrder(Runnable afterClose) {
+        openDeliveryEditor(null, null, null, afterClose, "Siparişten irsaliye");
+    }
+
+    private static void openDeliveryEditor(SalesDelivery current, SalesOrder fromOrder,
+            List<SalesOrderLine> orderLines, Runnable afterClose) {
+        String title = fromOrder != null ? "Siparişten irsaliye"
+                : (current == null ? "Yeni satış irsaliyesi" : "Satış irsaliyesi");
+        openDeliveryEditor(current, fromOrder, orderLines, afterClose, title);
+    }
+
+    private static void openDeliveryEditor(SalesDelivery current, SalesOrder fromOrder,
+            List<SalesOrderLine> orderLines, Runnable afterClose, String title) {
+        try {
+            FXMLLoader loader = SatisDates.pluginLoader(SatisWindows.class, "/fxml/DeliveryEditForm.fxml");
+            Node node = loader.load();
+            DeliveryEditFormController controller = loader.getController();
+            if (fromOrder != null) {
+                controller.initializeFromOrder(fromOrder, orderLines);
+            } else {
+                controller.initializeForm(current);
+            }
+            Stage stage = new Stage();
+            stage.initModality(Modality.WINDOW_MODAL);
+            stage.initOwner(TerpApplication.getInstance().getDesktopManager().getPrimaryStage());
+            stage.setScene(new Scene((Parent) node));
+            stage.setTitle(title);
+            stage.showAndWait();
+            if (afterClose != null) {
+                afterClose.run();
+            }
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, null, ex);
+        }
+    }
+
+    static void openInvoiceEditor(SalesInvoice current, Runnable afterClose) {
+        openInvoiceEditor(current, null, null, afterClose);
+    }
+
+    static void openInvoiceFromDelivery(Runnable afterClose) {
+        openInvoiceEditor(null, null, null, afterClose, "İrsaliyeden fatura");
+    }
+
+    private static void openInvoiceEditor(SalesInvoice current, SalesDelivery fromDelivery,
+            List<SalesDeliveryLine> deliveryLines, Runnable afterClose) {
+        String title = fromDelivery != null ? "İrsaliyeden fatura"
+                : (current == null ? "Yeni satış faturası" : "Satış faturası");
+        openInvoiceEditor(current, fromDelivery, deliveryLines, afterClose, title);
+    }
+
+    private static void openInvoiceEditor(SalesInvoice current, SalesDelivery fromDelivery,
+            List<SalesDeliveryLine> deliveryLines, Runnable afterClose, String title) {
+        try {
+            FXMLLoader loader = SatisDates.pluginLoader(SatisWindows.class, "/fxml/InvoiceEditForm.fxml");
+            Node node = loader.load();
+            InvoiceEditFormController controller = loader.getController();
+            if (fromDelivery != null) {
+                controller.initializeFromDelivery(fromDelivery, deliveryLines);
+            } else {
+                controller.initializeForm(current);
+            }
+            Stage stage = new Stage();
+            stage.initModality(Modality.WINDOW_MODAL);
+            stage.initOwner(TerpApplication.getInstance().getDesktopManager().getPrimaryStage());
+            stage.setScene(new Scene((Parent) node));
+            stage.setTitle(title);
             stage.showAndWait();
             if (afterClose != null) {
                 afterClose.run();

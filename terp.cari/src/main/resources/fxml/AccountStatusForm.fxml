@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.net.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane id="AnchorPane" prefHeight="540.0" prefWidth="980.0" styleClass="mainFxmlClass" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.terp.cari.gui.AccountStatusFormController">
+    <stylesheets>
+        <URL value="@../styles/accountform.css" />
+    </stylesheets>
+    <children>
+        <BorderPane AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <top>
+                <VBox BorderPane.alignment="CENTER">
+                    <children>
+                        <ToolBar prefHeight="40.0">
+                            <items>
+                                <Button fx:id="btnRefresh" defaultButton="true" mnemonicParsing="false" onAction="#onActionBtnRefresh" prefWidth="95.0" text="Yenile" />
+                            </items>
+                        </ToolBar>
+                        <GridPane hgap="8.0" vgap="6.0">
+                            <padding>
+                                <Insets bottom="6.0" left="8.0" right="8.0" top="4.0" />
+                            </padding>
+                            <columnConstraints>
+                                <ColumnConstraints hgrow="ALWAYS" prefWidth="220.0" />
+                                <ColumnConstraints prefWidth="160.0" />
+                            </columnConstraints>
+                            <children>
+                                <TextField fx:id="txtAccountCode" promptText="Cari kodu / unvan" />
+                                <CheckBox fx:id="chkOnlyNonZero" mnemonicParsing="false" selected="true" text="Sıfır hariç" GridPane.columnIndex="1" />
+                            </children>
+                        </GridPane>
+                    </children>
+                </VBox>
+            </top>
+            <center>
+                <TableView fx:id="tblvStatusView" tableMenuButtonVisible="true" BorderPane.alignment="CENTER">
+                    <columns>
+                        <TableColumn fx:id="tcAccountCode" prefWidth="110.0" text="Cari" />
+                        <TableColumn fx:id="tcAccountName" prefWidth="240.0" text="Unvan" />
+                        <TableColumn fx:id="tcRoleLabel" prefWidth="150.0" text="Rol" />
+                        <TableColumn fx:id="tcDebitTotal" prefWidth="110.0" text="Borç" />
+                        <TableColumn fx:id="tcCreditTotal" prefWidth="110.0" text="Alacak" />
+                        <TableColumn fx:id="tcBalance" prefWidth="110.0" text="Bakiye" />
+                        <TableColumn fx:id="tcBalanceLabel" prefWidth="90.0" text="Yön" />
+                    </columns>
+                </TableView>
+            </center>
+        </BorderPane>
+    </children>
+</AnchorPane>

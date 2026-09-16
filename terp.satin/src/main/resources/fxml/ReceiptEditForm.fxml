@@ -14,6 +14,7 @@
             <items>
                 <Button fx:id="btnSave" mnemonicParsing="false" onAction="#onActionBtnSave" text="Taslak kaydet" />
                 <Button fx:id="btnApprove" defaultButton="true" mnemonicParsing="false" onAction="#onActionBtnApprove" text="Onayla" />
+                <Button fx:id="btnInvoice" mnemonicParsing="false" onAction="#onActionBtnInvoice" text="Faturaya çevir" />
                 <Button fx:id="btnCancelPosted" mnemonicParsing="false" onAction="#onActionBtnCancelPosted" text="İptal" />
                 <Button fx:id="btnClose" cancelButton="true" mnemonicParsing="false" onAction="#onActionBtnClose" text="Kapat" />
             </items>

@@ -224,8 +224,8 @@
                                 <ColumnConstraints hgrow="ALWAYS" />
                             </columnConstraints>
                             <children>
-                                <Label text="KDV %" />
-                                <TextField fx:id="txtVatRate" GridPane.columnIndex="1" />
+                                <Label text="KDV" />
+                                <ComboBox fx:id="cmbVatRate" maxWidth="Infinity" GridPane.columnIndex="1" />
                                 <Label text="Para birimi" GridPane.columnIndex="2" />
                                 <TextField fx:id="txtCurrency" GridPane.columnIndex="3" />
                                 <Label text="Alış fiyatı" GridPane.rowIndex="1" />

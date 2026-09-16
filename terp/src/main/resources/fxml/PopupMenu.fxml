@@ -1,11 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.*?>
-<?import javafx.scene.image.*?>
-<?import java.lang.*?>
 <?import java.net.*?>
-<?import java.util.*?>
-<?import javafx.scene.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import org.controlsfx.glyphfont.*?>
@@ -16,52 +12,52 @@
         <URL value="@../styles/popupmenu.css" />
     </stylesheets>
    <children>
-      <VBox prefHeight="205.0" prefWidth="360.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
+      <VBox prefHeight="230.0" prefWidth="380.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
          <children>
-            <FlowPane layoutX="-36.0" prefHeight="93.0" prefWidth="360.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <FlowPane prefHeight="93.0" prefWidth="360.0">
                <children>
-                  <Button fx:id="btnUserSettings" contentDisplay="TOP" mnemonicParsing="false" prefHeight="80.0" prefWidth="80.0" text="User" textAlignment="CENTER" wrapText="true">
+                  <Button fx:id="btnUserSettings" contentDisplay="TOP" mnemonicParsing="false" onAction="#btnUserOnAction" prefHeight="80.0" prefWidth="85.0" text="Kullanıcı" textAlignment="CENTER" wrapText="true">
                      <tooltip>
-                        <Tooltip text="User settings"/>
+                        <Tooltip text="Kullanıcılar"/>
                      </tooltip>
                      <FlowPane.margin>
                         <Insets bottom="5.0" left="2.5" right="2.5" top="5.0" />
                      </FlowPane.margin>
                      <graphic>
-                        <Glyph fontFamily="FontAwesome"  fontSize="16.0" icon="USER" />
+                        <Glyph fontFamily="FontAwesome" fontSize="16.0" icon="USER" />
                      </graphic>
                   </Button>
-                  <Button fx:id="btnCompnay" contentDisplay="TOP" mnemonicParsing="false" prefHeight="80.0" prefWidth="80.0" text="Company">
+                  <Button fx:id="btnCompany" contentDisplay="TOP" mnemonicParsing="false" onAction="#btnCompanyOnAction" prefHeight="80.0" prefWidth="85.0" text="Firma" wrapText="true">
                      <tooltip>
-                        <Tooltip text="Empty Tooltip" />
+                        <Tooltip text="Firma tanımı" />
                      </tooltip>
                      <FlowPane.margin>
                         <Insets bottom="5.0" left="2.5" right="2.5" top="5.0" />
                      </FlowPane.margin>
                      <graphic>
-                        <Glyph fontFamily="FontAwesome"  fontSize="16.0" icon="BUILDING_ALT" />
+                        <Glyph fontFamily="FontAwesome" fontSize="16.0" icon="BUILDING_ALT" />
                      </graphic>
                   </Button>
-                  <Button contentDisplay="TOP" mnemonicParsing="false" prefHeight="80.0" prefWidth="80.0" text="Branch">
+                  <Button fx:id="btnBranch" contentDisplay="TOP" mnemonicParsing="false" onAction="#btnBranchOnAction" prefHeight="80.0" prefWidth="85.0" text="Şube" wrapText="true">
                      <tooltip>
-                        <Tooltip text="Empty Tooltip" />
+                        <Tooltip text="Şube tanımı" />
                      </tooltip>
                      <FlowPane.margin>
                         <Insets bottom="5.0" left="2.5" right="2.5" top="5.0" />
                      </FlowPane.margin>
                      <graphic>
-                        <Glyph fontFamily="FontAwesome"  fontSize="16.0" icon="BUILDING" />
+                        <Glyph fontFamily="FontAwesome" fontSize="16.0" icon="BUILDING" />
                      </graphic>
                   </Button>
-                  <Button contentDisplay="TOP" mnemonicParsing="false" prefHeight="80.0" prefWidth="80.0" text="Period">
+                  <Button fx:id="btnPeriod" contentDisplay="TOP" mnemonicParsing="false" onAction="#btnPeriodOnAction" prefHeight="80.0" prefWidth="85.0" text="Dönem" wrapText="true">
                      <tooltip>
-                        <Tooltip text="Empty Tooltip" />
+                        <Tooltip text="Çalışma dönemi" />
                      </tooltip>
                      <FlowPane.margin>
                         <Insets bottom="5.0" left="2.5" right="2.5" top="5.0" />
                      </FlowPane.margin>
                      <graphic>
-                        <Glyph fontFamily="FontAwesome"  fontSize="16.0" icon="CALENDAR_ALT" />
+                        <Glyph fontFamily="FontAwesome" fontSize="16.0" icon="CALENDAR_ALT" />
                      </graphic>
                   </Button>
                </children>
@@ -69,23 +65,23 @@
             <Separator />
             <FlowPane prefHeight="95.0" prefWidth="360.0">
                <children>
-                  <Button fx:id="btnServerSetup" contentDisplay="TOP" mnemonicParsing="false" onAction="#btnServerOnAction" prefHeight="80.0" prefWidth="80.0" text="Server">
+                  <Button fx:id="btnServerSetup" contentDisplay="TOP" mnemonicParsing="false" onAction="#btnServerOnAction" prefHeight="80.0" prefWidth="85.0" text="Sunucu" wrapText="true">
                      <graphic>
-                        <Glyph fontFamily="FontAwesome"  fontSize="16.0" icon="SERVER" />
+                        <Glyph fontFamily="FontAwesome" fontSize="16.0" icon="SERVER" />
                      </graphic>
                      <tooltip>
-                        <Tooltip text="Empty Tooltip" />
+                        <Tooltip text="Veritabanı bağlantısı" />
                      </tooltip>
                      <FlowPane.margin>
                         <Insets bottom="5.0" left="2.5" right="2.5" top="5.0" />
                      </FlowPane.margin>
                   </Button>
-                  <Button fx:id="btnSqlEditor" contentDisplay="TOP" mnemonicParsing="false" prefHeight="80.0" prefWidth="80.0" text="SQL">
+                  <Button fx:id="btnSqlEditor" contentDisplay="TOP" mnemonicParsing="false" onAction="#btnSqlOnAction" prefHeight="80.0" prefWidth="85.0" text="SQL" wrapText="true">
                      <graphic>
-                        <Glyph fontFamily="FontAwesome"  fontSize="16.0" icon="EDIT" />
+                        <Glyph fontFamily="FontAwesome" fontSize="16.0" icon="EDIT" />
                      </graphic>
                      <tooltip>
-                        <Tooltip text="Empty Tooltip" />
+                        <Tooltip text="SQL penceresi" />
                      </tooltip>
                   </Button>
                   <Separator orientation="VERTICAL">
@@ -93,12 +89,12 @@
                         <Insets left="5.0" />
                      </FlowPane.margin>
                   </Separator>
-                  <Button fx:id="btnProgramSettings" contentDisplay="TOP" mnemonicParsing="false" onAction="#btnProgramSettingsOnAction" prefHeight="80.0" prefWidth="80.0" text="Settings">
+                  <Button fx:id="btnProgramSettings" contentDisplay="TOP" mnemonicParsing="false" onAction="#btnProgramSettingsOnAction" prefHeight="80.0" prefWidth="85.0" text="Ayarlar" wrapText="true">
                      <graphic>
-                        <Glyph fontFamily="FontAwesome"  fontSize="16.0" icon="GEAR" />
+                        <Glyph fontFamily="FontAwesome" fontSize="16.0" icon="GEAR" />
                      </graphic>
                      <tooltip>
-                        <Tooltip text="Empty Tooltip" />
+                        <Tooltip text="Görünüm ayarları" />
                      </tooltip>
                      <FlowPane.margin>
                         <Insets bottom="5.0" left="2.5" right="2.5" top="5.0" />
@@ -109,9 +105,9 @@
             <Separator prefWidth="200.0" />
             <HBox prefHeight="43.0" prefWidth="360.0">
                <children>
-                  <Button fx:id="btnExitProgram" mnemonicParsing="false" onAction="#btnExitProgramOnAction" text="Exit program">
+                  <Button fx:id="btnExitProgram" mnemonicParsing="false" onAction="#btnExitProgramOnAction" text="Çıkış">
                      <graphic>
-                        <Glyph fontFamily="FontAwesome"  fontSize="16.0" icon="SIGN_OUT" />
+                        <Glyph fontFamily="FontAwesome" fontSize="16.0" icon="SIGN_OUT" />
                      </graphic>
                      <HBox.margin>
                         <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />

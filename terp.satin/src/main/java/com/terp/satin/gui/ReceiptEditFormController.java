@@ -18,7 +18,9 @@ package com.terp.satin.gui;
 
 import com.terp.plugin.CompanyScope;
 import com.terp.plugin.TerpApplication;
+import com.terp.plugin.data.AccountPosting;
 import com.terp.plugin.data.DocumentNumbers;
+import com.terp.plugin.data.IAccountLedger;
 import com.terp.plugin.data.IAccountLookup;
 import com.terp.plugin.data.ICommonDao;
 import com.terp.plugin.data.IItemLookup;
@@ -32,6 +34,8 @@ import com.terp.plugin.data.model.IStockItem;
 import com.terp.plugin.data.model.IStockWarehouse;
 import com.terp.plugin.gui.RecordAuditBar;
 import com.terp.satin.data.PurchaseDocs;
+import com.terp.satin.data.PurchaseInvoice;
+import com.terp.satin.data.PurchaseInvoiceLine;
 import com.terp.satin.data.PurchaseOrder;
 import com.terp.satin.data.PurchaseOrderLine;
 import com.terp.satin.data.PurchaseReceipt;
@@ -68,6 +72,8 @@ public class ReceiptEditFormController implements Initializable {
     private Button btnSave;
     @FXML
     private Button btnApprove;
+    @FXML
+    private Button btnInvoice;
     @FXML
     private Button btnCancelPosted;
     @FXML
@@ -121,6 +127,8 @@ public class ReceiptEditFormController implements Initializable {
     private ICommonDao<PurchaseReceiptLine> lineDao;
     private ICommonDao<PurchaseOrder> orderDao;
     private ICommonDao<PurchaseOrderLine> orderLineDao;
+    private ICommonDao<PurchaseInvoice> invoiceDao;
+    private ICommonDao<PurchaseInvoiceLine> invoiceLineDao;
     private ICommonDao<PurchaseSettings> settingsDao;
     private PurchaseReceipt currentRow;
     private final ObservableList<PurchaseReceiptLine> lines = FXCollections.observableArrayList();
@@ -240,8 +248,30 @@ public class ReceiptEditFormController implements Initializable {
     }
 
     @FXML
+    private void onActionBtnInvoice(ActionEvent event) {
+        if (currentRow == null || currentRow.getRowId() == null) {
+            return;
+        }
+        SatinWindows.convertReceipt(currentRow, receiptDao, lineDao, invoiceDao, () -> {
+            PurchaseReceipt reloaded = receiptDao.firstOrDefault(currentRow.getRowId());
+            if (reloaded != null) {
+                this.currentRow = reloaded;
+                applyLock(reloaded.getStatus());
+                showAudit();
+            }
+            notifyChanged();
+        });
+    }
+
+    @FXML
     private void onActionBtnCancelPosted(ActionEvent event) {
         if (currentRow == null || currentRow.getRowId() == null || !currentRow.isPosted()) {
+            return;
+        }
+        if (currentRow.isInvoiced()
+                || PurchaseDocs.hasLinkedInvoice(invoiceDao, invoiceLineDao, lineDao, currentRow.getRowId())) {
+            SatinDates.showError("Mal kabul", "Faturaya bağlı",
+                    "Önce bağlı alım faturasını iptal veya silin.");
             return;
         }
         IStockLedger ledger = TerpApplication.getInstance().getStockLedger();
@@ -250,6 +280,10 @@ public class ReceiptEditFormController implements Initializable {
             return;
         }
         ledger.reverseByDocument(StockPosting.SOURCE_PURCHASE_RECEIPT, currentRow.getRowId());
+        IAccountLedger accounts = TerpApplication.getInstance().getAccountLedger();
+        if (accounts != null) {
+            accounts.reverseByDocument(AccountPosting.SOURCE_PURCHASE_RECEIPT, currentRow.getRowId());
+        }
         Long orderId = currentRow.getSourceOrderId();
         currentRow.setStatus(PurchaseReceipt.STATUS_CANCELLED);
         currentRow.setLastUpdateDate(new Date());
@@ -351,6 +385,8 @@ public class ReceiptEditFormController implements Initializable {
         this.lineDao = TerpApplication.getInstance().getPersistence().createDao(PurchaseReceiptLine.class);
         this.orderDao = TerpApplication.getInstance().getPersistence().createDao(PurchaseOrder.class);
         this.orderLineDao = TerpApplication.getInstance().getPersistence().createDao(PurchaseOrderLine.class);
+        this.invoiceDao = TerpApplication.getInstance().getPersistence().createDao(PurchaseInvoice.class);
+        this.invoiceLineDao = TerpApplication.getInstance().getPersistence().createDao(PurchaseInvoiceLine.class);
         this.settingsDao = TerpApplication.getInstance().getPersistence().createDao(PurchaseSettings.class);
         this.tcSourceOrderNo.setCellValueFactory(new PropertyValueFactory<>("sourceOrderNo"));
         this.tcItemCode.setCellValueFactory(new PropertyValueFactory<>("itemCode"));
@@ -804,6 +840,7 @@ public class ReceiptEditFormController implements Initializable {
     private void applyLock(int status) {
         boolean draft = status == PurchaseReceipt.STATUS_DRAFT;
         boolean posted = status == PurchaseReceipt.STATUS_POSTED;
+        boolean invoiced = status == PurchaseReceipt.STATUS_INVOICED;
         txtDocumentNo.setDisable(!draft);
         dtDocumentDate.setDisable(!draft);
         cmbAccount.setDisable(!draft);
@@ -821,7 +858,16 @@ public class ReceiptEditFormController implements Initializable {
         tblvLines.setEditable(draft);
         btnSave.setDisable(!draft);
         btnApprove.setDisable(!draft);
-        btnCancelPosted.setDisable(!posted);
+        boolean canInvoice = currentRow != null && currentRow.getRowId() != null
+                && PurchaseDocs.hasInvoiceableBalance(currentRow, lineDao, invoiceDao, invoiceLineDao);
+        if (btnInvoice != null) {
+            btnInvoice.setDisable(!canInvoice);
+            btnInvoice.setVisible(posted || invoiced);
+            btnInvoice.setManaged(posted || invoiced);
+        }
+        boolean linked = currentRow != null && currentRow.getRowId() != null
+                && PurchaseDocs.hasLinkedInvoice(invoiceDao, invoiceLineDao, lineDao, currentRow.getRowId());
+        btnCancelPosted.setDisable(!posted || linked);
         btnCancelPosted.setVisible(posted);
         btnCancelPosted.setManaged(posted);
     }

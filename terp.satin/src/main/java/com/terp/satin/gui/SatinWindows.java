@@ -19,6 +19,8 @@ package com.terp.satin.gui;
 import com.terp.plugin.TerpApplication;
 import com.terp.plugin.data.ICommonDao;
 import com.terp.satin.data.PurchaseDocs;
+import com.terp.satin.data.PurchaseInvoice;
+import com.terp.satin.data.PurchaseInvoiceLine;
 import com.terp.satin.data.PurchaseOrder;
 import com.terp.satin.data.PurchaseOrderLine;
 import com.terp.satin.data.PurchaseReceipt;
@@ -98,6 +100,30 @@ final class SatinWindows {
         openReceiptEditor(null, fresh, lines, afterClose);
     }
 
+    static void convertReceipt(PurchaseReceipt receipt, ICommonDao<PurchaseReceipt> receiptDao,
+            ICommonDao<PurchaseReceiptLine> lineDao, ICommonDao<PurchaseInvoice> invoiceDao,
+            Runnable afterClose) {
+        if (receipt == null || receipt.getRowId() == null) {
+            return;
+        }
+        PurchaseReceipt fresh = receiptDao.firstOrDefault(receipt.getRowId());
+        if (fresh == null || !fresh.canInvoice()) {
+            SatinDates.showError("Mal kabul", "Çevrilemez",
+                    "Yalnız onaylı veya bakiyesi kalan mal kabuller faturaya alınır.");
+            return;
+        }
+        ICommonDao<PurchaseInvoiceLine> invoiceLineDao = TerpApplication.getInstance()
+                .getPersistence().createDao(PurchaseInvoiceLine.class);
+        if (!PurchaseDocs.hasInvoiceableBalance(fresh, lineDao, invoiceDao, invoiceLineDao)) {
+            SatinDates.showError("Mal kabul", "Bakiye yok",
+                    "Bu mal kabulde faturalanacak miktar yok.");
+            return;
+        }
+        List<PurchaseReceiptLine> lines = PurchaseDocs.remainingInvoiceLines(fresh.getRowId(), lineDao,
+                invoiceDao, invoiceLineDao, null);
+        openInvoiceEditor(null, fresh, lines, afterClose);
+    }
+
     static void openRequestEditor(PurchaseRequest current, Runnable afterClose) {
         try {
             FXMLLoader loader = SatinDates.pluginLoader(SatinWindows.class, "/fxml/RequestEditForm.fxml");
@@ -171,6 +197,47 @@ final class SatinWindows {
             ReceiptEditFormController controller = loader.getController();
             if (fromOrder != null) {
                 controller.initializeFromOrder(fromOrder, orderLines);
+            } else {
+                controller.initializeForm(current);
+            }
+            Stage stage = new Stage();
+            stage.initModality(Modality.WINDOW_MODAL);
+            stage.initOwner(TerpApplication.getInstance().getDesktopManager().getPrimaryStage());
+            stage.setScene(new Scene((Parent) node));
+            stage.setTitle(title);
+            stage.showAndWait();
+            if (afterClose != null) {
+                afterClose.run();
+            }
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, null, ex);
+        }
+    }
+
+    static void openInvoiceEditor(PurchaseInvoice current, Runnable afterClose) {
+        openInvoiceEditor(current, null, null, afterClose);
+    }
+
+    static void openInvoiceFromReceipt(Runnable afterClose) {
+        openInvoiceEditor(null, null, null, afterClose, "Mal kabulden fatura");
+    }
+
+    private static void openInvoiceEditor(PurchaseInvoice current, PurchaseReceipt fromReceipt,
+            List<PurchaseReceiptLine> receiptLines, Runnable afterClose) {
+        String title = fromReceipt != null ? "Mal kabulden fatura"
+                : (current == null ? "Yeni alım faturası" : "Alım faturası");
+        openInvoiceEditor(current, fromReceipt, receiptLines, afterClose, title);
+    }
+
+    private static void openInvoiceEditor(PurchaseInvoice current, PurchaseReceipt fromReceipt,
+            List<PurchaseReceiptLine> receiptLines, Runnable afterClose, String title) {
+        try {
+            FXMLLoader loader = SatinDates.pluginLoader(SatinWindows.class,
+                    "/fxml/PurchaseInvoiceEditForm.fxml");
+            Node node = loader.load();
+            PurchaseInvoiceEditFormController controller = loader.getController();
+            if (fromReceipt != null) {
+                controller.initializeFromReceipt(fromReceipt, receiptLines);
             } else {
                 controller.initializeForm(current);
             }

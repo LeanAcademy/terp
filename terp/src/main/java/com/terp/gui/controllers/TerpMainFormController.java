@@ -9,6 +9,7 @@ import com.terp.data.dao.MenuSourceDao;
 import com.terp.plugin.gui.IDesktopManager;
 import com.terp.plugin.gui.IMenuManager;
 import com.terp.data.model.MenuSource;
+import com.terp.gui.DesktopListActions;
 import com.terp.gui.MenuItem;
 import com.terp.plugin.*;
 import com.terp.plugin.data.ICompanyLookup;
@@ -106,6 +107,12 @@ public class TerpMainFormController implements Initializable,
     
     @FXML
     private ToggleButton tbtnPopupMenu;
+
+    @FXML
+    private Button btnPrint;
+
+    @FXML
+    private Button btnExcel;
     
     @FXML
     private void tvMainMenuOnMouseClicked(MouseEvent mouseEvent) {
@@ -158,6 +165,23 @@ public class TerpMainFormController implements Initializable,
         
         //clear textfield
         this.txtSearchMenuItem.clear();
+    }
+
+    @FXML
+    private void btnPrintOnAction(ActionEvent actionEvent) {
+        DesktopListActions.print(this.primaryStage, selectedDesktopTab());
+    }
+
+    @FXML
+    private void btnExcelOnAction(ActionEvent actionEvent) {
+        DesktopListActions.exportExcel(this.primaryStage, selectedDesktopTab());
+    }
+
+    private Tab selectedDesktopTab() {
+        if (this.tpDesktopContainer == null) {
+            return null;
+        }
+        return this.tpDesktopContainer.getSelectionModel().getSelectedItem();
     }
 
     /**
@@ -673,7 +697,11 @@ public class TerpMainFormController implements Initializable,
         }
         String escaped = program.replace("'", "''");
         MenuSource menu = new MenuSourceDao().firstOrDefault(
-                "from MenuSource e where e.programName = '" + escaped + "'");
+                "from MenuSource e where e.menuId = '" + escaped + "'");
+        if (menu == null) {
+            menu = new MenuSourceDao().firstOrDefault(
+                    "from MenuSource e where e.programName = '" + escaped + "'");
+        }
         if (menu != null && menu.getMenuName() != null && !menu.getMenuName().isBlank()) {
             return menu.getMenuName();
         }

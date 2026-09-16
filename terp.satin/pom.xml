@@ -9,7 +9,7 @@
     <artifactId>terp.satin</artifactId>
     <packaging>jar</packaging>
     <name>TERP Purchasing Plugin</name>
-    <description>Purchasing plugin: request, order, and goods receipt that posts stock inbound via IStockLedger</description>
+    <description>Purchasing plugin: request, order, goods receipt, and purchase invoice that posts supplier credit via IAccountLedger</description>
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>

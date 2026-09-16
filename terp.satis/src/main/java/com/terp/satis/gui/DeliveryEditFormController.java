@@ -34,10 +34,15 @@ import com.terp.plugin.gui.RecordAuditBar;
 import com.terp.satis.data.SalesDelivery;
 import com.terp.satis.data.SalesDeliveryLine;
 import com.terp.satis.data.SalesDocs;
+import com.terp.satis.data.SalesInvoice;
+import com.terp.satis.data.SalesInvoiceLine;
+import com.terp.satis.data.SalesOrder;
+import com.terp.satis.data.SalesOrderLine;
 import java.net.URL;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.ResourceBundle;
 import javafx.application.Platform;
@@ -49,6 +54,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
+import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
@@ -64,6 +70,8 @@ public class DeliveryEditFormController implements Initializable {
     @FXML
     private Button btnApprove;
     @FXML
+    private Button btnInvoice;
+    @FXML
     private Button btnCancelPosted;
     @FXML
     private Button btnClose;
@@ -76,7 +84,13 @@ public class DeliveryEditFormController implements Initializable {
     @FXML
     private ComboBox<String> cmbWarehouse;
     @FXML
+    private ComboBox<String> cmbSourceOrder;
+    @FXML
+    private Button btnLoadRemaining;
+    @FXML
     private TextArea txtNotes;
+    @FXML
+    private ComboBox<String> cmbOrder;
     @FXML
     private ComboBox<String> cmbItem;
     @FXML
@@ -86,11 +100,15 @@ public class DeliveryEditFormController implements Initializable {
     @FXML
     private TextField txtUnitPrice;
     @FXML
+    private Label lblRemaining;
+    @FXML
     private Button btnAddLine;
     @FXML
     private Button btnRemoveLine;
     @FXML
     private TableView<SalesDeliveryLine> tblvLines;
+    @FXML
+    private TableColumn<SalesDeliveryLine, String> tcSourceOrderNo;
     @FXML
     private TableColumn<SalesDeliveryLine, String> tcItemCode;
     @FXML
@@ -104,22 +122,16 @@ public class DeliveryEditFormController implements Initializable {
 
     private ICommonDao<SalesDelivery> deliveryDao;
     private ICommonDao<SalesDeliveryLine> lineDao;
+    private ICommonDao<SalesOrder> orderDao;
+    private ICommonDao<SalesOrderLine> orderLineDao;
+    private ICommonDao<SalesInvoice> invoiceDao;
+    private ICommonDao<SalesInvoiceLine> invoiceLineDao;
     private SalesDelivery currentRow;
     private final ObservableList<SalesDeliveryLine> lines = FXCollections.observableArrayList();
+    private boolean applyingLookup;
     private Runnable afterChange;
     private boolean notifying;
     private RecordAuditBar auditBar;
-
-    public void embedInList(Runnable afterChange) {
-        this.afterChange = afterChange;
-        if (btnApprove != null) {
-            btnApprove.setDefaultButton(false);
-        }
-    }
-
-    public Long currentRowId() {
-        return currentRow == null ? null : currentRow.getRowId();
-    }
 
     public void initializeForm(SalesDelivery row) {
         fillLookups();
@@ -129,9 +141,14 @@ public class DeliveryEditFormController implements Initializable {
         txtQuantity.clear();
         txtUnit.clear();
         txtUnitPrice.clear();
+        if (lblRemaining != null) {
+            lblRemaining.setText("");
+        }
         cmbItem.getSelectionModel().clearSelection();
         cmbAccount.getSelectionModel().clearSelection();
         cmbWarehouse.getSelectionModel().clearSelection();
+        cmbSourceOrder.getSelectionModel().clearSelection();
+        cmbOrder.getSelectionModel().clearSelection();
         dtDocumentDate.setValue(LocalDate.now());
         this.currentRow = row;
         if (row == null) {
@@ -153,6 +170,31 @@ public class DeliveryEditFormController implements Initializable {
             }
         }
         applyLock(row.getStatus());
+        showAudit();
+    }
+
+    public void initializeFromOrder(SalesOrder order, List<SalesOrderLine> orderLines) {
+        fillLookups();
+        this.currentRow = deliveryDao.getEmpty();
+        if (this.currentRow == null) {
+            this.currentRow = new SalesDelivery();
+        }
+        this.currentRow.setStatus(SalesDelivery.STATUS_DRAFT);
+        this.currentRow.setAccountCode(order.getAccountCode());
+        this.currentRow.setAccountName(order.getAccountName());
+        this.currentRow.setWarehouseCode(order.getWarehouseCode());
+        this.currentRow.setWarehouseName(order.getWarehouseName());
+        this.currentRow.setNotes(order.getNotes());
+        dtDocumentDate.setValue(LocalDate.now());
+        txtDocumentNo.clear();
+        SatisCombos.select(cmbAccount, order.getAccountCode());
+        SatisCombos.select(cmbWarehouse, order.getWarehouseCode());
+        SatisCombos.select(cmbSourceOrder, order.getDocumentNo());
+        SatisCombos.select(cmbOrder, order.getDocumentNo());
+        txtNotes.setText(SatisDates.empty(order.getNotes()));
+        lines.clear();
+        appendRemaining(order, orderLines);
+        applyLock(SalesDelivery.STATUS_DRAFT);
         showAudit();
     }
 
@@ -181,6 +223,8 @@ public class DeliveryEditFormController implements Initializable {
             currentRow.setStatus(SalesDelivery.STATUS_POSTED);
             currentRow.setLastUpdateDate(new Date());
             deliveryDao.addOrUpdate(currentRow);
+            SalesDocs.syncOrdersForLines(orderDao, orderLineDao, deliveryDao, lineDao,
+                    currentRow.getSourceOrderId(), lines);
             close();
         } catch (RuntimeException ex) {
             ledger.reverseByDocument(StockPosting.SOURCE_SALES_DELIVERY, currentRow.getRowId());
@@ -190,8 +234,30 @@ public class DeliveryEditFormController implements Initializable {
     }
 
     @FXML
+    private void onActionBtnInvoice(ActionEvent event) {
+        if (currentRow == null || currentRow.getRowId() == null) {
+            return;
+        }
+        SatisWindows.convertDelivery(currentRow, deliveryDao, lineDao, invoiceDao, () -> {
+            SalesDelivery reloaded = deliveryDao.firstOrDefault(currentRow.getRowId());
+            if (reloaded != null) {
+                this.currentRow = reloaded;
+                applyLock(reloaded.getStatus());
+                showAudit();
+            }
+            notifyChanged();
+        });
+    }
+
+    @FXML
     private void onActionBtnCancelPosted(ActionEvent event) {
         if (currentRow == null || currentRow.getRowId() == null || !currentRow.isPosted()) {
+            return;
+        }
+        if (currentRow.isInvoiced()
+                || SalesDocs.hasLinkedInvoice(invoiceDao, invoiceLineDao, lineDao, currentRow.getRowId())) {
+            SatisDates.showError("Satış irsaliyesi", "Faturaya bağlı",
+                    "Önce bağlı satış faturasını iptal veya silin.");
             return;
         }
         IStockLedger ledger = TerpApplication.getInstance().getStockLedger();
@@ -201,9 +267,11 @@ public class DeliveryEditFormController implements Initializable {
             return;
         }
         ledger.reverseByDocument(StockPosting.SOURCE_SALES_DELIVERY, currentRow.getRowId());
+        Long orderId = currentRow.getSourceOrderId();
         currentRow.setStatus(SalesDelivery.STATUS_CANCELLED);
         currentRow.setLastUpdateDate(new Date());
         deliveryDao.addOrUpdate(currentRow);
+        SalesDocs.syncOrdersForLines(orderDao, orderLineDao, deliveryDao, lineDao, orderId, lines);
         close();
     }
 
@@ -213,7 +281,20 @@ public class DeliveryEditFormController implements Initializable {
     }
 
     @FXML
+    private void onActionBtnLoadRemaining(ActionEvent event) {
+        SalesOrder order = resolveOrder(SatisCombos.codeOf(cmbSourceOrder));
+        if (!usableOrder(order)) {
+            return;
+        }
+        applyOrderHeader(order);
+        appendRemaining(order, SalesDocs.remainingLines(order.getRowId(), orderLineDao, deliveryDao,
+                lineDao, currentRow == null ? null : currentRow.getRowId()));
+        refreshRemainingHint();
+    }
+
+    @FXML
     private void onActionBtnAddLine(ActionEvent event) {
+        String orderNo = SatisCombos.codeOf(cmbOrder);
         String itemCode = SatisCombos.codeOf(cmbItem);
         Double quantity = SatisDates.parseDouble(txtQuantity.getText());
         Double price = SatisDates.parseDouble(txtUnitPrice.getText());
@@ -223,9 +304,27 @@ public class DeliveryEditFormController implements Initializable {
         }
         IItemLookup items = TerpApplication.getInstance().getItemLookup();
         IStockItem item = items == null ? null : items.findByCode(itemCode);
-        if (item != null && item.getItemType() == IStockItem.TYPE_SERVICE) {
-            SatisDates.showError("Satış irsaliyesi", "Hizmet", "Hizmet kartı irsaliyeye yazılamaz.");
+        if (SatisDates.rejectIfNotSellable("Satış irsaliyesi", item)) {
             return;
+        }
+        SalesOrder order = null;
+        SalesOrderLine orderLine = null;
+        if (orderNo != null) {
+            order = resolveOrder(orderNo);
+            if (!usableOrder(order)) {
+                return;
+            }
+            orderLine = SalesDocs.findOrderLine(orderLineDao, order.getRowId(), itemCode);
+            if (orderLine == null) {
+                SatisDates.showError("Satış irsaliyesi", "Sipariş satırı yok",
+                        itemCode + " bu siparişte yok: " + order.getDocumentNo());
+                return;
+            }
+            String error = validateQty(orderLine, quantity, null);
+            if (error != null) {
+                SatisDates.showError("Satış irsaliyesi", "Miktar", error);
+                return;
+            }
         }
         SalesDeliveryLine line = new SalesDeliveryLine();
         line.setItemCode(itemCode);
@@ -234,10 +333,23 @@ public class DeliveryEditFormController implements Initializable {
         line.setItemUnit(unit == null && item != null ? item.getItemUnit() : unit);
         line.setQuantity(quantity);
         line.setUnitPrice(price);
+        if (order != null) {
+            line.setSourceOrderId(order.getRowId());
+            line.setSourceOrderNo(order.getDocumentNo());
+            line.setSourceOrderLineId(orderLine.getRowId());
+            if (line.getItemUnit() == null) {
+                line.setItemUnit(orderLine.getItemUnit());
+            }
+            if (line.getUnitPrice() == null) {
+                line.setUnitPrice(orderLine.getUnitPrice());
+            }
+            applyOrderHeader(order);
+        }
         line.setLineNo(lines.size() + 1);
         lines.add(line);
         txtQuantity.clear();
         txtUnitPrice.clear();
+        refreshRemainingHint();
     }
 
     @FXML
@@ -249,6 +361,7 @@ public class DeliveryEditFormController implements Initializable {
             for (SalesDeliveryLine line : lines) {
                 line.setLineNo(no++);
             }
+            refreshRemainingHint();
         }
     }
 
@@ -256,6 +369,11 @@ public class DeliveryEditFormController implements Initializable {
     public void initialize(URL url, ResourceBundle rb) {
         this.deliveryDao = TerpApplication.getInstance().getPersistence().createDao(SalesDelivery.class);
         this.lineDao = TerpApplication.getInstance().getPersistence().createDao(SalesDeliveryLine.class);
+        this.orderDao = TerpApplication.getInstance().getPersistence().createDao(SalesOrder.class);
+        this.orderLineDao = TerpApplication.getInstance().getPersistence().createDao(SalesOrderLine.class);
+        this.invoiceDao = TerpApplication.getInstance().getPersistence().createDao(SalesInvoice.class);
+        this.invoiceLineDao = TerpApplication.getInstance().getPersistence().createDao(SalesInvoiceLine.class);
+        this.tcSourceOrderNo.setCellValueFactory(new PropertyValueFactory<>("sourceOrderNo"));
         this.tcItemCode.setCellValueFactory(new PropertyValueFactory<>("itemCode"));
         this.tcItemDesc.setCellValueFactory(new PropertyValueFactory<>("itemDesc"));
         this.tcItemUnit.setCellValueFactory(new PropertyValueFactory<>("itemUnit"));
@@ -273,10 +391,24 @@ public class DeliveryEditFormController implements Initializable {
                 tblvLines.refresh();
                 return;
             }
+            if (line.getSourceOrderLineId() != null) {
+                SalesOrderLine orderLine = orderLineDao.firstOrDefault(line.getSourceOrderLineId());
+                String error = validateQty(orderLine, value, line);
+                if (error != null) {
+                    SatisDates.showError("Satış irsaliyesi", "Miktar", error);
+                    tblvLines.refresh();
+                    return;
+                }
+            }
             line.setQuantity(value);
+            refreshRemainingHint();
         });
         this.tblvLines.setItems(lines);
-        cmbItem.valueProperty().addListener((obs, old, value) -> applyItem(SatisCombos.codeOf(cmbItem)));
+        cmbItem.valueProperty().addListener((obs, old, value) -> {
+            applyItem(SatisCombos.codeOf(cmbItem));
+            applyOrderDefaults();
+        });
+        cmbOrder.valueProperty().addListener((obs, old, value) -> applyOrderDefaults());
         fillLookups();
         if (dtDocumentDate.getValue() == null) {
             dtDocumentDate.setValue(LocalDate.now());
@@ -308,9 +440,18 @@ public class DeliveryEditFormController implements Initializable {
             SatisDates.showError("Satış irsaliyesi", "Satır yok", "En az bir malzeme satırı ekleyin.");
             return false;
         }
+        String qtyError = validateAllLines();
+        if (qtyError != null) {
+            SatisDates.showError("Satış irsaliyesi", "Miktar", qtyError);
+            return false;
+        }
+        IItemLookup itemLookup = TerpApplication.getInstance().getItemLookup();
         for (SalesDeliveryLine line : lines) {
-            if (line == null || line.getQuantity() == null || line.getQuantity() <= 0d) {
-                SatisDates.showError("Satış irsaliyesi", "Miktar", "Miktar sıfırdan büyük olmalıdır.");
+            if (line == null) {
+                continue;
+            }
+            IStockItem item = itemLookup == null ? null : itemLookup.findByCode(line.getItemCode());
+            if (SatisDates.rejectIfNotSellable("Satış irsaliyesi", item)) {
                 return false;
             }
         }
@@ -335,6 +476,7 @@ public class DeliveryEditFormController implements Initializable {
                     "Önce araç çubuğundan çalışma firmasını seçin.");
             return false;
         }
+        stampHeaderOrder(row);
         String documentNo = SatisDates.assignDocumentNo(DocumentNumbers.SALES_DELIVERY, txtDocumentNo);
         if (documentNo == null || documentNo.isBlank()) {
             SatisDates.showError("Satış irsaliyesi", "Belge no",
@@ -369,6 +511,8 @@ public class DeliveryEditFormController implements Initializable {
         }
         this.currentRow = saved;
         replaceLines(saved.getRowId(), now);
+        SalesDocs.syncOrdersForLines(orderDao, orderLineDao, deliveryDao, lineDao,
+                saved.getSourceOrderId(), lines);
         showAudit();
         return true;
     }
@@ -391,6 +535,9 @@ public class DeliveryEditFormController implements Initializable {
             copy.setItemUnit(line.getItemUnit());
             copy.setQuantity(line.getQuantity());
             copy.setUnitPrice(line.getUnitPrice());
+            copy.setSourceOrderLineId(line.getSourceOrderLineId());
+            copy.setSourceOrderId(line.getSourceOrderId());
+            copy.setSourceOrderNo(line.getSourceOrderNo());
             SalesDeliveryLine saved = lineDao.addOrUpdate(copy);
             stored.add(saved == null ? copy : saved);
         }
@@ -430,17 +577,12 @@ public class DeliveryEditFormController implements Initializable {
         }
         SatisCombos.fill(cmbWarehouse, warehouseLabels);
 
-        List<String> itemLabels = new ArrayList<>();
         IItemLookup items = TerpApplication.getInstance().getItemLookup();
         if (items != null) {
-            List<IStockItem> rows = items.findActive();
-            if (rows != null) {
-                for (IStockItem item : rows) {
-                    itemLabels.add(item.getDisplayLabel());
-                }
-            }
+            SatisCombos.fillSellableItems(cmbItem, items.findActive());
+        } else {
+            SatisCombos.fill(cmbItem, List.of());
         }
-        SatisCombos.fill(cmbItem, itemLabels);
 
         List<String> accountLabels = new ArrayList<>();
         IAccountLookup accounts = TerpApplication.getInstance().getAccountLookup();
@@ -453,6 +595,15 @@ public class DeliveryEditFormController implements Initializable {
             }
         }
         SatisCombos.fill(cmbAccount, accountLabels);
+
+        List<String> orderLabels = new ArrayList<>();
+        List<SalesOrder> orders = SalesDocs.deliverableOrders(orderDao, orderLineDao, deliveryDao, lineDao);
+        for (SalesOrder order : orders) {
+            String name = order.getAccountName() == null ? "" : order.getAccountName();
+            orderLabels.add(name.isBlank() ? order.getDocumentNo() : order.getDocumentNo() + " — " + name);
+        }
+        SatisCombos.fill(cmbSourceOrder, orderLabels);
+        SatisCombos.fill(cmbOrder, orderLabels);
     }
 
     private void applyItem(String itemCode) {
@@ -463,14 +614,243 @@ public class DeliveryEditFormController implements Initializable {
         }
     }
 
+    private void applyOrderDefaults() {
+        if (applyingLookup) {
+            return;
+        }
+        applyingLookup = true;
+        try {
+            SalesOrder order = resolveOrder(SatisCombos.codeOf(cmbOrder));
+            if (order != null && !order.canDeliver()) {
+                order = null;
+            }
+            String itemCode = SatisCombos.codeOf(cmbItem);
+            if (order != null) {
+                applyOrderHeader(order);
+            }
+            if (order != null && itemCode != null) {
+                SalesOrderLine orderLine = SalesDocs.findOrderLine(orderLineDao, order.getRowId(), itemCode);
+                if (orderLine != null) {
+                    double allocated = SalesDocs.allocatedQuantity(deliveryDao, lineDao, orderLine.getRowId(),
+                            currentRow == null ? null : currentRow.getRowId());
+                    allocated += qtyOnThisDocument(orderLine.getRowId(), null);
+                    double remaining = SalesDocs.remainingOrdered(
+                            orderLine.getQuantity() == null ? 0d : orderLine.getQuantity(), allocated);
+                    if (txtQuantity.getText() == null || txtQuantity.getText().isBlank()) {
+                        if (remaining > 0d) {
+                            txtQuantity.setText(Double.toString(remaining));
+                        }
+                    }
+                    if (txtUnit.getText() == null || txtUnit.getText().isBlank()) {
+                        txtUnit.setText(SatisDates.empty(orderLine.getItemUnit()));
+                    }
+                    if (txtUnitPrice.getText() == null || txtUnitPrice.getText().isBlank()) {
+                        txtUnitPrice.setText(orderLine.getUnitPrice() == null ? ""
+                                : orderLine.getUnitPrice().toString());
+                    }
+                }
+            }
+            refreshRemainingHint();
+        } finally {
+            applyingLookup = false;
+        }
+    }
+
+    private void applyOrderHeader(SalesOrder order) {
+        if (order == null) {
+            return;
+        }
+        if (SatisCombos.codeOf(cmbAccount) == null) {
+            SatisCombos.select(cmbAccount, order.getAccountCode());
+        }
+        if (SatisCombos.codeOf(cmbWarehouse) == null) {
+            SatisCombos.select(cmbWarehouse, order.getWarehouseCode());
+        }
+    }
+
+    private void appendRemaining(SalesOrder order, List<SalesOrderLine> orderLines) {
+        if (order == null || orderLines == null) {
+            return;
+        }
+        int no = lines.size() + 1;
+        Long exclude = currentRow == null ? null : currentRow.getRowId();
+        IItemLookup items = TerpApplication.getInstance().getItemLookup();
+        for (SalesOrderLine source : orderLines) {
+            if (source == null || hasOrderLine(source.getRowId())) {
+                continue;
+            }
+            IStockItem item = items == null ? null : items.findByCode(source.getItemCode());
+            if (item != null && !item.isSellable()) {
+                continue;
+            }
+            double allocated = SalesDocs.allocatedQuantity(deliveryDao, lineDao, source.getRowId(), exclude);
+            allocated += qtyOnThisDocument(source.getRowId(), null);
+            double remaining = SalesDocs.remainingOrdered(
+                    source.getQuantity() == null ? 0d : source.getQuantity(), allocated);
+            if (remaining <= 0d) {
+                continue;
+            }
+            SalesDeliveryLine line = new SalesDeliveryLine();
+            line.setLineNo(no++);
+            line.setItemCode(source.getItemCode());
+            line.setItemDesc(source.getItemDesc());
+            line.setItemUnit(source.getItemUnit());
+            line.setQuantity(remaining);
+            line.setUnitPrice(source.getUnitPrice());
+            line.setSourceOrderLineId(source.getRowId());
+            line.setSourceOrderId(order.getRowId());
+            line.setSourceOrderNo(order.getDocumentNo());
+            lines.add(line);
+        }
+    }
+
+    private String validateAllLines() {
+        for (SalesDeliveryLine line : lines) {
+            if (line == null || line.getQuantity() == null || line.getQuantity() <= 0d) {
+                return "Miktar sıfırdan büyük olmalıdır.";
+            }
+            if (line.getSourceOrderLineId() == null) {
+                continue;
+            }
+            SalesOrderLine orderLine = orderLineDao.firstOrDefault(line.getSourceOrderLineId());
+            String error = validateQty(orderLine, line.getQuantity(), line);
+            if (error != null) {
+                return error;
+            }
+        }
+        return null;
+    }
+
+    private String validateQty(SalesOrderLine orderLine, Double quantity, SalesDeliveryLine current) {
+        if (orderLine == null) {
+            return "Sipariş satırı bulunamadı.";
+        }
+        if (quantity == null || quantity <= 0d) {
+            return "Miktar sıfırdan büyük olmalıdır.";
+        }
+        double ordered = orderLine.getQuantity() == null ? 0d : orderLine.getQuantity();
+        double allocated = SalesDocs.allocatedQuantity(deliveryDao, lineDao, orderLine.getRowId(),
+                currentRow == null ? null : currentRow.getRowId());
+        allocated += qtyOnThisDocument(orderLine.getRowId(), current);
+        double remaining = SalesDocs.remainingOrdered(ordered, allocated);
+        if (quantity > remaining + 0.0000001d) {
+            return orderLine.getItemCode() + " için kalan " + remaining;
+        }
+        return null;
+    }
+
+    private double qtyOnThisDocument(Long orderLineId, SalesDeliveryLine skip) {
+        double sum = 0d;
+        for (SalesDeliveryLine line : lines) {
+            if (line == skip || line == null || orderLineId == null) {
+                continue;
+            }
+            if (orderLineId.equals(line.getSourceOrderLineId())) {
+                sum += line.getQuantity() == null ? 0d : line.getQuantity();
+            }
+        }
+        return sum;
+    }
+
+    private void stampHeaderOrder(SalesDelivery row) {
+        LinkedHashSet<String> numbers = new LinkedHashSet<>();
+        LinkedHashSet<Long> ids = new LinkedHashSet<>();
+        for (SalesDeliveryLine line : lines) {
+            if (line == null) {
+                continue;
+            }
+            if (line.getSourceOrderNo() != null && !line.getSourceOrderNo().isBlank()) {
+                numbers.add(line.getSourceOrderNo().trim());
+            }
+            if (line.getSourceOrderId() != null) {
+                ids.add(line.getSourceOrderId());
+            }
+        }
+        row.setSourceOrderNo(joinOrderNos(numbers));
+        row.setSourceOrderId(ids.size() == 1 ? ids.iterator().next() : null);
+    }
+
+    private static String joinOrderNos(LinkedHashSet<String> numbers) {
+        if (numbers == null || numbers.isEmpty()) {
+            return null;
+        }
+        StringBuilder text = new StringBuilder();
+        for (String no : numbers) {
+            if (text.length() > 0) {
+                text.append(", ");
+            }
+            text.append(no);
+        }
+        if (text.length() <= 128) {
+            return text.toString();
+        }
+        return text.substring(0, 125) + "...";
+    }
+
+    private SalesOrder resolveOrder(String documentNo) {
+        return SalesDocs.findOrderByNo(orderDao, documentNo);
+    }
+
+    private boolean usableOrder(SalesOrder order) {
+        if (order == null) {
+            SatisDates.showError("Satış irsaliyesi", "Sipariş bulunamadı", "Sipariş numarasını kontrol edin.");
+            return false;
+        }
+        if (!order.canDeliver()) {
+            SatisDates.showError("Satış irsaliyesi", "Sipariş uygun değil",
+                    "Taslak veya iptal siparişten irsaliye yapılamaz.");
+            return false;
+        }
+        return true;
+    }
+
+    private boolean hasOrderLine(Long orderLineId) {
+        if (orderLineId == null) {
+            return false;
+        }
+        for (SalesDeliveryLine line : lines) {
+            if (line != null && orderLineId.equals(line.getSourceOrderLineId())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void refreshRemainingHint() {
+        if (lblRemaining == null) {
+            return;
+        }
+        SalesOrder order = resolveOrder(SatisCombos.codeOf(cmbOrder));
+        String itemCode = SatisCombos.codeOf(cmbItem);
+        if (order == null || itemCode == null) {
+            lblRemaining.setText("");
+            return;
+        }
+        SalesOrderLine orderLine = SalesDocs.findOrderLine(orderLineDao, order.getRowId(), itemCode);
+        if (orderLine == null) {
+            lblRemaining.setText("Siparişte yok");
+            return;
+        }
+        double allocated = SalesDocs.allocatedQuantity(deliveryDao, lineDao, orderLine.getRowId(),
+                currentRow == null ? null : currentRow.getRowId());
+        allocated += qtyOnThisDocument(orderLine.getRowId(), null);
+        double remaining = SalesDocs.remainingOrdered(
+                orderLine.getQuantity() == null ? 0d : orderLine.getQuantity(), allocated);
+        lblRemaining.setText("Kalan " + remaining);
+    }
+
     private void applyLock(int status) {
         boolean draft = status == SalesDelivery.STATUS_DRAFT;
         boolean posted = status == SalesDelivery.STATUS_POSTED;
+        boolean invoiced = status == SalesDelivery.STATUS_INVOICED;
         txtDocumentNo.setDisable(!draft);
         dtDocumentDate.setDisable(!draft);
         cmbAccount.setDisable(!draft);
         cmbWarehouse.setDisable(!draft);
+        cmbSourceOrder.setDisable(!draft);
+        btnLoadRemaining.setDisable(!draft);
         txtNotes.setDisable(!draft);
+        cmbOrder.setDisable(!draft);
         cmbItem.setDisable(!draft);
         txtQuantity.setDisable(!draft);
         txtUnit.setDisable(!draft);
@@ -480,7 +860,16 @@ public class DeliveryEditFormController implements Initializable {
         tblvLines.setEditable(draft);
         btnSave.setDisable(!draft);
         btnApprove.setDisable(!draft);
-        btnCancelPosted.setDisable(!posted);
+        boolean canInvoice = currentRow != null && currentRow.getRowId() != null
+                && SalesDocs.hasInvoiceableBalance(currentRow, lineDao, invoiceDao, invoiceLineDao);
+        if (btnInvoice != null) {
+            btnInvoice.setDisable(!canInvoice);
+            btnInvoice.setVisible(posted || invoiced);
+            btnInvoice.setManaged(posted || invoiced);
+        }
+        boolean linked = currentRow != null && currentRow.getRowId() != null
+                && SalesDocs.hasLinkedInvoice(invoiceDao, invoiceLineDao, lineDao, currentRow.getRowId());
+        btnCancelPosted.setDisable(!posted || linked);
         btnCancelPosted.setVisible(posted);
         btnCancelPosted.setManaged(posted);
     }
