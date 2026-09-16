@@ -1,0 +1,19 @@
+.root {
+    -fx-base: #e6e6e6;
+    -fx-background: #f4f4f4;
+    -fx-control-inner-background: #ffffff;
+    -fx-accent: #2f6fed;
+    -fx-default-button: #2f6fed;
+    -fx-focus-color: #2f6fed;
+    -fx-faint-focus-color: #2f6fed22;
+}
+
+.density-compact .table-row-cell,
+.density-compact .tree-cell {
+    -fx-cell-size: 24px;
+}
+
+.density-comfortable .table-row-cell,
+.density-comfortable .tree-cell {
+    -fx-cell-size: 30px;
+}

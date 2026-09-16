@@ -9,6 +9,7 @@ import com.terp.data.DatabaseFactoryImpl;
 import com.terp.data.PersistenceImpl;
 import com.terp.data.UserLookup;
 import com.terp.gui.IconFactoryImpl;
+import com.terp.gui.UiAppearance;
 import com.terp.gui.controllers.LoginFormController;
 import com.terp.gui.controllers.TerpMainFormController;
 import com.terp.plugin.TerpApplication;
@@ -206,6 +207,7 @@ public class TerpMainApplication extends Application {
             this.stage.setMaximized(true);
             this.stage.setTitle(APP_TITLE);
             controller.setPrimaryStage(stage);
+            UiAppearance.install();
 
             if (pluginFactory != null) {
                 pluginFactory.runBoundPlugins();
@@ -268,6 +270,7 @@ public class TerpMainApplication extends Application {
             Scene scene = new Scene(root);
             this.stage.setScene(scene);
             this.stage.setTitle(APP_TITLE);
+            UiAppearance.install();
             this.stage.show();
 
         } catch (IOException ex) {

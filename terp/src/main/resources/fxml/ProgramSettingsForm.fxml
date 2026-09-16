@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.net.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane prefHeight="380.0" prefWidth="520.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.terp.gui.controllers.ProgramSettingsFormController">
+    <stylesheets>
+        <URL value="@../styles/globalstyle.css" />
+    </stylesheets>
+    <children>
+        <ToolBar prefHeight="40.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <items>
+                <Button fx:id="btnSave" defaultButton="true" mnemonicParsing="false" onAction="#onActionBtnSave" text="Kaydet" />
+                <Button fx:id="btnClose" cancelButton="true" mnemonicParsing="false" onAction="#onActionBtnClose" text="Kapat" />
+            </items>
+        </ToolBar>
+        <GridPane hgap="12.0" vgap="10.0" AnchorPane.leftAnchor="16.0" AnchorPane.rightAnchor="16.0" AnchorPane.topAnchor="52.0">
+            <columnConstraints>
+                <ColumnConstraints prefWidth="130.0" />
+                <ColumnConstraints hgrow="ALWAYS" />
+            </columnConstraints>
+            <children>
+                <CheckBox fx:id="chkShowMenu" mnemonicParsing="false" text="Sol program menüsünü göster" GridPane.columnSpan="2" />
+                <Label text="Tema" GridPane.rowIndex="1" />
+                <ComboBox fx:id="cmbTheme" maxWidth="Infinity" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                <Label text="Yazı tipi" GridPane.rowIndex="2" />
+                <ComboBox fx:id="cmbFont" maxWidth="Infinity" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                <Label text="Yazı boyutu" GridPane.rowIndex="3" />
+                <ComboBox fx:id="cmbFontSize" maxWidth="Infinity" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                <Label text="Tablo sıklığı" GridPane.rowIndex="4" />
+                <ComboBox fx:id="cmbDensity" maxWidth="Infinity" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+                <Label wrapText="true" text="Tema ve yazı tipi açık pencerelere hemen uygulanır." GridPane.columnIndex="1" GridPane.rowIndex="5" />
+            </children>
+        </GridPane>
+    </children>
+</AnchorPane>

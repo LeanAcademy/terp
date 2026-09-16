@@ -1,0 +1,42 @@
+.root {
+    -fx-base: #000000;
+    -fx-background: #000000;
+    -fx-control-inner-background: #000000;
+    -fx-control-inner-background-alt: #111111;
+    -fx-accent: #ffff00;
+    -fx-default-button: #ffff00;
+    -fx-focus-color: #ffff00;
+    -fx-faint-focus-color: #ffff0044;
+    -fx-light-text-color: #ffffff;
+    -fx-mid-text-color: #ffffff;
+    -fx-dark-text-color: #000000;
+    -fx-text-inner-color: #ffffff;
+    -fx-text-background-color: #ffffff;
+    -fx-box-border: #ffffff;
+    -fx-inner-border: #ffff00;
+    -fx-body-color: #000000;
+}
+
+.button, .toggle-button, .combo-box, .text-field, .text-area {
+    -fx-border-color: #ffffff;
+}
+
+.table-view, .tree-view, .list-view {
+    -fx-background-color: #000000;
+    -fx-border-color: #ffffff;
+}
+
+.tool-bar, .menu-bar {
+    -fx-background-color: #000000;
+    -fx-border-color: #ffff00;
+}
+
+.density-compact .table-row-cell,
+.density-compact .tree-cell {
+    -fx-cell-size: 26px;
+}
+
+.density-comfortable .table-row-cell,
+.density-comfortable .tree-cell {
+    -fx-cell-size: 34px;
+}
