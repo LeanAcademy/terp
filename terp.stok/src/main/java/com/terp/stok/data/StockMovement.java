@@ -33,13 +33,14 @@ public class StockMovement extends CommonFields implements Serializable, ICompan
 
     public static final int TYPE_IN = 0;
     public static final int TYPE_OUT = 1;
+    /** Unmigrated single-row transfer; treated as çıkış until split. */
     public static final int TYPE_TRANSFER = 2;
     public static final int TYPE_COUNT_IN = 3;
     public static final int TYPE_COUNT_OUT = 4;
     public static final int TYPE_SCRAP = 5;
 
     public static final String[] TYPE_LABELS = {
-        "Giriş", "Çıkış", "Transfer", "Sayım artış", "Sayım azalış", "Fire"
+        "Giriş", "Çıkış"
     };
 
     @Column(name = "firma_ref")
@@ -91,6 +92,10 @@ public class StockMovement extends CommonFields implements Serializable, ICompan
     @Column(name = "seri_no", length = 50)
     private String serialNo;
 
+    @Temporal(TemporalType.DATE)
+    @Column(name = "skt")
+    private Date expiryDate;
+
     @Column(name = "belge_no", length = 50)
     private String documentNo;
 
@@ -116,11 +121,14 @@ public class StockMovement extends CommonFields implements Serializable, ICompan
     }
 
     public String getTypeLabel() {
-        int type = getMovementType();
-        if (type < 0 || type >= TYPE_LABELS.length) {
-            return Integer.toString(type);
+        return TYPE_LABELS[normalizedType(getMovementType())];
+    }
+
+    public static int normalizedType(int type) {
+        if (type == TYPE_IN || type == TYPE_COUNT_IN) {
+            return TYPE_IN;
         }
-        return TYPE_LABELS[type];
+        return TYPE_OUT;
     }
 
     public String getDateLabel() {
@@ -276,6 +284,14 @@ public class StockMovement extends CommonFields implements Serializable, ICompan
 
     public void setSerialNo(String serialNo) {
         this.serialNo = serialNo;
+    }
+
+    public Date getExpiryDate() {
+        return expiryDate;
+    }
+
+    public void setExpiryDate(Date expiryDate) {
+        this.expiryDate = expiryDate;
     }
 
     public String getDocumentNo() {

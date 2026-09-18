@@ -55,6 +55,7 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
+import com.terp.plugin.gui.NumericCells;
 
 public class OrderEditFormController implements Initializable {
 
@@ -232,12 +233,14 @@ public class OrderEditFormController implements Initializable {
 
     @FXML
     private void onActionBtnCancelPosted(ActionEvent event) {
-        if (currentRow == null || currentRow.getRowId() == null || !currentRow.isApproved()) {
+        if (currentRow == null || currentRow.getRowId() == null
+                || currentRow.isDraft() || currentRow.isCancelled()) {
             return;
         }
-        if (PurchaseDocs.hasPostedReceipt(receiptDao, receiptLineDao, lineDao, currentRow.getRowId())) {
+        if (currentRow.isReceived()
+                || PurchaseDocs.hasPostedReceipt(receiptDao, receiptLineDao, lineDao, currentRow.getRowId())) {
             SatinDates.showError("Satınalma siparişi", "Mal kabule bağlı",
-                    "Önce bağlı mal kabul belgesini iptal veya silin.");
+                    "Teslim alınmış sipariş silinemez. Önce bağlı mal kabul belgesini iptal veya silin.");
             return;
         }
         Long requestId = currentRow.getSourceRequestId();
@@ -255,6 +258,7 @@ public class OrderEditFormController implements Initializable {
 
     @FXML
     private void onActionBtnAddLine(ActionEvent event) {
+        PurchaseOrderLine selected = tblvLines.getSelectionModel().getSelectedItem();
         String itemCode = SatinCombos.codeOf(cmbItem);
         Double quantity = SatinDates.parseDouble(txtQuantity.getText());
         Double price = SatinDates.parseDouble(txtUnitPrice.getText());
@@ -264,17 +268,22 @@ public class OrderEditFormController implements Initializable {
         }
         IItemLookup items = TerpApplication.getInstance().getItemLookup();
         IStockItem item = items == null ? null : items.findByCode(itemCode);
-        PurchaseOrderLine line = new PurchaseOrderLine();
+        PurchaseOrderLine line = selected != null ? selected : new PurchaseOrderLine();
         line.setItemCode(itemCode);
         line.setItemDesc(item == null ? SatinCombos.nameOf(cmbItem) : item.getItemDesc());
         String unit = SatinDates.trimToNull(txtUnit.getText());
         line.setItemUnit(unit == null && item != null ? item.getItemUnit() : unit);
         line.setQuantity(quantity);
         line.setUnitPrice(price);
-        line.setLineNo(lines.size() + 1);
-        lines.add(line);
+        if (selected == null) {
+            line.setLineNo(lines.size() + 1);
+            lines.add(line);
+        } else {
+            tblvLines.refresh();
+        }
         txtQuantity.clear();
         txtUnitPrice.clear();
+        tblvLines.getSelectionModel().clearSelection();
     }
 
     @FXML
@@ -301,8 +310,15 @@ public class OrderEditFormController implements Initializable {
         this.tcItemDesc.setCellValueFactory(new PropertyValueFactory<>("itemDesc"));
         this.tcItemUnit.setCellValueFactory(new PropertyValueFactory<>("itemUnit"));
         this.tcQuantity.setCellValueFactory(new PropertyValueFactory<>("quantity"));
+        NumericCells.apply(this.tcQuantity);
         this.tcUnitPrice.setCellValueFactory(new PropertyValueFactory<>("unitPrice"));
+        NumericCells.apply(this.tcUnitPrice);
         this.tblvLines.setItems(lines);
+        this.tblvLines.getSelectionModel().selectedItemProperty().addListener((obs, old, selected) -> {
+            if (selected != null) {
+                loadLineEditor(selected);
+            }
+        });
         cmbItem.valueProperty().addListener((obs, old, value) -> applyItem(SatinCombos.codeOf(cmbItem)));
         this.auditBar = RecordAuditBar.install(txtDocumentNo);
         showAudit();
@@ -341,9 +357,9 @@ public class OrderEditFormController implements Initializable {
             row.setAddedDate(now);
             row.setStatus(PurchaseOrder.STATUS_DRAFT);
         }
-        if (!row.isDraft()) {
+        if (!row.isDraft() && !row.isCancelled()) {
             SatinDates.showError("Satınalma siparişi", "Kilitli belge",
-                    "Onaylı veya iptal sipariş taslak olarak kaydedilemez.");
+                    "Onaylı sipariş taslak olarak kaydedilemez.");
             return false;
         }
         if (!CompanyScope.stamp(row)) {
@@ -461,6 +477,13 @@ public class OrderEditFormController implements Initializable {
         SatinCombos.fill(cmbAccount, accountLabels);
     }
 
+    private void loadLineEditor(PurchaseOrderLine line) {
+        SatinCombos.select(cmbItem, line.getItemCode());
+        txtUnit.setText(SatinDates.empty(line.getItemUnit()));
+        txtQuantity.setText(NumericCells.text(line.getQuantity()));
+        txtUnitPrice.setText(NumericCells.text(line.getUnitPrice()));
+    }
+
     private void applyItem(String itemCode) {
         IItemLookup items = TerpApplication.getInstance().getItemLookup();
         IStockItem item = items == null ? null : items.findByCode(itemCode);
@@ -473,19 +496,20 @@ public class OrderEditFormController implements Initializable {
         boolean draft = status == PurchaseOrder.STATUS_DRAFT;
         boolean approved = status == PurchaseOrder.STATUS_APPROVED;
         boolean received = status == PurchaseOrder.STATUS_RECEIVED;
-        txtDocumentNo.setDisable(!draft);
-        dtDocumentDate.setDisable(!draft);
-        cmbAccount.setDisable(!draft);
-        cmbWarehouse.setDisable(!draft);
-        txtNotes.setDisable(!draft);
-        cmbItem.setDisable(!draft);
-        txtQuantity.setDisable(!draft);
-        txtUnit.setDisable(!draft);
-        txtUnitPrice.setDisable(!draft);
-        btnAddLine.setDisable(!draft);
-        btnRemoveLine.setDisable(!draft);
-        btnSave.setDisable(!draft);
-        btnApprove.setDisable(!draft);
+        boolean editable = draft || status == PurchaseOrder.STATUS_CANCELLED;
+        txtDocumentNo.setDisable(!editable);
+        dtDocumentDate.setDisable(!editable);
+        cmbAccount.setDisable(!editable);
+        cmbWarehouse.setDisable(!editable);
+        txtNotes.setDisable(!editable);
+        cmbItem.setDisable(!editable);
+        txtQuantity.setDisable(!editable);
+        txtUnit.setDisable(!editable);
+        txtUnitPrice.setDisable(!editable);
+        btnAddLine.setDisable(!editable);
+        btnRemoveLine.setDisable(!editable);
+        btnSave.setDisable(!editable);
+        btnApprove.setDisable(!editable);
         boolean canReceive = currentRow != null && currentRow.getRowId() != null
                 && PurchaseDocs.hasReceivableBalance(currentRow, lineDao, receiptDao, receiptLineDao,
                         settingsDao);

@@ -16,24 +16,24 @@
  */
 package com.terp.uretim.gui;
 
+import com.terp.plugin.data.DocumentNumbers;
+import com.terp.plugin.gui.NumericCells;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.Date;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.TextField;
 
-final class UretimDates {
+public final class UretimDates {
 
     private UretimDates() {
     }
 
     static Double parseDouble(String text) {
-        if (text == null || text.isBlank()) {
-            return null;
-        }
-        try {
-            return Double.valueOf(text.trim().replace(',', '.'));
-        } catch (NumberFormatException ex) {
-            return null;
-        }
+        return NumericCells.parse(text);
     }
 
     static String empty(String value) {
@@ -48,12 +48,12 @@ final class UretimDates {
         return trimmed.isEmpty() ? null : trimmed;
     }
 
-    static void showError(String title, String header, String content) {
+    public static void showError(String title, String header, String content) {
         Alert alert = new Alert(AlertType.ERROR);
         alert.setTitle(title);
         alert.setHeaderText(header);
         alert.setContentText(content);
-        alert.show();
+        alert.showAndWait();
     }
 
     static boolean appendLike(StringBuilder sql, boolean whereAdded, String field, String value) {
@@ -74,5 +74,38 @@ final class UretimDates {
         FXMLLoader loader = new FXMLLoader(owner.getResource(fxml));
         loader.setClassLoader(owner.getClassLoader());
         return loader;
+    }
+
+    static LocalDate toLocalDate(Date date) {
+        if (date == null) {
+            return LocalDate.now();
+        }
+        if (date instanceof java.sql.Date sql) {
+            return sql.toLocalDate();
+        }
+        return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+    }
+
+    static Date toDate(LocalDate local) {
+        if (local == null) {
+            return new Date();
+        }
+        return Date.from(local.atStartOfDay(ZoneId.systemDefault()).toInstant());
+    }
+
+    static String assignDocumentNo(String documentType, TextField field) {
+        String assigned = DocumentNumbers.assign(documentType,
+                field == null ? null : trimToNull(field.getText()));
+        if (field != null && assigned != null && !assigned.isBlank()) {
+            field.setText(assigned);
+        }
+        return assigned;
+    }
+
+    static boolean confirm(String title, String content) {
+        Alert alert = new Alert(AlertType.CONFIRMATION, content, ButtonType.OK, ButtonType.CANCEL);
+        alert.setTitle(title);
+        alert.setHeaderText(title);
+        return alert.showAndWait().orElse(ButtonType.CANCEL) == ButtonType.OK;
     }
 }

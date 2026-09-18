@@ -26,6 +26,8 @@ public class StockBalanceRow {
     private Double quantity;
     private Double minStock;
     private Double maxStock;
+    private Double unitCost;
+    private Double stockValue;
     private String statusLabel;
 
     public String getWarehouseCode() {
@@ -90,6 +92,22 @@ public class StockBalanceRow {
 
     public void setMaxStock(Double maxStock) {
         this.maxStock = maxStock;
+    }
+
+    public Double getUnitCost() {
+        return unitCost;
+    }
+
+    public void setUnitCost(Double unitCost) {
+        this.unitCost = unitCost;
+    }
+
+    public Double getStockValue() {
+        return stockValue;
+    }
+
+    public void setStockValue(Double stockValue) {
+        this.stockValue = stockValue;
     }
 
     public String getStatusLabel() {

@@ -49,6 +49,7 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
+import com.terp.plugin.gui.NumericCells;
 
 public class CountFormController implements Initializable {
 
@@ -204,8 +205,11 @@ public class CountFormController implements Initializable {
         this.tcLineItemDesc.setCellValueFactory(new PropertyValueFactory<>("itemDesc"));
         this.tcLineItemUnit.setCellValueFactory(new PropertyValueFactory<>("itemUnit"));
         this.tcLineOnHand.setCellValueFactory(new PropertyValueFactory<>("onHandQty"));
+        NumericCells.apply(this.tcLineOnHand);
         this.tcLineCounted.setCellValueFactory(new PropertyValueFactory<>("countedQty"));
+        NumericCells.apply(this.tcLineCounted);
         this.tcLineDifference.setCellValueFactory(new PropertyValueFactory<>("difference"));
+        NumericCells.apply(this.tcLineDifference);
         this.tblvLineView.setPlaceholder(new Label("Belge satırı yok"));
         this.pgnCountData.currentPageIndexProperty().addListener(
                 (ObservableValue<? extends Number> observable, Number oldValue, Number newValue) -> {

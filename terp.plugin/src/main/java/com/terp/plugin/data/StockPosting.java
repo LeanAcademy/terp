@@ -19,13 +19,16 @@ package com.terp.plugin.data;
 import java.util.Date;
 
 /**
- * One warehouse posting. Plugins must not pass stock entity classes.
+ * One warehouse posting. Direction is {@link StockDirection#IN} or
+ * {@link StockDirection#OUT}; plugins must not pass stock entity classes.
  */
 public final class StockPosting {
 
     public static final String SOURCE_PURCHASE_RECEIPT = "SATIN_KABUL";
     public static final String SOURCE_STOCK_COUNT = "STOK_SAYIM";
     public static final String SOURCE_SALES_DELIVERY = "SATIS_IRS";
+    public static final String SOURCE_PRODUCTION_COMPLETION = "URETIM_BITIS";
+    public static final String SOURCE_STOCK_OPENING = "STOK_ACILIS";
 
     private Date movementDate;
     private int direction;
@@ -46,6 +49,7 @@ public final class StockPosting {
     private Long sourceId;
     private String lotNo;
     private String serialNo;
+    private Date expiryDate;
     private String notes;
 
     public Date getMovementDate() {
@@ -198,6 +202,14 @@ public final class StockPosting {
 
     public void setSerialNo(String serialNo) {
         this.serialNo = serialNo;
+    }
+
+    public Date getExpiryDate() {
+        return expiryDate;
+    }
+
+    public void setExpiryDate(Date expiryDate) {
+        this.expiryDate = expiryDate;
     }
 
     public String getNotes() {

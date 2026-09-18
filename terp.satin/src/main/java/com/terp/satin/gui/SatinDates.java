@@ -17,6 +17,7 @@
 package com.terp.satin.gui;
 
 import com.terp.plugin.data.DocumentNumbers;
+import com.terp.plugin.gui.NumericCells;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
@@ -49,14 +50,7 @@ final class SatinDates {
     }
 
     static Double parseDouble(String text) {
-        if (text == null || text.isBlank()) {
-            return null;
-        }
-        try {
-            return Double.valueOf(text.trim().replace(',', '.'));
-        } catch (NumberFormatException ex) {
-            return null;
-        }
+        return NumericCells.parse(text);
     }
 
     static String empty(String value) {
@@ -103,6 +97,21 @@ final class SatinDates {
         }
         sql.append(' ').append(field).append(" like '")
                 .append(value.replace("'", "''")).append('\'');
+        return true;
+    }
+
+    static boolean appendNumberSearch(StringBuilder sql, boolean whereAdded, String value) {
+        if (value == null || value.isBlank()) {
+            return whereAdded;
+        }
+        if (!whereAdded) {
+            sql.append(" where");
+        } else {
+            sql.append(" and");
+        }
+        String escaped = value.replace("'", "''");
+        sql.append(" (e.documentNo like '").append(escaped)
+                .append("' or e.officialNo like '").append(escaped).append("')");
         return true;
     }
 

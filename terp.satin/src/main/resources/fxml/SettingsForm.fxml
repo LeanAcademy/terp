@@ -22,7 +22,7 @@
             </columnConstraints>
             <children>
                 <Label text="Fazla mal kabul oranı (%)" />
-                <TextField fx:id="txtOverReceiptPercent" GridPane.columnIndex="1" />
+                <TextField alignment="CENTER_RIGHT" fx:id="txtOverReceiptPercent" GridPane.columnIndex="1" />
                 <Label wrapText="true" text="Sipariş miktarının üzerinde, oransal olarak ne kadar mal kabul edilebileceğini belirler. Sipariş bakiyesi onaylı kabullere göre kapanır." GridPane.columnSpan="2" GridPane.rowIndex="1" />
             </children>
         </GridPane>

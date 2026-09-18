@@ -87,4 +87,11 @@ public interface IUser {
     default java.util.List<Long> getAllowedCompanyIds() {
         return java.util.List.of();
     }
+
+    /**
+     * Empty restriction means every warehouse. Administrators always pass.
+     */
+    default boolean canUseWarehouse(String warehouseCode) {
+        return true;
+    }
 }

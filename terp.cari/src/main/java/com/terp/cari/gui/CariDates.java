@@ -17,6 +17,7 @@
 package com.terp.cari.gui;
 
 import com.terp.plugin.data.DocumentNumbers;
+import com.terp.plugin.gui.NumericCells;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
@@ -48,14 +49,7 @@ final class CariDates {
     }
 
     static Double parseDouble(String text) {
-        if (text == null || text.isBlank()) {
-            return null;
-        }
-        try {
-            return Double.valueOf(text.trim().replace(',', '.'));
-        } catch (NumberFormatException ex) {
-            return null;
-        }
+        return NumericCells.parse(text);
     }
 
     static String empty(String value) {

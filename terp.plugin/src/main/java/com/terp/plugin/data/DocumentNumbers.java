@@ -34,6 +34,9 @@ public final class DocumentNumbers {
     public static final String SALES_DELIVERY = "SATIS_IRS";
     public static final String SALES_INVOICE = "SATIS_FATURA";
     public static final String ACCOUNT_MOVEMENT = "CARI_HAREKET";
+    public static final String PRODUCTION_ORDER = "URETIM_EMRI";
+    public static final String STOCK_TRANSFER = "STOK_TRANSFER";
+    public static final String STOCK_OPENING = "STOK_ACILIS";
 
     public static final int DEFAULT_PADDING = 6;
 
@@ -51,7 +54,10 @@ public final class DocumentNumbers {
                 new Spec(SALES_ORDER, "Satış siparişi", "SSO-"),
                 new Spec(SALES_DELIVERY, "Satış irsaliyesi", "IRS-"),
                 new Spec(SALES_INVOICE, "Satış faturası", "FAT-"),
-                new Spec(ACCOUNT_MOVEMENT, "Cari hareket", "CH-"));
+                new Spec(ACCOUNT_MOVEMENT, "Cari hareket", "CH-"),
+                new Spec(PRODUCTION_ORDER, "Üretim emri", "UE-"),
+                new Spec(STOCK_TRANSFER, "Stok transfer", "TR-"),
+                new Spec(STOCK_OPENING, "Stok açılış", "ACL-"));
     }
 
     public static Spec specOf(String documentType) {

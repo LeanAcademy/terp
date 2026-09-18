@@ -16,6 +16,7 @@
  */
 package com.terp.gui.controllers;
 
+import com.terp.plugin.TerpApplication;
 import com.terp.util.TerpProperties;
 import java.net.URL;
 import java.time.LocalDate;
@@ -69,6 +70,7 @@ public class PeriodFormController implements Initializable {
         props.setProperty("terp.period.from", from.toString());
         props.setProperty("terp.period.to", to.toString());
         TerpProperties.getInstance().saveViewProps();
+        applySavedPeriod();
         close();
     }
 
@@ -89,6 +91,13 @@ public class PeriodFormController implements Initializable {
 
     private void close() {
         ((Stage) btnClose.getScene().getWindow()).close();
+    }
+
+    public static void applySavedPeriod() {
+        Properties props = TerpProperties.getInstance().getViewProps();
+        TerpApplication app = TerpApplication.getInstance();
+        app.setPeriodFrom(parse(props == null ? null : props.getProperty("terp.period.from")));
+        app.setPeriodTo(parse(props == null ? null : props.getProperty("terp.period.to")));
     }
 
     private static LocalDate parse(String value) {

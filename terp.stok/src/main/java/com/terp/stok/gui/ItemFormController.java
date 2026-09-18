@@ -53,6 +53,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import com.terp.plugin.gui.NumericCells;
 
 public class ItemFormController implements Initializable {
 
@@ -219,7 +220,9 @@ public class ItemFormController implements Initializable {
         this.tcItemUnit.setCellValueFactory(new PropertyValueFactory<>("itemUnit"));
         this.tcBarcode.setCellValueFactory(new PropertyValueFactory<>("barcode"));
         this.tcVatRate.setCellValueFactory(new PropertyValueFactory<>("vatRate"));
+        NumericCells.apply(this.tcVatRate);
         this.tcSalesPrice.setCellValueFactory(new PropertyValueFactory<>("salesPrice"));
+        NumericCells.apply(this.tcSalesPrice);
         this.tcStatusLabel.setCellValueFactory(new PropertyValueFactory<>("statusLabel"));
 
         this.pgnItemData.currentPageIndexProperty().addListener(

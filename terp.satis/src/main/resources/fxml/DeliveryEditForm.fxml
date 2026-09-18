@@ -16,6 +16,7 @@
                 <Button fx:id="btnApprove" defaultButton="true" mnemonicParsing="false" onAction="#onActionBtnApprove" text="Onayla" />
                 <Button fx:id="btnInvoice" mnemonicParsing="false" onAction="#onActionBtnInvoice" text="Faturaya çevir" />
                 <Button fx:id="btnCancelPosted" mnemonicParsing="false" onAction="#onActionBtnCancelPosted" text="İptal" />
+                <Button fx:id="btnPrint" mnemonicParsing="false" onAction="#onActionBtnPrint" text="Yazdır" />
                 <Button fx:id="btnClose" cancelButton="true" mnemonicParsing="false" onAction="#onActionBtnClose" text="Kapat" />
             </items>
         </ToolBar>
@@ -29,32 +30,37 @@
             <children>
                 <Label text="Belge no" />
                 <TextField fx:id="txtDocumentNo" promptText="Boş = otomatik" GridPane.columnIndex="1" />
-                <Label text="Tarih" GridPane.columnIndex="2" />
+                <Label text="Oluşturma tarihi" GridPane.columnIndex="2" />
                 <DatePicker fx:id="dtDocumentDate" maxWidth="Infinity" GridPane.columnIndex="3" />
                 <Label text="Müşteri" GridPane.rowIndex="1" />
                 <ComboBox fx:id="cmbAccount" editable="true" maxWidth="Infinity" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-                <Label text="Depo" GridPane.columnIndex="2" GridPane.rowIndex="1" />
-                <ComboBox fx:id="cmbWarehouse" editable="true" maxWidth="Infinity" GridPane.columnIndex="3" GridPane.rowIndex="1" />
-                <Label text="Siparişten yükle" GridPane.rowIndex="2" />
-                <ComboBox fx:id="cmbSourceOrder" editable="true" maxWidth="Infinity" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-                <Button fx:id="btnLoadRemaining" mnemonicParsing="false" onAction="#onActionBtnLoadRemaining" text="Kalan satırları yükle" GridPane.columnIndex="2" GridPane.columnSpan="2" GridPane.rowIndex="2" />
-                <Label text="Notlar" GridPane.rowIndex="3" />
-                <TextArea fx:id="txtNotes" prefHeight="50.0" wrapText="true" GridPane.columnIndex="1" GridPane.columnSpan="3" GridPane.rowIndex="3" />
+                <Label text="Sevk tarihi" GridPane.columnIndex="2" GridPane.rowIndex="1" />
+                <DatePicker fx:id="dtShipmentDate" maxWidth="Infinity" GridPane.columnIndex="3" GridPane.rowIndex="1" />
+                <Label text="Depo" GridPane.rowIndex="2" />
+                <ComboBox fx:id="cmbWarehouse" editable="true" maxWidth="Infinity" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                <Label text="Siparişten yükle" GridPane.columnIndex="2" GridPane.rowIndex="2" />
+                <ComboBox fx:id="cmbSourceOrder" editable="true" maxWidth="Infinity" GridPane.columnIndex="3" GridPane.rowIndex="2" />
+                <Button fx:id="btnLoadRemaining" mnemonicParsing="false" onAction="#onActionBtnLoadRemaining" text="Kalan satırları yükle" GridPane.columnIndex="1" GridPane.columnSpan="3" GridPane.rowIndex="3" />
+                <Label text="Notlar" GridPane.rowIndex="4" />
+                <TextArea fx:id="txtNotes" prefHeight="50.0" wrapText="true" GridPane.columnIndex="1" GridPane.columnSpan="3" GridPane.rowIndex="4" />
             </children>
         </GridPane>
-        <HBox spacing="8.0" alignment="CENTER_LEFT" AnchorPane.leftAnchor="16.0" AnchorPane.rightAnchor="16.0" AnchorPane.topAnchor="230.0">
+        <HBox spacing="8.0" alignment="CENTER_LEFT" AnchorPane.leftAnchor="16.0" AnchorPane.rightAnchor="16.0" AnchorPane.topAnchor="268.0">
             <children>
                 <ComboBox fx:id="cmbOrder" editable="true" prefWidth="180.0" promptText="Sipariş no" />
                 <ComboBox fx:id="cmbItem" editable="true" maxWidth="Infinity" prefWidth="220.0" promptText="Malzeme" />
-                <TextField fx:id="txtQuantity" prefWidth="80.0" promptText="Miktar" />
+                <TextField alignment="CENTER_RIGHT" fx:id="txtQuantity" prefWidth="80.0" promptText="Miktar" />
                 <TextField fx:id="txtUnit" prefWidth="60.0" promptText="Birim" />
-                <TextField fx:id="txtUnitPrice" prefWidth="80.0" promptText="Fiyat" />
+                <TextField alignment="CENTER_RIGHT" fx:id="txtUnitPrice" prefWidth="80.0" promptText="Fiyat" />
+                <ComboBox fx:id="cmbLot" editable="true" prefWidth="140.0" promptText="Lot (FEFO)" />
+                <TextField fx:id="txtSerialNo" prefWidth="90.0" promptText="Seri" />
+                <DatePicker fx:id="dtExpiry" prefWidth="120.0" promptText="SKT" />
                 <Label fx:id="lblRemaining" prefWidth="110.0" text="" />
                 <Button fx:id="btnAddLine" mnemonicParsing="false" onAction="#onActionBtnAddLine" text="Satır ekle" />
                 <Button fx:id="btnRemoveLine" mnemonicParsing="false" onAction="#onActionBtnRemoveLine" text="Satır sil" />
             </children>
         </HBox>
-        <TableView fx:id="tblvLines" editable="true" AnchorPane.bottomAnchor="12.0" AnchorPane.leftAnchor="16.0" AnchorPane.rightAnchor="16.0" AnchorPane.topAnchor="270.0">
+        <TableView fx:id="tblvLines" editable="true" AnchorPane.bottomAnchor="12.0" AnchorPane.leftAnchor="16.0" AnchorPane.rightAnchor="16.0" AnchorPane.topAnchor="308.0">
             <columns>
                 <TableColumn fx:id="tcSourceOrderNo" prefWidth="110.0" text="Sipariş" />
                 <TableColumn fx:id="tcItemCode" prefWidth="100.0" text="Kod" />
@@ -62,6 +68,7 @@
                 <TableColumn fx:id="tcItemUnit" prefWidth="60.0" text="Birim" />
                 <TableColumn fx:id="tcQuantity" prefWidth="90.0" text="Miktar" />
                 <TableColumn fx:id="tcUnitPrice" prefWidth="80.0" text="Fiyat" />
+                <TableColumn fx:id="tcLotNo" prefWidth="80.0" text="Lot" />
             </columns>
         </TableView>
     </children>

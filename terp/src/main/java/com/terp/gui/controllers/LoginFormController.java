@@ -107,6 +107,7 @@ public class LoginFormController implements Initializable {
             
             if(mUser.isAuthenticated()){
                 app.setUser(mUser);
+                PeriodFormController.applySavedPeriod();
                 if (this.switchUser) {
                     if (this.onAuthenticated != null) {
                         this.onAuthenticated.run();

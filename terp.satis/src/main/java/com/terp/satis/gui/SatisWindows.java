@@ -18,6 +18,8 @@ package com.terp.satis.gui;
 
 import com.terp.plugin.TerpApplication;
 import com.terp.plugin.data.ICommonDao;
+import com.terp.plugin.data.IProductionOrders;
+import com.terp.plugin.data.ProductionFromSales;
 import com.terp.satis.data.SalesDelivery;
 import com.terp.satis.data.SalesDeliveryLine;
 import com.terp.satis.data.SalesDocs;
@@ -95,6 +97,82 @@ final class SatisWindows {
         List<SalesOrderLine> lines = SalesDocs.remainingLines(fresh.getRowId(), lineDao,
                 deliveryDao, deliveryLineDao, null);
         openDeliveryEditor(null, fresh, lines, afterClose);
+    }
+
+    static void convertToProduction(SalesOrder order, ICommonDao<SalesOrder> orderDao,
+            ICommonDao<SalesOrderLine> lineDao, Runnable afterClose) {
+        IProductionOrders production = TerpApplication.getInstance().getProductionOrders();
+        if (production == null) {
+            SatisDates.showError("Satış siparişi", "Üretim eklentisi yok",
+                    "Üretim emri için terp.uretim yüklü olmalıdır.");
+            return;
+        }
+        if (order == null || order.getRowId() == null) {
+            return;
+        }
+        SalesOrder fresh = orderDao.firstOrDefault(order.getRowId());
+        if (fresh == null || !fresh.canDeliver()) {
+            SatisDates.showError("Satış siparişi", "Çevrilemez",
+                    "Yalnız onaylı siparişler üretim emrine alınır.");
+            return;
+        }
+        List<SalesOrderLine> lines = lineDao.findAll(
+                "from SalesOrderLine e where e.orderId = " + fresh.getRowId()
+                        + " order by e.lineNo");
+        if (lines == null || lines.isEmpty()) {
+            SatisDates.showError("Satış siparişi", "Satır yok", "Siparişin malzeme satırı yok.");
+            return;
+        }
+        for (SalesOrderLine line : lines) {
+            if (line == null || line.getItemCode() == null || !production.hasActiveRecipe(line.getItemCode())) {
+                continue;
+            }
+            double remaining = (line.getQuantity() == null ? 0d : line.getQuantity())
+                    - production.allocatedForSalesLine(line.getRowId());
+            if (remaining <= 0.0000001d) {
+                continue;
+            }
+            ProductionFromSales request = new ProductionFromSales();
+            request.setSourceOrderId(fresh.getRowId());
+            request.setSourceOrderNo(fresh.getDocumentNo());
+            request.setSourceOrderLineId(line.getRowId());
+            request.setWarehouseCode(fresh.getWarehouseCode());
+            request.setWarehouseName(fresh.getWarehouseName());
+            request.setProductCode(line.getItemCode());
+            request.setProductName(line.getItemDesc());
+            request.setProductUnit(line.getItemUnit());
+            request.setQuantity(remaining);
+            production.openFromSales(request);
+            if (afterClose != null) {
+                afterClose.run();
+            }
+            return;
+        }
+        SatisDates.showError("Satış siparişi", "Bakiye yok",
+                "Reçetesi olan ve henüz üretim emrine alınmamış kalan mamul yok.");
+    }
+
+    static boolean hasProducibleBalance(SalesOrder order, ICommonDao<SalesOrderLine> lineDao) {
+        IProductionOrders production = TerpApplication.getInstance().getProductionOrders();
+        if (production == null || order == null || order.getRowId() == null || !order.canDeliver()) {
+            return false;
+        }
+        List<SalesOrderLine> lines = lineDao.findAll(
+                "from SalesOrderLine e where e.orderId = " + order.getRowId());
+        if (lines == null) {
+            return false;
+        }
+        for (SalesOrderLine line : lines) {
+            if (line == null || line.getItemCode() == null || !production.hasActiveRecipe(line.getItemCode())) {
+                continue;
+            }
+            double remaining = (line.getQuantity() == null ? 0d : line.getQuantity())
+                    - production.allocatedForSalesLine(line.getRowId());
+            if (remaining > 0.0000001d) {
+                return true;
+            }
+        }
+        return false;
     }
 
     static void convertDelivery(SalesDelivery delivery, ICommonDao<SalesDelivery> deliveryDao,

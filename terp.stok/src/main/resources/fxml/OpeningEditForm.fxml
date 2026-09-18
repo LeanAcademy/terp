@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.net.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane id="AnchorPane" prefHeight="680.0" prefWidth="1080.0" styleClass="mainFxmlClass" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.terp.stok.gui.OpeningEditFormController">
+    <stylesheets>
+        <URL value="@../styles/itemform.css" />
+    </stylesheets>
+    <children>
+        <ToolBar prefHeight="40.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <items>
+                <Button fx:id="btnSave" mnemonicParsing="false" onAction="#onActionBtnSave" text="Taslak kaydet" />
+                <Button fx:id="btnApprove" defaultButton="true" mnemonicParsing="false" onAction="#onActionBtnApprove" text="Onayla" />
+                <Button fx:id="btnCancelPosted" mnemonicParsing="false" onAction="#onActionBtnCancelPosted" text="İptal" />
+                <Button fx:id="btnClose" cancelButton="true" mnemonicParsing="false" onAction="#onActionBtnClose" text="Kapat" />
+            </items>
+        </ToolBar>
+        <GridPane hgap="10.0" vgap="8.0" AnchorPane.leftAnchor="16.0" AnchorPane.rightAnchor="16.0" AnchorPane.topAnchor="48.0">
+            <columnConstraints>
+                <ColumnConstraints prefWidth="100.0" />
+                <ColumnConstraints hgrow="ALWAYS" />
+                <ColumnConstraints prefWidth="100.0" />
+                <ColumnConstraints hgrow="ALWAYS" />
+            </columnConstraints>
+            <children>
+                <Label text="Belge no" />
+                <TextField fx:id="txtDocumentNo" promptText="Boş = otomatik" GridPane.columnIndex="1" />
+                <Label text="Tarih" GridPane.columnIndex="2" />
+                <DatePicker fx:id="dtDocumentDate" maxWidth="Infinity" GridPane.columnIndex="3" />
+                <Label text="Depo" GridPane.rowIndex="1" />
+                <ComboBox fx:id="cmbWarehouse" editable="true" maxWidth="Infinity" GridPane.columnIndex="1" GridPane.columnSpan="3" GridPane.rowIndex="1" />
+                <Label text="Notlar" GridPane.rowIndex="2" />
+                <TextArea fx:id="txtNotes" prefHeight="50.0" wrapText="true" GridPane.columnIndex="1" GridPane.columnSpan="3" GridPane.rowIndex="2" />
+            </children>
+        </GridPane>
+        <GridPane hgap="8.0" vgap="6.0" AnchorPane.leftAnchor="16.0" AnchorPane.rightAnchor="16.0" AnchorPane.topAnchor="190.0">
+            <columnConstraints>
+                <ColumnConstraints hgrow="ALWAYS" prefWidth="220.0" />
+                <ColumnConstraints prefWidth="80.0" />
+                <ColumnConstraints prefWidth="90.0" />
+                <ColumnConstraints prefWidth="80.0" />
+                <ColumnConstraints prefWidth="90.0" />
+                <ColumnConstraints prefWidth="90.0" />
+                <ColumnConstraints prefWidth="120.0" />
+                <ColumnConstraints prefWidth="80.0" />
+                <ColumnConstraints prefWidth="80.0" />
+            </columnConstraints>
+            <children>
+                <ComboBox fx:id="cmbItem" editable="true" maxWidth="Infinity" promptText="Malzeme" />
+                <TextField alignment="CENTER_RIGHT" fx:id="txtQuantity" promptText="Miktar" GridPane.columnIndex="1" />
+                <ComboBox fx:id="cmbUnit" editable="true" maxWidth="Infinity" promptText="Birim" GridPane.columnIndex="2" />
+                <TextField alignment="CENTER_RIGHT" fx:id="txtUnitPrice" promptText="Fiyat" GridPane.columnIndex="3" />
+                <TextField fx:id="txtLotNo" promptText="Lot" GridPane.columnIndex="4" />
+                <TextField fx:id="txtSerialNo" promptText="Seri" GridPane.columnIndex="5" />
+                <DatePicker fx:id="dtExpiry" maxWidth="Infinity" promptText="SKT" GridPane.columnIndex="6" />
+                <Button fx:id="btnAddLine" mnemonicParsing="false" onAction="#onActionBtnAddLine" text="Satır ekle" GridPane.columnIndex="7" />
+                <Button fx:id="btnRemoveLine" mnemonicParsing="false" onAction="#onActionBtnRemoveLine" text="Satır sil" GridPane.columnIndex="8" />
+            </children>
+        </GridPane>
+        <Label wrapText="true" text="Onay her satırı ACILIS giriş olarak stok defterine basar. Birim belgede yazıldığı gibi gönderilir; defter ana birime çevirir. İptal edilen belge yeniden onaylanabilir." AnchorPane.leftAnchor="16.0" AnchorPane.rightAnchor="16.0" AnchorPane.topAnchor="232.0" />
+        <TableView fx:id="tblvLines" editable="true" AnchorPane.bottomAnchor="12.0" AnchorPane.leftAnchor="16.0" AnchorPane.rightAnchor="16.0" AnchorPane.topAnchor="270.0">
+            <columns>
+                <TableColumn fx:id="tcLineNo" prefWidth="50.0" text="No" />
+                <TableColumn fx:id="tcItemCode" prefWidth="110.0" text="Kod" />
+                <TableColumn fx:id="tcItemDesc" prefWidth="200.0" text="Malzeme" />
+                <TableColumn fx:id="tcItemUnit" prefWidth="70.0" text="Birim" />
+                <TableColumn fx:id="tcQuantity" prefWidth="80.0" text="Miktar" />
+                <TableColumn fx:id="tcUnitPrice" prefWidth="80.0" text="Fiyat" />
+                <TableColumn fx:id="tcLotNo" prefWidth="90.0" text="Lot" />
+                <TableColumn fx:id="tcSerialNo" prefWidth="90.0" text="Seri" />
+                <TableColumn fx:id="tcExpiry" prefWidth="100.0" text="SKT" />
+            </columns>
+        </TableView>
+    </children>
+</AnchorPane>

@@ -48,6 +48,8 @@
                         <TableColumn fx:id="tcItemDesc" prefWidth="220.0" text="Tanım" />
                         <TableColumn fx:id="tcItemUnit" prefWidth="60.0" text="Birim" />
                         <TableColumn fx:id="tcQuantity" prefWidth="90.0" text="Miktar" />
+                        <TableColumn fx:id="tcUnitCost" prefWidth="90.0" text="Maliyet" />
+                        <TableColumn fx:id="tcStockValue" prefWidth="90.0" text="Değer" />
                         <TableColumn fx:id="tcMinStock" prefWidth="80.0" text="Min." />
                         <TableColumn fx:id="tcMaxStock" prefWidth="80.0" text="Max." />
                         <TableColumn fx:id="tcStatusLabel" prefWidth="90.0" text="Durum" />

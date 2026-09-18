@@ -34,6 +34,38 @@ public interface IStockItem {
 
     String getItemUnit();
 
+    default String getSecondUnit() {
+        return null;
+    }
+
+    default Double getUnitFactor() {
+        return null;
+    }
+
+    default boolean isLotTracked() {
+        return false;
+    }
+
+    default boolean isSerialTracked() {
+        return false;
+    }
+
+    default Double getPurchasePrice() {
+        return null;
+    }
+
+    default Double getSalesPrice() {
+        return null;
+    }
+
+    default Double getMinStock() {
+        return null;
+    }
+
+    default Integer getShelfLifeDays() {
+        return null;
+    }
+
     int getItemType();
 
     int getStatus();

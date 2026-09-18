@@ -18,6 +18,7 @@ package com.terp.stok.gui;
 
 import com.terp.plugin.TerpApplication;
 import com.terp.stok.data.StockCount;
+import com.terp.stok.data.StockOpening;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -46,6 +47,26 @@ final class StockWindows {
             stage.initOwner(TerpApplication.getInstance().getDesktopManager().getPrimaryStage());
             stage.setScene(new Scene((Parent) node));
             stage.setTitle(current == null ? "Yeni stok sayım" : "Stok sayım");
+            stage.showAndWait();
+            if (afterClose != null) {
+                afterClose.run();
+            }
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, null, ex);
+        }
+    }
+
+    static void openOpeningEditor(StockOpening current, Runnable afterClose) {
+        try {
+            FXMLLoader loader = StockForms.pluginLoader(StockWindows.class, "/fxml/OpeningEditForm.fxml");
+            Node node = loader.load();
+            OpeningEditFormController controller = loader.getController();
+            controller.initializeForm(current);
+            Stage stage = new Stage();
+            stage.initModality(Modality.WINDOW_MODAL);
+            stage.initOwner(TerpApplication.getInstance().getDesktopManager().getPrimaryStage());
+            stage.setScene(new Scene((Parent) node));
+            stage.setTitle(current == null ? "Yeni stok açılış" : "Stok açılış");
             stage.showAndWait();
             if (afterClose != null) {
                 afterClose.run();

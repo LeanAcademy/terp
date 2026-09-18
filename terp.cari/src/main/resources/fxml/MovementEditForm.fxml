@@ -34,7 +34,7 @@
                 <Label text="Tür" GridPane.rowIndex="1" />
                 <ComboBox fx:id="cmbMovementType" maxWidth="Infinity" GridPane.columnIndex="1" GridPane.rowIndex="1" />
                 <Label text="Tutar" GridPane.columnIndex="2" GridPane.rowIndex="1" />
-                <TextField fx:id="txtAmount" GridPane.columnIndex="3" GridPane.rowIndex="1" />
+                <TextField alignment="CENTER_RIGHT" fx:id="txtAmount" GridPane.columnIndex="3" GridPane.rowIndex="1" />
                 <Label text="Cari" GridPane.rowIndex="2" />
                 <ComboBox fx:id="cmbAccount" editable="true" maxWidth="Infinity" GridPane.columnIndex="1" GridPane.columnSpan="3" GridPane.rowIndex="2" />
                 <Label text="Notlar" GridPane.rowIndex="3" />

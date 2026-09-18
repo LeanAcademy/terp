@@ -94,6 +94,9 @@ public class AddCompanyFormController implements Initializable {
     
     @FXML
     private TextField txtCity;
+
+    @FXML
+    private TextField txtCurrency;
     
 //</editor-fold>
     
@@ -160,6 +163,8 @@ public class AddCompanyFormController implements Initializable {
         applyIfPresent(txtPhone, newCompany::setPhone);
         applyIfPresent(txtFax, newCompany::setFax);
         applyIfPresent(txtEmail, newCompany::setEmail);
+        String currency = textOf(txtCurrency);
+        newCompany.setCurrency(currency.isBlank() ? "TRY" : currency.trim());
         newCompany.setNotes(textOf(txtNotes));
         newCompany.setStatus(this.chkActive.isSelected() ? 0 : 1);
         

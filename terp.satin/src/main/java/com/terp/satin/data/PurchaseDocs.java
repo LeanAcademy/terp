@@ -72,7 +72,8 @@ public final class PurchaseDocs {
         }
         List<PurchaseReceipt> posted = receiptDao.findAll(
                 "from PurchaseReceipt e where e.sourceOrderId = " + orderId
-                        + " and e.status = " + PurchaseReceipt.STATUS_POSTED);
+                        + " and e.status in (" + PurchaseReceipt.STATUS_POSTED
+                        + "," + PurchaseReceipt.STATUS_INVOICED + ")");
         if (posted != null && !posted.isEmpty()) {
             return true;
         }
@@ -657,7 +658,7 @@ public final class PurchaseDocs {
             if (receipt == null || receipt.isCancelled()) {
                 continue;
             }
-            if (receipt.isPosted() || (includeDraft && receipt.isDraft())) {
+            if (receipt.countsAsPosted() || (includeDraft && receipt.isDraft())) {
                 sum += line.getQuantity() == null ? 0d : line.getQuantity();
             }
         }
@@ -694,7 +695,8 @@ public final class PurchaseDocs {
             return totals;
         }
         List<PurchaseReceipt> receipts = receiptDao.findAll(CompanyScope.from("PurchaseReceipt")
-                + " and e.status = " + PurchaseReceipt.STATUS_POSTED);
+                + " and e.status in (" + PurchaseReceipt.STATUS_POSTED
+                + "," + PurchaseReceipt.STATUS_INVOICED + ")");
         if (receipts == null || receipts.isEmpty()) {
             return totals;
         }

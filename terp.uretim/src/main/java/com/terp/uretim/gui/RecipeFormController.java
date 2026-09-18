@@ -47,6 +47,7 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
+import com.terp.plugin.gui.NumericCells;
 
 public class RecipeFormController implements Initializable {
 
@@ -176,12 +177,14 @@ public class RecipeFormController implements Initializable {
         this.tcProductName.setCellValueFactory(new PropertyValueFactory<>("productName"));
         this.tcProductUnit.setCellValueFactory(new PropertyValueFactory<>("productUnit"));
         this.tcYieldQuantity.setCellValueFactory(new PropertyValueFactory<>("yieldQuantity"));
+        NumericCells.apply(this.tcYieldQuantity);
         this.tcStatusLabel.setCellValueFactory(new PropertyValueFactory<>("statusLabel"));
         this.tcLineNo.setCellValueFactory(new PropertyValueFactory<>("lineNo"));
         this.tcLineItemCode.setCellValueFactory(new PropertyValueFactory<>("itemCode"));
         this.tcLineItemDesc.setCellValueFactory(new PropertyValueFactory<>("itemDesc"));
         this.tcLineItemUnit.setCellValueFactory(new PropertyValueFactory<>("itemUnit"));
         this.tcLineQuantity.setCellValueFactory(new PropertyValueFactory<>("quantity"));
+        NumericCells.apply(this.tcLineQuantity);
         this.tblvLineView.setPlaceholder(new Label("Reçete satırı yok"));
         this.pgnRecipeData.currentPageIndexProperty().addListener(
                 (ObservableValue<? extends Number> observable, Number oldValue, Number newValue) -> {

@@ -17,6 +17,8 @@
 package com.terp.uretim.gui;
 
 import com.terp.plugin.TerpApplication;
+import com.terp.plugin.data.ProductionFromSales;
+import com.terp.uretim.data.ProductionOrder;
 import com.terp.uretim.data.Recipe;
 import java.io.IOException;
 import java.util.logging.Level;
@@ -28,30 +30,60 @@ import javafx.scene.Scene;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
-final class UretimWindows {
+public final class UretimWindows {
 
     private static final Logger LOG = Logger.getLogger(UretimWindows.class.getName());
 
     private UretimWindows() {
     }
 
-    static void openRecipeEditor(Recipe current, Runnable afterClose) {
+    public static void openRecipeEditor(Recipe current, Runnable afterClose) {
         try {
             FXMLLoader loader = UretimDates.pluginLoader(UretimWindows.class, "/fxml/RecipeEditForm.fxml");
             Node node = loader.load();
             RecipeEditFormController controller = loader.getController();
             controller.initializeForm(current);
-            Stage stage = new Stage();
-            stage.initModality(Modality.WINDOW_MODAL);
-            stage.initOwner(TerpApplication.getInstance().getDesktopManager().getPrimaryStage());
-            stage.setScene(new Scene((Parent) node));
-            stage.setTitle(current == null ? "Yeni reçete" : "Reçete");
-            stage.showAndWait();
-            if (afterClose != null) {
-                afterClose.run();
-            }
+            showModal(node, current == null ? "Yeni reçete" : "Reçete", afterClose);
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, null, ex);
+        }
+    }
+
+    public static void openOrderEditor(ProductionOrder current, ProductionFromSales fromSales, Runnable afterClose) {
+        try {
+            FXMLLoader loader = UretimDates.pluginLoader(UretimWindows.class, "/fxml/ProductionOrderEditForm.fxml");
+            Node node = loader.load();
+            ProductionOrderEditFormController controller = loader.getController();
+            controller.initializeForm(current, fromSales);
+            String title = fromSales != null ? "Satış siparişinden üretim emri"
+                    : (current == null ? "Yeni üretim emri" : "Üretim emri");
+            showModal(node, title, afterClose);
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, null, ex);
+        }
+    }
+
+    public static void openCompletion(ProductionOrder order, Runnable afterClose) {
+        try {
+            FXMLLoader loader = UretimDates.pluginLoader(UretimWindows.class, "/fxml/ProductionCompletionForm.fxml");
+            Node node = loader.load();
+            ProductionCompletionFormController controller = loader.getController();
+            controller.initializeForm(order);
+            showModal(node, "İş bitti", afterClose);
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, null, ex);
+        }
+    }
+
+    private static void showModal(Node node, String title, Runnable afterClose) {
+        Stage stage = new Stage();
+        stage.initModality(Modality.WINDOW_MODAL);
+        stage.initOwner(TerpApplication.getInstance().getDesktopManager().getPrimaryStage());
+        stage.setScene(new Scene((Parent) node));
+        stage.setTitle(title);
+        stage.showAndWait();
+        if (afterClose != null) {
+            afterClose.run();
         }
     }
 }

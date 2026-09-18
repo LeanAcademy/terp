@@ -27,6 +27,12 @@ public interface IMovementReason {
     String CODE_COUNT_IN = "SAYIM_ART";
     String CODE_COUNT_OUT = "SAYIM_AZ";
     String CODE_SALES = "SATIS_IRS";
+    String CODE_PRODUCTION_IN = "URETIM_GIRIS";
+    String CODE_PRODUCTION_OUT = "URETIM_SARF";
+    String CODE_TRANSFER_OUT = "TRANSFER_CIKIS";
+    String CODE_TRANSFER_IN = "TRANSFER_GIRIS";
+    String CODE_TRANSFER_LEGACY = "TRANSFER";
+    String CODE_OPENING = "ACILIS";
 
     String getReasonCode();
 
@@ -50,5 +56,10 @@ public interface IMovementReason {
 
     default String getDirectionLabel() {
         return StockDirection.labelOf(getDirection());
+    }
+
+    default boolean isTransferOut() {
+        String code = getReasonCode();
+        return CODE_TRANSFER_OUT.equals(code) || CODE_TRANSFER_LEGACY.equals(code);
     }
 }

@@ -27,4 +27,8 @@ public interface IItemLookup {
     List<IStockItem> findActive();
 
     IStockItem findByCode(String itemCode);
+
+    default IStockItem findByBarcode(String barcode) {
+        return null;
+    }
 }

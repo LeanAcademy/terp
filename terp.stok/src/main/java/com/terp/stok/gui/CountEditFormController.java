@@ -25,6 +25,8 @@ import com.terp.plugin.data.IStockLedger;
 import com.terp.plugin.data.IWarehouseLookup;
 import com.terp.plugin.data.StockDirection;
 import com.terp.plugin.data.StockPosting;
+import com.terp.plugin.data.StockCard;
+import com.terp.plugin.data.WorkingPeriod;
 import com.terp.plugin.data.model.IMovementReason;
 import com.terp.plugin.data.model.IStockItem;
 import com.terp.plugin.data.model.IStockWarehouse;
@@ -54,8 +56,7 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.control.cell.TextFieldTableCell;
-import javafx.util.StringConverter;
+import com.terp.plugin.gui.NumericCells;
 
 public class CountEditFormController implements Initializable {
 
@@ -86,6 +87,12 @@ public class CountEditFormController implements Initializable {
     @FXML
     private TextField txtUnit;
     @FXML
+    private TextField txtLotNo;
+    @FXML
+    private TextField txtSerialNo;
+    @FXML
+    private DatePicker dtExpiry;
+    @FXML
     private Label lblOnHand;
     @FXML
     private Button btnAddLine;
@@ -107,6 +114,8 @@ public class CountEditFormController implements Initializable {
     private TableColumn<StockCountLine, Double> tcCountedQty;
     @FXML
     private TableColumn<StockCountLine, Double> tcDifference;
+    @FXML
+    private TableColumn<StockCountLine, String> tcLotNo;
 
     private ICommonDao<StockCount> countDao;
     private ICommonDao<StockCountLine> lineDao;
@@ -262,12 +271,13 @@ public class CountEditFormController implements Initializable {
 
     @FXML
     private void onActionBtnAddLine(ActionEvent event) {
+        StockCountLine selected = tblvLines.getSelectionModel().getSelectedItem();
         String itemCode = StockCombos.codeOf(cmbItem);
         if (itemCode == null) {
             StockForms.showError("Stok sayım", "Satır eksik", "Malzeme seçin.");
             return;
         }
-        if (hasItem(itemCode)) {
+        if (hasItem(itemCode) && (selected == null || !itemCode.equals(selected.getItemCode()))) {
             StockForms.showError("Stok sayım", "Tekrar", itemCode + " bu belgede zaten var.");
             return;
         }
@@ -291,16 +301,33 @@ public class CountEditFormController implements Initializable {
             StockForms.showError("Stok sayım", "Miktar", "Sayılan miktar negatif olamaz.");
             return;
         }
-        StockCountLine line = new StockCountLine();
+        String tracking = StockCard.trackingError(item, StockForms.trimToNull(txtLotNo.getText()),
+                StockForms.trimToNull(txtSerialNo.getText()));
+        if (tracking != null) {
+            StockForms.showError("Stok sayım", "İzleme", tracking);
+            return;
+        }
+        StockCountLine line = selected != null ? selected : new StockCountLine();
         line.setItemCode(itemCode);
         line.setItemDesc(item == null ? StockCombos.nameOf(cmbItem) : item.getItemDesc());
         String unit = StockForms.trimToNull(txtUnit.getText());
         line.setItemUnit(unit == null && item != null ? item.getItemUnit() : unit);
         line.setOnHandQty(onHand);
         line.setCountedQty(counted);
-        line.setLineNo(lines.size() + 1);
-        lines.add(line);
+        line.setLotNo(StockForms.trimToNull(txtLotNo.getText()));
+        line.setSerialNo(StockForms.trimToNull(txtSerialNo.getText()));
+        line.setExpiryDate(dtExpiry.getValue() == null ? null : StockForms.toDate(dtExpiry.getValue()));
+        if (selected == null) {
+            line.setLineNo(lines.size() + 1);
+            lines.add(line);
+        } else {
+            tblvLines.refresh();
+        }
         txtCounted.clear();
+        txtLotNo.clear();
+        txtSerialNo.clear();
+        dtExpiry.setValue(null);
+        tblvLines.getSelectionModel().clearSelection();
         refreshOnHandHint();
     }
 
@@ -326,9 +353,13 @@ public class CountEditFormController implements Initializable {
         this.tcItemDesc.setCellValueFactory(new PropertyValueFactory<>("itemDesc"));
         this.tcItemUnit.setCellValueFactory(new PropertyValueFactory<>("itemUnit"));
         this.tcOnHandQty.setCellValueFactory(new PropertyValueFactory<>("onHandQty"));
+        NumericCells.apply(this.tcOnHandQty);
         this.tcCountedQty.setCellValueFactory(new PropertyValueFactory<>("countedQty"));
+        NumericCells.apply(this.tcCountedQty);
         this.tcDifference.setCellValueFactory(new PropertyValueFactory<>("difference"));
-        this.tcCountedQty.setCellFactory(TextFieldTableCell.forTableColumn(qtyConverter()));
+        NumericCells.apply(this.tcDifference);
+        this.tcLotNo.setCellValueFactory(new PropertyValueFactory<>("lotNo"));
+        NumericCells.applyEditable(this.tcCountedQty);
         this.tcCountedQty.setOnEditCommit(event -> {
             StockCountLine line = event.getRowValue();
             Double value = event.getNewValue();
@@ -344,13 +375,19 @@ public class CountEditFormController implements Initializable {
             tblvLines.refresh();
         });
         this.tblvLines.setItems(lines);
+        this.tblvLines.getSelectionModel().selectedItemProperty().addListener((obs, old, selected) -> {
+            if (selected != null) {
+                loadLineEditor(selected);
+            }
+        });
         cmbItem.valueProperty().addListener((obs, old, value) -> {
             applyItem(StockCombos.codeOf(cmbItem));
             refreshOnHandHint();
         });
         cmbWarehouse.valueProperty().addListener((obs, old, value) -> {
             refreshOnHandHint();
-            if (!loading && (currentRow == null || currentRow.isDraft()) && !lines.isEmpty()) {
+            if (!loading && (currentRow == null || currentRow.isDraft() || currentRow.isCancelled())
+                    && !lines.isEmpty()) {
                 refreshOnHand();
                 tblvLines.refresh();
             }
@@ -377,6 +414,11 @@ public class CountEditFormController implements Initializable {
             StockForms.showError("Stok sayım", "Depo eksik", "Depo seçin.");
             return false;
         }
+        String periodError = WorkingPeriod.rejectIfOutside(StockForms.toDate(dtDocumentDate.getValue()));
+        if (periodError != null) {
+            StockForms.showError("Stok sayım", "Dönem", periodError);
+            return false;
+        }
         if (lines.isEmpty()) {
             StockForms.showError("Stok sayım", "Satır yok", "En az bir malzeme satırı ekleyin.");
             return false;
@@ -397,9 +439,9 @@ public class CountEditFormController implements Initializable {
             row.setAddedDate(now);
             row.setStatus(StockCount.STATUS_DRAFT);
         }
-        if (!row.isDraft()) {
+        if (!row.isDraft() && !row.isCancelled()) {
             StockForms.showError("Stok sayım", "Kilitli belge",
-                    "Onaylı veya iptal belge taslak olarak kaydedilemez.");
+                    "Onaylı belge taslak olarak kaydedilemez.");
             return false;
         }
         if (!CompanyScope.stamp(row)) {
@@ -458,6 +500,9 @@ public class CountEditFormController implements Initializable {
             copy.setItemUnit(line.getItemUnit());
             copy.setOnHandQty(line.getOnHandQty());
             copy.setCountedQty(line.getCountedQty());
+            copy.setLotNo(line.getLotNo());
+            copy.setSerialNo(line.getSerialNo());
+            copy.setExpiryDate(line.getExpiryDate());
             StockCountLine saved = lineDao.addOrUpdate(copy);
             stored.add(saved == null ? copy : saved);
         }
@@ -472,11 +517,11 @@ public class CountEditFormController implements Initializable {
         StockPosting posting = new StockPosting();
         posting.setMovementDate(currentRow.getDocumentDate());
         if (diff > 0d) {
-            posting.setDirection(StockDirection.COUNT_IN);
+            posting.setDirection(StockDirection.IN);
             posting.setReasonCode(IMovementReason.CODE_COUNT_IN);
             posting.setQuantity(diff);
         } else {
-            posting.setDirection(StockDirection.COUNT_OUT);
+            posting.setDirection(StockDirection.OUT);
             posting.setReasonCode(IMovementReason.CODE_COUNT_OUT);
             posting.setQuantity(Math.abs(diff));
         }
@@ -485,6 +530,9 @@ public class CountEditFormController implements Initializable {
         posting.setItemCode(line.getItemCode());
         posting.setItemDesc(line.getItemDesc());
         posting.setItemUnit(line.getItemUnit());
+        posting.setLotNo(line.getLotNo());
+        posting.setSerialNo(line.getSerialNo());
+        posting.setExpiryDate(line.getExpiryDate());
         posting.setDocumentNo(currentRow.getDocumentNo());
         posting.setSourceType(StockPosting.SOURCE_STOCK_COUNT);
         posting.setSourceId(currentRow.getRowId());
@@ -515,6 +563,16 @@ public class CountEditFormController implements Initializable {
             }
         }
         StockCombos.fill(cmbItem, itemLabels);
+    }
+
+    private void loadLineEditor(StockCountLine line) {
+        StockCombos.select(cmbItem, line.getItemCode());
+        txtUnit.setText(StockForms.empty(line.getItemUnit()));
+        txtCounted.setText(NumericCells.text(line.getCountedQty()));
+        txtLotNo.setText(StockForms.empty(line.getLotNo()));
+        txtSerialNo.setText(StockForms.empty(line.getSerialNo()));
+        dtExpiry.setValue(line.getExpiryDate() == null ? null : StockForms.toLocalDate(line.getExpiryDate()));
+        refreshOnHandHint();
     }
 
     private void applyItem(String itemCode) {
@@ -552,7 +610,7 @@ public class CountEditFormController implements Initializable {
         double onHand = StockDocs.onHand(StockDocs.movements(movementDao), warehouseCode, itemCode);
         lblOnHand.setText("Eldeki " + onHand);
         if (txtCounted.getText() == null || txtCounted.getText().isBlank()) {
-            txtCounted.setText(Double.toString(onHand));
+            txtCounted.setText(NumericCells.format(onHand));
         }
     }
 
@@ -563,6 +621,12 @@ public class CountEditFormController implements Initializable {
             }
             if (line.getCountedQty() == null || line.getCountedQty() < 0d) {
                 return line.getItemCode() + " sayılan miktarı negatif olamaz.";
+            }
+            IItemLookup items = TerpApplication.getInstance().getItemLookup();
+            IStockItem item = items == null ? null : items.findByCode(line.getItemCode());
+            String tracking = StockCard.trackingError(item, line.getLotNo(), line.getSerialNo());
+            if (tracking != null) {
+                return tracking;
             }
         }
         return null;
@@ -583,20 +647,24 @@ public class CountEditFormController implements Initializable {
     private void applyLock(int status) {
         boolean draft = status == StockCount.STATUS_DRAFT;
         boolean posted = status == StockCount.STATUS_POSTED;
-        txtDocumentNo.setDisable(!draft);
-        dtDocumentDate.setDisable(!draft);
-        cmbWarehouse.setDisable(!draft);
-        btnFillWarehouse.setDisable(!draft);
-        btnRefreshOnHand.setDisable(!draft);
-        txtNotes.setDisable(!draft);
-        cmbItem.setDisable(!draft);
-        txtCounted.setDisable(!draft);
-        txtUnit.setDisable(!draft);
-        btnAddLine.setDisable(!draft);
-        btnRemoveLine.setDisable(!draft);
-        tblvLines.setEditable(draft);
-        btnSave.setDisable(!draft);
-        btnApprove.setDisable(!draft);
+        boolean editable = draft || status == StockCount.STATUS_CANCELLED;
+        txtDocumentNo.setDisable(!editable);
+        dtDocumentDate.setDisable(!editable);
+        cmbWarehouse.setDisable(!editable);
+        btnFillWarehouse.setDisable(!editable);
+        btnRefreshOnHand.setDisable(!editable);
+        txtNotes.setDisable(!editable);
+        cmbItem.setDisable(!editable);
+        txtCounted.setDisable(!editable);
+        txtUnit.setDisable(!editable);
+        txtLotNo.setDisable(!editable);
+        txtSerialNo.setDisable(!editable);
+        dtExpiry.setDisable(!editable);
+        btnAddLine.setDisable(!editable);
+        btnRemoveLine.setDisable(!editable);
+        tblvLines.setEditable(editable);
+        btnSave.setDisable(!editable);
+        btnApprove.setDisable(!editable);
         btnCancelPosted.setDisable(!posted);
         btnCancelPosted.setVisible(posted);
         btnCancelPosted.setManaged(posted);
@@ -606,17 +674,4 @@ public class CountEditFormController implements Initializable {
         StockEmbed.closeIfModal(btnClose);
     }
 
-    private static StringConverter<Double> qtyConverter() {
-        return new StringConverter<>() {
-            @Override
-            public String toString(Double value) {
-                return value == null ? "" : value.toString();
-            }
-
-            @Override
-            public Double fromString(String text) {
-                return StockForms.parseDouble(text);
-            }
-        };
-    }
 }

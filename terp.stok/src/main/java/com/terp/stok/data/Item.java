@@ -331,12 +331,22 @@ public class Item extends CommonFields implements ICompanyScoped, IStockItem {
         return lotTracked == null ? 0 : lotTracked;
     }
 
+    @Override
+    public boolean isLotTracked() {
+        return getLotTracked() != 0;
+    }
+
     public void setLotTracked(int lotTracked) {
         this.lotTracked = lotTracked;
     }
 
     public int getSerialTracked() {
         return serialTracked == null ? 0 : serialTracked;
+    }
+
+    @Override
+    public boolean isSerialTracked() {
+        return getSerialTracked() != 0;
     }
 
     public void setSerialTracked(int serialTracked) {

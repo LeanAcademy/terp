@@ -50,6 +50,10 @@ public class SalesDelivery extends CommonFields implements Serializable, ICompan
     @Column(name = "belge_tarihi")
     private Date documentDate;
 
+    @Temporal(TemporalType.DATE)
+    @Column(name = "sevk_tarihi")
+    private Date shipmentDate;
+
     @Column(name = "cari_kodu", length = 50)
     private String accountCode;
 
@@ -76,7 +80,9 @@ public class SalesDelivery extends CommonFields implements Serializable, ICompan
 
     public SalesDelivery() {
         this.status = STATUS_DRAFT;
-        this.documentDate = new Date();
+        Date today = new Date();
+        this.documentDate = today;
+        this.shipmentDate = today;
     }
 
     public String getStatusLabel() {
@@ -94,10 +100,15 @@ public class SalesDelivery extends CommonFields implements Serializable, ICompan
     }
 
     public String getDateLabel() {
-        if (documentDate == null) {
-            return "";
-        }
-        return new SimpleDateFormat("yyyy-MM-dd").format(documentDate);
+        return formatDate(documentDate);
+    }
+
+    public String getShipmentDateLabel() {
+        return formatDate(effectiveShipmentDate());
+    }
+
+    public Date effectiveShipmentDate() {
+        return shipmentDate != null ? shipmentDate : documentDate;
     }
 
     public boolean isDraft() {
@@ -114,6 +125,10 @@ public class SalesDelivery extends CommonFields implements Serializable, ICompan
 
     public boolean isInvoiced() {
         return getStatus() == STATUS_INVOICED;
+    }
+
+    public boolean countsAsPosted() {
+        return isPosted() || isInvoiced();
     }
 
     public boolean canInvoice() {
@@ -134,6 +149,14 @@ public class SalesDelivery extends CommonFields implements Serializable, ICompan
 
     public void setDocumentDate(Date documentDate) {
         this.documentDate = documentDate;
+    }
+
+    public Date getShipmentDate() {
+        return shipmentDate;
+    }
+
+    public void setShipmentDate(Date shipmentDate) {
+        this.shipmentDate = shipmentDate;
     }
 
     public String getAccountCode() {
@@ -208,5 +231,12 @@ public class SalesDelivery extends CommonFields implements Serializable, ICompan
     @Override
     public void setCompanyId(Long companyId) {
         this.companyId = companyId;
+    }
+
+    private static String formatDate(Date value) {
+        if (value == null) {
+            return "";
+        }
+        return new SimpleDateFormat("yyyy-MM-dd").format(value);
     }
 }

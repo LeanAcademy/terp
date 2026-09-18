@@ -23,6 +23,12 @@ import com.terp.core.data.Company;
 import com.terp.core.data.CompanyLookup;
 import com.terp.core.data.DocumentNumbering;
 import com.terp.core.data.DocumentSeries;
+import com.terp.core.data.DocumentTemplate;
+import com.terp.core.data.DocumentTemplateLookup;
+import com.terp.core.data.ExchangeRate;
+import com.terp.core.data.ExchangeRateLookup;
+import com.terp.core.data.UnitLookup;
+import com.terp.core.data.UnitOfMeasure;
 import com.terp.core.data.VatRate;
 import com.terp.core.data.VatRateLookup;
 import com.terp.plugin.PluginMenu;
@@ -68,6 +74,11 @@ public class Plugin implements IPlugin{
             app.setDocumentNumbers(new DocumentNumbering(
                     app.getPersistence().createDao(DocumentSeries.class)));
             app.setVatRateLookup(new VatRateLookup(app.getPersistence().createDao(VatRate.class)));
+            app.setUnitLookup(new UnitLookup(app.getPersistence().createDao(UnitOfMeasure.class)));
+            app.setExchangeRateLookup(new ExchangeRateLookup(
+                    app.getPersistence().createDao(ExchangeRate.class)));
+            app.setDocumentTemplates(new DocumentTemplateLookup(
+                    app.getPersistence().createDao(DocumentTemplate.class)));
         }
     }
 
@@ -103,7 +114,8 @@ public class Plugin implements IPlugin{
 
     @Override
     public List<Class<?>> getPersistentClasses() {
-        return List.of(Company.class, Branch.class, DocumentSeries.class, VatRate.class);
+        return List.of(Company.class, Branch.class, DocumentSeries.class, VatRate.class,
+                UnitOfMeasure.class, ExchangeRate.class, DocumentTemplate.class);
     }
 
     @Override
@@ -113,7 +125,10 @@ public class Plugin implements IPlugin{
                 PluginMenu.program("FRMYS02", "Firma tanımı", "FRMYS01", "CompanyForm"),
                 PluginMenu.program("FRMYS03", "Şube tanımı", "FRMYS01", "BranchForm"),
                 PluginMenu.program("SYS07", "Belge numaraları", "SYS01", "SeriesForm"),
-                PluginMenu.program("SYS08", "KDV oranları", "SYS01", "VatRateForm"));
+                PluginMenu.program("SYS08", "KDV oranları", "SYS01", "VatRateForm"),
+                PluginMenu.program("SYS09", "Ölçü birimleri", "SYS01", "UnitForm"),
+                PluginMenu.program("SYS10", "Döviz kurları", "SYS01", "ExchangeRateForm"),
+                PluginMenu.program("SYS11", "Belge şablonları", "SYS01", "TemplateForm"));
     }
     
     @Override
@@ -154,6 +169,15 @@ public class Plugin implements IPlugin{
         }
         if ("VatRateForm".equals(program)) {
             return "SYS08";
+        }
+        if ("UnitForm".equals(program)) {
+            return "SYS09";
+        }
+        if ("ExchangeRateForm".equals(program)) {
+            return "SYS10";
+        }
+        if ("TemplateForm".equals(program)) {
+            return "SYS11";
         }
         return program;
     }

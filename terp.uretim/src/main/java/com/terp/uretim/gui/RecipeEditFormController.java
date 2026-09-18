@@ -43,6 +43,7 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
+import com.terp.plugin.gui.NumericCells;
 
 public class RecipeEditFormController implements Initializable {
 
@@ -97,7 +98,7 @@ public class RecipeEditFormController implements Initializable {
         txtQuantity.clear();
         txtUnit.clear();
         txtProductUnit.clear();
-        txtYieldQuantity.setText("1");
+        txtYieldQuantity.setText(NumericCells.format(1d));
         cmbItem.getSelectionModel().clearSelection();
         cmbProduct.getSelectionModel().clearSelection();
         cmbStatus.getSelectionModel().select(STATUS_ACTIVE);
@@ -108,7 +109,7 @@ public class RecipeEditFormController implements Initializable {
         }
         UretimCombos.select(cmbProduct, row.getProductCode());
         txtProductUnit.setText(UretimDates.empty(row.getProductUnit()));
-        txtYieldQuantity.setText(row.getYieldQuantity() == null ? "1" : String.valueOf(row.getYieldQuantity()));
+        txtYieldQuantity.setText(NumericCells.text(row.getYieldQuantity() == null ? 1d : row.getYieldQuantity()));
         cmbStatus.getSelectionModel().select(row.isActive() ? STATUS_ACTIVE : STATUS_INACTIVE);
         txtNotes.setText(UretimDates.empty(row.getNotes()));
         if (row.getRowId() != null) {
@@ -136,6 +137,7 @@ public class RecipeEditFormController implements Initializable {
 
     @FXML
     private void onActionBtnAddLine(ActionEvent event) {
+        RecipeLine selected = tblvLines.getSelectionModel().getSelectedItem();
         String itemCode = UretimCombos.codeOf(cmbItem);
         Double quantity = UretimDates.parseDouble(txtQuantity.getText());
         if (itemCode == null || quantity == null || quantity <= 0d) {
@@ -154,15 +156,20 @@ public class RecipeEditFormController implements Initializable {
                     "Bileşen hammadde, yarı mamul veya sarf olmalıdır.");
             return;
         }
-        RecipeLine line = new RecipeLine();
+        RecipeLine line = selected != null ? selected : new RecipeLine();
         line.setItemCode(itemCode);
         line.setItemDesc(item == null ? UretimCombos.nameOf(cmbItem) : item.getItemDesc());
         String unit = UretimDates.trimToNull(txtUnit.getText());
         line.setItemUnit(unit == null && item != null ? item.getItemUnit() : unit);
         line.setQuantity(quantity);
-        line.setLineNo(lines.size() + 1);
-        lines.add(line);
+        if (selected == null) {
+            line.setLineNo(lines.size() + 1);
+            lines.add(line);
+        } else {
+            tblvLines.refresh();
+        }
         txtQuantity.clear();
+        tblvLines.getSelectionModel().clearSelection();
     }
 
     @FXML
@@ -185,7 +192,13 @@ public class RecipeEditFormController implements Initializable {
         this.tcItemDesc.setCellValueFactory(new PropertyValueFactory<>("itemDesc"));
         this.tcItemUnit.setCellValueFactory(new PropertyValueFactory<>("itemUnit"));
         this.tcQuantity.setCellValueFactory(new PropertyValueFactory<>("quantity"));
+        NumericCells.apply(this.tcQuantity);
         this.tblvLines.setItems(lines);
+        this.tblvLines.getSelectionModel().selectedItemProperty().addListener((obs, old, selected) -> {
+            if (selected != null) {
+                loadLineEditor(selected);
+            }
+        });
         cmbStatus.getItems().addAll(STATUS_ACTIVE, STATUS_INACTIVE);
         cmbStatus.getSelectionModel().select(STATUS_ACTIVE);
         cmbProduct.valueProperty().addListener((obs, old, value) -> applyProduct(UretimCombos.codeOf(cmbProduct)));
@@ -320,6 +333,12 @@ public class RecipeEditFormController implements Initializable {
         if (item != null) {
             txtProductUnit.setText(UretimDates.empty(item.getItemUnit()));
         }
+    }
+
+    private void loadLineEditor(RecipeLine line) {
+        UretimCombos.select(cmbItem, line.getItemCode());
+        txtUnit.setText(UretimDates.empty(line.getItemUnit()));
+        txtQuantity.setText(NumericCells.text(line.getQuantity()));
     }
 
     private void applyItem(String itemCode) {

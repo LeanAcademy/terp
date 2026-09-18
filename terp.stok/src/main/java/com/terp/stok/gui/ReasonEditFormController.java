@@ -68,7 +68,7 @@ public class ReasonEditFormController implements Initializable {
         }
         txtReasonCode.setText(empty(row.getReasonCode()));
         txtReasonName.setText(empty(row.getReasonName()));
-        cmbDirection.getSelectionModel().select(row.getDirection());
+        cmbDirection.getSelectionModel().select(StockDirection.of(row.getDirection()));
         chkActive.setSelected(row.getStatus() == 0);
         showAudit();
     }

@@ -24,4 +24,8 @@ public interface IStockLedger {
     void post(StockPosting posting);
 
     void reverseByDocument(String sourceType, Long sourceId);
+
+    default java.util.List<String> fefoLots(String warehouseCode, String itemCode) {
+        return java.util.List.of();
+    }
 }

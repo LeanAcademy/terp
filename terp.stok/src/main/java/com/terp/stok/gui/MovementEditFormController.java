@@ -17,10 +17,15 @@
 package com.terp.stok.gui;
 
 import com.terp.plugin.CompanyScope;
+import com.terp.plugin.IUser;
 import com.terp.plugin.TerpApplication;
+import com.terp.plugin.data.DocumentNumbers;
 import com.terp.plugin.data.IAccountLookup;
 import com.terp.plugin.data.ICommonDao;
 import com.terp.plugin.data.IMovementReasonLookup;
+import com.terp.plugin.data.IStockLedger;
+import com.terp.plugin.data.StockCard;
+import com.terp.plugin.data.WorkingPeriod;
 import com.terp.plugin.data.model.IAccount;
 import com.terp.plugin.data.model.IMovementReason;
 import com.terp.plugin.gui.RecordAuditBar;
@@ -48,6 +53,7 @@ import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 import org.controlsfx.validation.ValidationSupport;
 import org.controlsfx.validation.Validator;
+import com.terp.plugin.gui.NumericCells;
 
 public class MovementEditFormController implements Initializable {
 
@@ -78,9 +84,11 @@ public class MovementEditFormController implements Initializable {
     @FXML
     private TextField txtDocumentNo;
     @FXML
-    private TextField txtLotNo;
+    private ComboBox<String> cmbLot;
     @FXML
     private TextField txtSerialNo;
+    @FXML
+    private DatePicker dtExpiry;
     @FXML
     private TextArea txtNotes;
 
@@ -109,19 +117,21 @@ public class MovementEditFormController implements Initializable {
             return;
         }
         dtMovementDate.setValue(toLocalDate(row.getMovementDate()));
-        cmbMovementType.getSelectionModel().select(row.getMovementType());
+        cmbMovementType.getSelectionModel().select(StockMovement.normalizedType(row.getMovementType()));
         fillReasons();
         StockCombos.select(cmbReason, row.getReasonCode());
         StockCombos.select(cmbWarehouse, row.getWarehouseCode());
         StockCombos.select(cmbTargetWarehouse, row.getTargetWarehouseCode());
         StockCombos.select(cmbItem, row.getItemCode());
-        txtQuantity.setText(row.getQuantity() == null ? "" : row.getQuantity().toString());
+        txtQuantity.setText(NumericCells.text(row.getQuantity()));
         txtItemUnit.setText(empty(row.getItemUnit()));
-        txtUnitPrice.setText(row.getUnitPrice() == null ? "" : row.getUnitPrice().toString());
+        txtUnitPrice.setText(NumericCells.text(row.getUnitPrice()));
         StockCombos.select(cmbAccount, row.getAccountCode());
         txtDocumentNo.setText(empty(row.getDocumentNo()));
-        txtLotNo.setText(empty(row.getLotNo()));
+        fillFefoLots();
+        StockCombos.select(cmbLot, row.getLotNo());
         txtSerialNo.setText(empty(row.getSerialNo()));
+        dtExpiry.setValue(row.getExpiryDate() == null ? null : toLocalDate(row.getExpiryDate()));
         txtNotes.setText(empty(row.getNotes()));
         updateTargetEnabled();
         showAudit();
@@ -155,12 +165,36 @@ public class MovementEditFormController implements Initializable {
             showError("Miktar hatası", "Miktar sıfırdan büyük olmalıdır.");
             return;
         }
+        String periodError = WorkingPeriod.rejectIfOutside(toDate(dtMovementDate.getValue()));
+        if (periodError != null) {
+            showError("Dönem", periodError);
+            return;
+        }
+        IUser user = TerpApplication.getInstance().getUser();
+        if (user != null && !user.canUseWarehouse(warehouseCode)) {
+            showError("Yetki", "Bu depo için yetkiniz yok: " + warehouseCode);
+            return;
+        }
+        Item item = findItem(itemCode);
+        String tracking = StockCard.trackingError(item, StockCombos.codeOf(cmbLot),
+                trimToNull(txtSerialNo.getText()));
+        if (tracking != null) {
+            showError("İzleme", tracking);
+            return;
+        }
+        if (unitPrice == null) {
+            boolean purchase = StockMovement.normalizedType(cmbMovementType.getSelectionModel().getSelectedIndex())
+                    == StockMovement.TYPE_IN;
+            unitPrice = StockCard.fillPrice(item, null, purchase);
+        }
         int typeIndex = cmbMovementType.getSelectionModel().getSelectedIndex();
         if (typeIndex < 0) {
             typeIndex = StockMovement.TYPE_IN;
         }
+        typeIndex = StockMovement.normalizedType(typeIndex);
         String targetCode = StockCombos.codeOf(cmbTargetWarehouse);
-        if (typeIndex == StockMovement.TYPE_TRANSFER) {
+        boolean transferOut = typeIndex == StockMovement.TYPE_OUT && isTransferOutReason();
+        if (transferOut) {
             if (targetCode == null) {
                 showError("Transfer", "Hedef depo seçin.");
                 return;
@@ -172,8 +206,27 @@ public class MovementEditFormController implements Initializable {
         } else {
             targetCode = null;
         }
-        if (!allowOutbound(typeIndex, warehouseCode, itemCode, quantity)) {
+        if (!allowOutbound(typeIndex, warehouseCode, itemCode, quantity, item)) {
             return;
+        }
+        Double after = null;
+        if (typeIndex == StockMovement.TYPE_OUT) {
+            List<StockMovement> all = movementDao.findAll(CompanyScope.from("StockMovement"));
+            Long exclude = currentRow == null ? null : currentRow.getRowId();
+            double onHand = StockBalances.onHand(all, warehouseCode, itemCode, exclude);
+            after = onHand - StockCard.baseQuantity(item, trimToNull(txtItemUnit.getText()), quantity);
+        }
+        String minWarn = StockCard.minStockWarning(item, after == null ? 0d : after);
+        if (minWarn != null && typeIndex == StockMovement.TYPE_OUT) {
+            Alert warn = new Alert(AlertType.WARNING);
+            warn.setTitle("Min. stok");
+            warn.setHeaderText(null);
+            warn.setContentText(minWarn);
+            warn.showAndWait();
+        }
+        String documentNo = trimToNull(txtDocumentNo.getText());
+        if (transferOut && currentRow == null && documentNo == null) {
+            documentNo = StockForms.assignDocumentNo(DocumentNumbers.STOCK_TRANSFER, txtDocumentNo);
         }
         StockMovement row = this.currentRow;
         Date now = new Date();
@@ -189,30 +242,29 @@ public class MovementEditFormController implements Initializable {
             showError("Firma", "Önce araç çubuğundan çalışma firmasını seçin.");
             return;
         }
-        row.setMovementDate(toDate(dtMovementDate.getValue()));
-        row.setMovementType(typeIndex);
-        String reasonCode = StockCombos.codeOf(cmbReason);
-        row.setReasonCode(reasonCode);
-        row.setReasonName(StockCombos.nameOf(cmbReason));
-        row.setWarehouseCode(warehouseCode);
-        row.setWarehouseName(nameOfWarehouse(warehouseCode));
-        row.setTargetWarehouseCode(targetCode);
-        row.setTargetWarehouseName(targetCode == null ? null : nameOfWarehouse(targetCode));
-        row.setItemCode(itemCode);
-        Item item = findItem(itemCode);
-        row.setItemDesc(item == null ? StockCombos.nameOf(cmbItem) : item.getItemDesc());
-        String unit = trimToNull(txtItemUnit.getText());
-        row.setItemUnit(unit == null && item != null ? item.getItemUnit() : unit);
-        row.setQuantity(quantity);
-        row.setUnitPrice(unitPrice);
-        row.setAccountCode(StockCombos.codeOf(cmbAccount));
-        row.setAccountName(StockCombos.nameOf(cmbAccount));
-        row.setDocumentNo(trimToNull(txtDocumentNo.getText()));
-        row.setLotNo(trimToNull(txtLotNo.getText()));
-        row.setSerialNo(trimToNull(txtSerialNo.getText()));
-        row.setNotes(trimToNull(txtNotes.getText()));
-        row.setLastUpdateDate(now);
+        fillMovement(row, typeIndex, warehouseCode, itemCode, quantity, unitPrice, documentNo,
+                now);
         movementDao.addOrUpdate(row);
+        if (currentRow == null && transferOut) {
+            StockMovement incoming = movementDao.getEmpty();
+            if (incoming == null) {
+                showError("Kayıt hatası", "Transfer girişi oluşturulamadı.");
+                return;
+            }
+            incoming.setAddedDate(now);
+            if (!CompanyScope.stamp(incoming)) {
+                showError("Firma", "Önce araç çubuğundan çalışma firmasını seçin.");
+                return;
+            }
+            fillMovement(incoming, StockMovement.TYPE_IN, targetCode, itemCode, quantity,
+                    unitPrice, documentNo, now);
+            incoming.setReasonCode(IMovementReason.CODE_TRANSFER_IN);
+            IMovementReasonLookup reasons = TerpApplication.getInstance().getMovementReasonLookup();
+            IMovementReason inReason = reasons == null ? null
+                    : reasons.findByCode(IMovementReason.CODE_TRANSFER_IN);
+            incoming.setReasonName(inReason == null ? "Transfer girişi" : inReason.getReasonName());
+            movementDao.addOrUpdate(incoming);
+        }
         close();
     }
 
@@ -232,8 +284,18 @@ public class MovementEditFormController implements Initializable {
             updateTargetEnabled();
             fillAccounts();
             fillReasons();
+            fillFefoLots();
         });
+        cmbReason.valueProperty().addListener((obs, old, value) -> updateTargetEnabled());
         cmbItem.valueProperty().addListener((obs, old, value) -> applyItem(StockCombos.codeOf(cmbItem)));
+        cmbWarehouse.valueProperty().addListener((obs, old, value) -> fillFefoLots());
+        cmbWarehouse.valueProperty().addListener((obs, old, value) -> fillFefoLots());
+        cmbMovementType.valueProperty().addListener((obs, old, value) -> {
+            updateTargetEnabled();
+            fillAccounts();
+            fillReasons();
+            fillFefoLots();
+        });
         this.validationSupport = new ValidationSupport();
         this.validationSupport.registerValidator(txtQuantity, true,
                 Validator.createEmptyValidator("Miktar zorunlu"));
@@ -246,7 +308,9 @@ public class MovementEditFormController implements Initializable {
         this.warehouses = warehouseRows == null ? List.of() : warehouseRows;
         List<String> warehouseLabels = new ArrayList<>();
         for (Warehouse warehouse : warehouses) {
-            if (warehouse.getStatus() == 0) {
+            if (warehouse.getStatus() == 0
+                    && (TerpApplication.getInstance().getUser() == null
+                    || TerpApplication.getInstance().getUser().canUseWarehouse(warehouse.getWarehouseCode()))) {
                 warehouseLabels.add(warehouse.getDisplayLabel());
             }
         }
@@ -294,12 +358,9 @@ public class MovementEditFormController implements Initializable {
         IAccountLookup lookup = TerpApplication.getInstance().getAccountLookup();
         if (lookup != null) {
             int type = cmbMovementType.getSelectionModel().getSelectedIndex();
-            if (type == StockMovement.TYPE_IN || type == StockMovement.TYPE_COUNT_IN) {
+            if (StockMovement.normalizedType(type) == StockMovement.TYPE_IN) {
                 addAccounts(accountLabels, lookup.findActiveSuppliers());
-            } else if (type == StockMovement.TYPE_OUT || type == StockMovement.TYPE_SCRAP) {
-                addAccounts(accountLabels, lookup.findActiveCustomers());
             } else {
-                addAccounts(accountLabels, lookup.findActiveSuppliers());
                 addAccounts(accountLabels, lookup.findActiveCustomers());
             }
         }
@@ -309,8 +370,9 @@ public class MovementEditFormController implements Initializable {
     }
 
     private void updateTargetEnabled() {
-        boolean transfer = cmbMovementType.getSelectionModel().getSelectedIndex()
-                == StockMovement.TYPE_TRANSFER;
+        boolean transfer = StockMovement.normalizedType(
+                cmbMovementType.getSelectionModel().getSelectedIndex()) == StockMovement.TYPE_OUT
+                && isTransferOutReason();
         cmbTargetWarehouse.setDisable(!transfer);
         if (!transfer) {
             cmbTargetWarehouse.getSelectionModel().clearSelection();
@@ -320,18 +382,79 @@ public class MovementEditFormController implements Initializable {
         }
     }
 
+    private boolean isTransferOutReason() {
+        String code = StockCombos.codeOf(cmbReason);
+        return IMovementReason.CODE_TRANSFER_OUT.equals(code)
+                || IMovementReason.CODE_TRANSFER_LEGACY.equals(code);
+    }
+
+    private void fillMovement(StockMovement row, int type, String warehouseCode, String itemCode,
+            Double quantity, Double unitPrice, String documentNo, Date now) {
+        row.setMovementDate(toDate(dtMovementDate.getValue()));
+        row.setMovementType(type);
+        row.setReasonCode(StockCombos.codeOf(cmbReason));
+        row.setReasonName(StockCombos.nameOf(cmbReason));
+        row.setWarehouseCode(warehouseCode);
+        row.setWarehouseName(nameOfWarehouse(warehouseCode));
+        row.setTargetWarehouseCode(null);
+        row.setTargetWarehouseName(null);
+        row.setItemCode(itemCode);
+        Item item = findItem(itemCode);
+        row.setItemDesc(item == null ? StockCombos.nameOf(cmbItem) : item.getItemDesc());
+        String unit = trimToNull(txtItemUnit.getText());
+        row.setItemUnit(unit == null && item != null ? item.getItemUnit() : unit);
+        row.setQuantity(StockCard.baseQuantity(item, row.getItemUnit(), quantity));
+        if (item != null && item.getItemUnit() != null) {
+            row.setItemUnit(item.getItemUnit());
+        }
+        row.setUnitPrice(unitPrice);
+        row.setAccountCode(StockCombos.codeOf(cmbAccount));
+        row.setAccountName(StockCombos.nameOf(cmbAccount));
+        row.setDocumentNo(documentNo);
+        row.setLotNo(StockCombos.codeOf(cmbLot));
+        row.setSerialNo(trimToNull(txtSerialNo.getText()));
+        row.setExpiryDate(dtExpiry.getValue() == null ? null : toDate(dtExpiry.getValue()));
+        row.setNotes(trimToNull(txtNotes.getText()));
+        row.setLastUpdateDate(now);
+    }
+
     private void applyItem(String itemCode) {
         Item item = findItem(itemCode);
         if (item != null && (txtItemUnit.getText() == null || txtItemUnit.getText().isBlank())) {
             txtItemUnit.setText(empty(item.getItemUnit()));
         }
+        if (item != null && (txtUnitPrice.getText() == null || txtUnitPrice.getText().isBlank())) {
+            boolean purchase = StockMovement.normalizedType(cmbMovementType.getSelectionModel().getSelectedIndex())
+                    == StockMovement.TYPE_IN;
+            Double price = StockCard.fillPrice(item, null, purchase);
+            if (price != null) {
+                txtUnitPrice.setText(NumericCells.text(price));
+            }
+        }
+        fillFefoLots();
     }
 
-    private boolean allowOutbound(int type, String warehouseCode, String itemCode, double quantity) {
-        boolean outbound = type == StockMovement.TYPE_OUT
-                || type == StockMovement.TYPE_TRANSFER
-                || type == StockMovement.TYPE_COUNT_OUT
-                || type == StockMovement.TYPE_SCRAP;
+    private void fillFefoLots() {
+        if (cmbLot == null) {
+            return;
+        }
+        String current = StockCombos.codeOf(cmbLot);
+        List<String> labels = new ArrayList<>();
+        IStockLedger ledger = TerpApplication.getInstance().getStockLedger();
+        boolean outbound = StockMovement.normalizedType(cmbMovementType.getSelectionModel().getSelectedIndex())
+                == StockMovement.TYPE_OUT;
+        if (outbound && ledger != null) {
+            List<String> lots = ledger.fefoLots(StockCombos.codeOf(cmbWarehouse), StockCombos.codeOf(cmbItem));
+            if (lots != null) {
+                labels.addAll(lots);
+            }
+        }
+        StockCombos.fill(cmbLot, labels);
+        StockCombos.select(cmbLot, current);
+    }
+
+    private boolean allowOutbound(int type, String warehouseCode, String itemCode, double quantity, Item item) {
+        boolean outbound = StockMovement.normalizedType(type) == StockMovement.TYPE_OUT;
         if (!outbound) {
             return true;
         }
@@ -341,8 +464,19 @@ public class MovementEditFormController implements Initializable {
         }
         List<StockMovement> all = movementDao.findAll(CompanyScope.from("StockMovement"));
         Long exclude = currentRow == null ? null : currentRow.getRowId();
+        double baseQty = StockCard.baseQuantity(item, trimToNull(txtItemUnit.getText()), quantity);
         double onHand = StockBalances.onHand(all, warehouseCode, itemCode, exclude);
-        if (onHand - quantity < -0.000001) {
+        if (item != null && item.isLotTracked()) {
+            String lotNo = StockCombos.codeOf(cmbLot);
+            if (lotNo != null) {
+                double lotOnHand = StockBalances.onHandLot(all, warehouseCode, itemCode, lotNo);
+                if (lotOnHand - baseQty < -0.000001) {
+                    showError("Yetersiz stok", "Lot " + lotNo + " bakiyesi " + formatQty(lotOnHand) + ".");
+                    return false;
+                }
+            }
+        }
+        if (onHand - baseQty < -0.000001) {
             showError("Yetersiz stok",
                     "Depodaki miktar " + formatQty(onHand) + ". Negatif stoka izin verilmiyor.");
             return false;
@@ -384,13 +518,13 @@ public class MovementEditFormController implements Initializable {
         if (text == null || text.isBlank()) {
             return null;
         }
-        try {
-            return Double.valueOf(text.trim().replace(',', '.'));
-        } catch (NumberFormatException ex) {
+        Double value = NumericCells.parse(text);
+        if (value == null) {
             parseFailed = true;
             showError("Sayı hatası", field + " için geçerli bir sayı girin.");
             return null;
         }
+        return value;
     }
 
     private void showError(String header, String content) {
@@ -442,10 +576,7 @@ public class MovementEditFormController implements Initializable {
     }
 
     private static String formatQty(double value) {
-        if (value == (long) value) {
-            return Long.toString((long) value);
-        }
-        return Double.toString(value);
+        return NumericCells.format(value);
     }
 
     private static String empty(String value) {

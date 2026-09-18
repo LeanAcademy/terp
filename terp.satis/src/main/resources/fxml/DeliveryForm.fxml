@@ -50,7 +50,8 @@
                     <center>
                         <TableView fx:id="tblvDeliveryView" tableMenuButtonVisible="true" BorderPane.alignment="CENTER">
                             <columns>
-                                <TableColumn fx:id="tcDateLabel" prefWidth="100.0" text="Tarih" />
+                                <TableColumn fx:id="tcDateLabel" prefWidth="110.0" text="Oluşturma" />
+                                <TableColumn fx:id="tcShipmentDateLabel" prefWidth="110.0" text="Sevk" />
                                 <TableColumn fx:id="tcDocumentNo" prefWidth="120.0" text="Belge" />
                                 <TableColumn fx:id="tcAccountCode" prefWidth="110.0" text="Cari" />
                                 <TableColumn fx:id="tcAccountName" prefWidth="200.0" text="Unvan" />

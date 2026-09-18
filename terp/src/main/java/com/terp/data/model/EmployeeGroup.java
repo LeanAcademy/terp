@@ -50,6 +50,9 @@ public  class EmployeeGroup extends CommonFields implements Serializable, IEmplo
 
     @Column(name="sistem")
     private Integer systemAdmin;
+
+    @Column(name="depo_kodlari", length=1024)
+    private String warehouseCodes;
     
     @OneToMany(fetch=FetchType.LAZY, mappedBy="group")
     private Set<Employee> employee;
@@ -87,6 +90,14 @@ public  class EmployeeGroup extends CommonFields implements Serializable, IEmplo
 
     public boolean isSystemAdmin() {
         return getSystemAdmin() != 0 || "Administrators".equals(groupName);
+    }
+
+    public String getWarehouseCodes() {
+        return warehouseCodes;
+    }
+
+    public void setWarehouseCodes(String warehouseCodes) {
+        this.warehouseCodes = warehouseCodes;
     }
 
     public String getStatusLabel() {

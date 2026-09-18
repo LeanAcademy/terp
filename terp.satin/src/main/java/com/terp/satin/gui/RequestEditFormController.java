@@ -49,6 +49,7 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
+import com.terp.plugin.gui.NumericCells;
 
 public class RequestEditFormController implements Initializable {
 
@@ -202,6 +203,7 @@ public class RequestEditFormController implements Initializable {
 
     @FXML
     private void onActionBtnAddLine(ActionEvent event) {
+        PurchaseRequestLine selected = tblvLines.getSelectionModel().getSelectedItem();
         String itemCode = SatinCombos.codeOf(cmbItem);
         Double quantity = SatinDates.parseDouble(txtQuantity.getText());
         if (itemCode == null || quantity == null || quantity <= 0d) {
@@ -210,15 +212,20 @@ public class RequestEditFormController implements Initializable {
         }
         IItemLookup items = TerpApplication.getInstance().getItemLookup();
         IStockItem item = items == null ? null : items.findByCode(itemCode);
-        PurchaseRequestLine line = new PurchaseRequestLine();
+        PurchaseRequestLine line = selected != null ? selected : new PurchaseRequestLine();
         line.setItemCode(itemCode);
         line.setItemDesc(item == null ? SatinCombos.nameOf(cmbItem) : item.getItemDesc());
         String unit = SatinDates.trimToNull(txtUnit.getText());
         line.setItemUnit(unit == null && item != null ? item.getItemUnit() : unit);
         line.setQuantity(quantity);
-        line.setLineNo(lines.size() + 1);
-        lines.add(line);
+        if (selected == null) {
+            line.setLineNo(lines.size() + 1);
+            lines.add(line);
+        } else {
+            tblvLines.refresh();
+        }
         txtQuantity.clear();
+        tblvLines.getSelectionModel().clearSelection();
     }
 
     @FXML
@@ -242,7 +249,13 @@ public class RequestEditFormController implements Initializable {
         this.tcItemDesc.setCellValueFactory(new PropertyValueFactory<>("itemDesc"));
         this.tcItemUnit.setCellValueFactory(new PropertyValueFactory<>("itemUnit"));
         this.tcQuantity.setCellValueFactory(new PropertyValueFactory<>("quantity"));
+        NumericCells.apply(this.tcQuantity);
         this.tblvLines.setItems(lines);
+        this.tblvLines.getSelectionModel().selectedItemProperty().addListener((obs, old, selected) -> {
+            if (selected != null) {
+                loadLineEditor(selected);
+            }
+        });
         cmbItem.valueProperty().addListener((obs, old, value) -> applyItem(SatinCombos.codeOf(cmbItem)));
         this.auditBar = RecordAuditBar.install(txtDocumentNo);
         showAudit();
@@ -271,9 +284,9 @@ public class RequestEditFormController implements Initializable {
             row.setAddedDate(now);
             row.setStatus(PurchaseRequest.STATUS_DRAFT);
         }
-        if (!row.isDraft()) {
+        if (!row.isDraft() && !row.isCancelled()) {
             SatinDates.showError("Satınalma talebi", "Kilitli belge",
-                    "Onaylı veya iptal talep taslak olarak kaydedilemez.");
+                    "Onaylı talep taslak olarak kaydedilemez.");
             return false;
         }
         if (!CompanyScope.stamp(row)) {
@@ -364,6 +377,12 @@ public class RequestEditFormController implements Initializable {
         SatinCombos.fill(cmbItem, itemLabels);
     }
 
+    private void loadLineEditor(PurchaseRequestLine line) {
+        SatinCombos.select(cmbItem, line.getItemCode());
+        txtUnit.setText(SatinDates.empty(line.getItemUnit()));
+        txtQuantity.setText(NumericCells.text(line.getQuantity()));
+    }
+
     private void applyItem(String itemCode) {
         IItemLookup items = TerpApplication.getInstance().getItemLookup();
         IStockItem item = items == null ? null : items.findByCode(itemCode);
@@ -375,17 +394,18 @@ public class RequestEditFormController implements Initializable {
     private void applyLock(int status) {
         boolean draft = status == PurchaseRequest.STATUS_DRAFT;
         boolean approved = status == PurchaseRequest.STATUS_APPROVED;
-        txtDocumentNo.setDisable(!draft);
-        dtDocumentDate.setDisable(!draft);
-        cmbWarehouse.setDisable(!draft);
-        txtNotes.setDisable(!draft);
-        cmbItem.setDisable(!draft);
-        txtQuantity.setDisable(!draft);
-        txtUnit.setDisable(!draft);
-        btnAddLine.setDisable(!draft);
-        btnRemoveLine.setDisable(!draft);
-        btnSave.setDisable(!draft);
-        btnApprove.setDisable(!draft);
+        boolean editable = draft || status == PurchaseRequest.STATUS_CANCELLED;
+        txtDocumentNo.setDisable(!editable);
+        dtDocumentDate.setDisable(!editable);
+        cmbWarehouse.setDisable(!editable);
+        txtNotes.setDisable(!editable);
+        cmbItem.setDisable(!editable);
+        txtQuantity.setDisable(!editable);
+        txtUnit.setDisable(!editable);
+        btnAddLine.setDisable(!editable);
+        btnRemoveLine.setDisable(!editable);
+        btnSave.setDisable(!editable);
+        btnApprove.setDisable(!editable);
         btnConvert.setDisable(!approved);
         btnConvert.setVisible(approved || status == PurchaseRequest.STATUS_CONVERTED);
         btnConvert.setManaged(approved || status == PurchaseRequest.STATUS_CONVERTED);

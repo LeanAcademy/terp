@@ -45,6 +45,9 @@ public class PurchaseInvoice extends CommonFields implements Serializable, IComp
     @Column(name = "belge_no", nullable = false, length = 50)
     private String documentNo;
 
+    @Column(name = "evrak_no", length = 64)
+    private String officialNo;
+
     @Temporal(TemporalType.DATE)
     @Column(name = "belge_tarihi")
     private Date documentDate;
@@ -114,6 +117,14 @@ public class PurchaseInvoice extends CommonFields implements Serializable, IComp
 
     public void setDocumentNo(String documentNo) {
         this.documentNo = documentNo;
+    }
+
+    public String getOfficialNo() {
+        return officialNo;
+    }
+
+    public void setOfficialNo(String officialNo) {
+        this.officialNo = officialNo;
     }
 
     public Date getDocumentDate() {

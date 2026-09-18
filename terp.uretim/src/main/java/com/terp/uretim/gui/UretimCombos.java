@@ -17,6 +17,8 @@
 package com.terp.uretim.gui;
 
 import com.terp.plugin.data.model.IStockItem;
+import com.terp.plugin.data.model.IStockWarehouse;
+import com.terp.uretim.data.ProductionOrder;
 import com.terp.uretim.data.UretimDocs;
 import java.util.ArrayList;
 import java.util.List;
@@ -100,6 +102,30 @@ final class UretimCombos {
             for (IStockItem item : rows) {
                 if (UretimDocs.isComponent(item)) {
                     labels.add(item.getDisplayLabel());
+                }
+            }
+        }
+        fill(combo, labels);
+    }
+
+    static void fillWarehouses(ComboBox<String> combo, List<IStockWarehouse> rows) {
+        List<String> labels = new ArrayList<>();
+        if (rows != null) {
+            for (IStockWarehouse warehouse : rows) {
+                if (warehouse != null) {
+                    labels.add(warehouse.getDisplayLabel());
+                }
+            }
+        }
+        fill(combo, labels);
+    }
+
+    static void fillCompletableOrders(ComboBox<String> combo, List<ProductionOrder> rows) {
+        List<String> labels = new ArrayList<>();
+        if (rows != null) {
+            for (ProductionOrder order : rows) {
+                if (order != null && order.getDocumentNo() != null) {
+                    labels.add(order.getDisplayLabel());
                 }
             }
         }

@@ -27,7 +27,7 @@
                 <Label text="Mamul" />
                 <ComboBox fx:id="cmbProduct" editable="true" maxWidth="Infinity" GridPane.columnIndex="1" />
                 <Label text="Miktar" GridPane.columnIndex="2" />
-                <TextField fx:id="txtYieldQuantity" promptText="1" GridPane.columnIndex="3" />
+                <TextField alignment="CENTER_RIGHT" fx:id="txtYieldQuantity" promptText="1" GridPane.columnIndex="3" />
                 <Label text="Birim" GridPane.rowIndex="1" />
                 <TextField fx:id="txtProductUnit" disable="true" GridPane.columnIndex="1" GridPane.rowIndex="1" />
                 <Label text="Durum" GridPane.columnIndex="2" GridPane.rowIndex="1" />
@@ -39,7 +39,7 @@
         <HBox spacing="8.0" AnchorPane.leftAnchor="16.0" AnchorPane.rightAnchor="16.0" AnchorPane.topAnchor="190.0">
             <children>
                 <ComboBox fx:id="cmbItem" editable="true" maxWidth="Infinity" prefWidth="320.0" promptText="Bileşen" />
-                <TextField fx:id="txtQuantity" prefWidth="90.0" promptText="Miktar" />
+                <TextField alignment="CENTER_RIGHT" fx:id="txtQuantity" prefWidth="90.0" promptText="Miktar" />
                 <TextField fx:id="txtUnit" prefWidth="70.0" promptText="Birim" />
                 <Button fx:id="btnAddLine" mnemonicParsing="false" onAction="#onActionBtnAddLine" text="Satır ekle" />
                 <Button fx:id="btnRemoveLine" mnemonicParsing="false" onAction="#onActionBtnRemoveLine" text="Satır sil" />

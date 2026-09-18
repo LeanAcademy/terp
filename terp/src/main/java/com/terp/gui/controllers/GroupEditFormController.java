@@ -23,11 +23,14 @@ import com.terp.data.model.GroupPermission;
 import com.terp.data.model.MenuSource;
 import com.terp.gui.auth.CompanyAccessRow;
 import com.terp.gui.auth.MenuAccessRow;
+import com.terp.gui.auth.WarehouseAccessRow;
 import com.terp.plugin.IUser;
 import com.terp.plugin.TerpApplication;
 import com.terp.plugin.data.ICommonDao;
 import com.terp.plugin.data.ICompanyLookup;
+import com.terp.plugin.data.IWarehouseLookup;
 import com.terp.plugin.data.model.ICompany;
+import com.terp.plugin.data.model.IStockWarehouse;
 import com.terp.plugin.gui.RecordAuditBar;
 import java.net.URL;
 import java.util.ArrayList;
@@ -73,6 +76,12 @@ public class GroupEditFormController implements Initializable {
     @FXML
     private TableColumn<CompanyAccessRow, String> tcCompanyLabel;
     @FXML
+    private TableView<WarehouseAccessRow> tblvWarehouseView;
+    @FXML
+    private TableColumn<WarehouseAccessRow, Boolean> tcWarehouseSelected;
+    @FXML
+    private TableColumn<WarehouseAccessRow, String> tcWarehouseLabel;
+    @FXML
     private TableView<MenuAccessRow> tblvMenuView;
     @FXML
     private TableColumn<MenuAccessRow, String> tcMenuId;
@@ -103,7 +112,7 @@ public class GroupEditFormController implements Initializable {
         if (row == null) {
             chkActive.setSelected(true);
             chkSystemAdmin.setSelected(false);
-            fillTables(Set.of(), List.of());
+            fillTables(Set.of(), Set.of(), List.of());
             updateSystemHint();
             showAudit();
             return;
@@ -112,6 +121,7 @@ public class GroupEditFormController implements Initializable {
         chkActive.setSelected(row.getStatus() == 0);
         chkSystemAdmin.setSelected(row.isSystemAdmin());
         Set<Long> assigned = new HashSet<>();
+        Set<String> assignedWarehouses = parseWarehouseCodes(row.getWarehouseCodes());
         if (row.getRowId() != null) {
             List<GroupCompany> companyRows = companyRightDao.findAll(
                     "from GroupCompany e where e.group.rowId = " + row.getRowId());
@@ -125,12 +135,13 @@ public class GroupEditFormController implements Initializable {
         }
         List<GroupPermission> perms = row.getRowId() == null ? List.of()
                 : permissionDao.findAll("from GroupPermission e where e.group.rowId = " + row.getRowId());
-        fillTables(assigned, perms == null ? List.of() : perms);
+        fillTables(assigned, assignedWarehouses, perms == null ? List.of() : perms);
         updateSystemHint();
         if (row.isSystemAdmin() && !callerIsAdmin) {
             btnSubmit.setDisable(true);
             txtGroupName.setDisable(true);
             tblvCompanyView.setDisable(true);
+            tblvWarehouseView.setDisable(true);
             tblvMenuView.setDisable(true);
         }
         showAudit();
@@ -166,6 +177,7 @@ public class GroupEditFormController implements Initializable {
             return;
         }
         replaceCompanies(saved, systemAdmin);
+        replaceWarehouses(saved, systemAdmin);
         replacePermissions(saved, systemAdmin);
         close();
     }
@@ -184,6 +196,9 @@ public class GroupEditFormController implements Initializable {
         tcCompanySelected.setCellValueFactory(cell -> cell.getValue().selectedProperty());
         tcCompanySelected.setCellFactory(CheckBoxTableCell.forTableColumn(tcCompanySelected));
         tcCompanyLabel.setCellValueFactory(new PropertyValueFactory<>("label"));
+        tcWarehouseSelected.setCellValueFactory(cell -> cell.getValue().selectedProperty());
+        tcWarehouseSelected.setCellFactory(CheckBoxTableCell.forTableColumn(tcWarehouseSelected));
+        tcWarehouseLabel.setCellValueFactory(new PropertyValueFactory<>("label"));
         tcMenuId.setCellValueFactory(new PropertyValueFactory<>("menuId"));
         tcMenuTitle.setCellValueFactory(new PropertyValueFactory<>("title"));
         tcView.setCellValueFactory(cell -> cell.getValue().viewProperty());
@@ -205,7 +220,8 @@ public class GroupEditFormController implements Initializable {
         }
     }
 
-    private void fillTables(Set<Long> assignedCompanies, List<GroupPermission> permissions) {
+    private void fillTables(Set<Long> assignedCompanies, Set<String> assignedWarehouses,
+            List<GroupPermission> permissions) {
         List<CompanyAccessRow> companyRows = new ArrayList<>();
         ICompanyLookup lookup = TerpApplication.getInstance().getCompanyLookup();
         if (lookup != null) {
@@ -218,6 +234,23 @@ public class GroupEditFormController implements Initializable {
             }
         }
         tblvCompanyView.setItems(FXCollections.observableArrayList(companyRows));
+
+        List<WarehouseAccessRow> warehouseRows = new ArrayList<>();
+        IWarehouseLookup warehouses = TerpApplication.getInstance().getWarehouseLookup();
+        if (warehouses != null) {
+            List<IStockWarehouse> rows = warehouses.findActive();
+            if (rows != null) {
+                for (IStockWarehouse warehouse : rows) {
+                    if (warehouse == null || warehouse.getWarehouseCode() == null) {
+                        continue;
+                    }
+                    warehouseRows.add(new WarehouseAccessRow(warehouse.getWarehouseCode(),
+                            warehouse.getDisplayLabel(),
+                            assignedWarehouses.contains(warehouse.getWarehouseCode())));
+                }
+            }
+        }
+        tblvWarehouseView.setItems(FXCollections.observableArrayList(warehouseRows));
 
         List<MenuAccessRow> menuRows = new ArrayList<>();
         List<MenuSource> menus = menuDao.findAll("from MenuSource e where e.menuType = 1");
@@ -266,6 +299,22 @@ public class GroupEditFormController implements Initializable {
         }
     }
 
+    private void replaceWarehouses(EmployeeGroup group, boolean systemAdmin) {
+        if (systemAdmin) {
+            group.setWarehouseCodes(null);
+            groupDao.addOrUpdate(group);
+            return;
+        }
+        List<String> selected = new ArrayList<>();
+        for (WarehouseAccessRow row : tblvWarehouseView.getItems()) {
+            if (row.isSelected() && row.getWarehouseCode() != null && !row.getWarehouseCode().isBlank()) {
+                selected.add(row.getWarehouseCode().trim());
+            }
+        }
+        group.setWarehouseCodes(selected.isEmpty() ? null : String.join(",", selected));
+        groupDao.addOrUpdate(group);
+    }
+
     private void replacePermissions(EmployeeGroup group, boolean systemAdmin) {
         List<GroupPermission> existing = permissionDao.findAll(
                 "from GroupPermission e where e.group.rowId = " + group.getRowId());
@@ -300,17 +349,31 @@ public class GroupEditFormController implements Initializable {
     private void updateSystemHint() {
         boolean system = chkSystemAdmin.isSelected();
         tblvCompanyView.setDisable(system);
+        tblvWarehouseView.setDisable(system);
         tblvMenuView.setDisable(system);
         if (lblSystemHint != null) {
             lblSystemHint.setText(system
-                    ? "Sistem yönetimi grubu tüm firmalara ve işlemlere sahiptir."
-                    : "İş grubu yalnızca işaretlenen firma ve işlemleri görür.");
+                    ? "Sistem yönetimi grubu tüm firmalara, depolara ve işlemlere sahiptir."
+                    : "İş grubu yalnızca işaretlenen firma, depo ve işlemleri görür.");
         }
     }
 
     private void close() {
         Stage stage = (Stage) btnSubmit.getScene().getWindow();
         stage.close();
+    }
+
+    private static Set<String> parseWarehouseCodes(String value) {
+        Set<String> codes = new HashSet<>();
+        if (value == null || value.isBlank()) {
+            return codes;
+        }
+        for (String token : value.split(",")) {
+            if (token != null && !token.isBlank()) {
+                codes.add(token.trim());
+            }
+        }
+        return codes;
     }
 
     private static GroupPermission findPermission(List<GroupPermission> rows, String menuId) {

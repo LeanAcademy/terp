@@ -21,15 +21,23 @@ import com.terp.plugin.TerpApplication;
 import com.terp.plugin.data.IAccountLookup;
 import com.terp.plugin.data.ICommonDao;
 import com.terp.plugin.data.IVatRateLookup;
+import com.terp.plugin.data.IWarehouseLookup;
 import com.terp.plugin.data.model.IAccount;
+import com.terp.plugin.data.model.IStockWarehouse;
 import com.terp.plugin.data.model.IVatRate;
+import com.terp.plugin.gui.DocumentPrint;
 import com.terp.plugin.gui.RecordAuditBar;
 import com.terp.stok.data.Item;
+import com.terp.stok.data.ItemBarcode;
 import com.terp.stok.data.ItemPartnerCode;
+import com.terp.stok.data.ItemWarehouseLevel;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.Set;
 import javafx.collections.FXCollections;
@@ -50,11 +58,14 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Stage;
 import org.controlsfx.validation.ValidationSupport;
 import org.controlsfx.validation.Validator;
+import com.terp.plugin.gui.NumericCells;
 
 public class ItemEditFormController implements Initializable {
 
     @FXML
     private Button btnSubmit;
+    @FXML
+    private Button btnPrintLabel;
     @FXML
     private Button btnCancel;
     @FXML
@@ -114,9 +125,9 @@ public class ItemEditFormController implements Initializable {
     @FXML
     private TableColumn<ItemPartnerCode, String> tcCustomerItemName;
     @FXML
-    private TextField txtItemUnit;
+    private ComboBox<String> cmbItemUnit;
     @FXML
-    private TextField txtSecondUnit;
+    private ComboBox<String> cmbSecondUnit;
     @FXML
     private TextField txtUnitFactor;
     @FXML
@@ -155,14 +166,48 @@ public class ItemEditFormController implements Initializable {
     private TextField txtPurchaseAccount;
     @FXML
     private TextField txtSalesAccount;
+    @FXML
+    private ComboBox<String> cmbLevelWarehouse;
+    @FXML
+    private TextField txtLevelMin;
+    @FXML
+    private TextField txtLevelOrder;
+    @FXML
+    private TextField txtLevelTarget;
+    @FXML
+    private TableView<ItemWarehouseLevel> tblLevels;
+    @FXML
+    private TableColumn<ItemWarehouseLevel, String> tcLevelWarehouse;
+    @FXML
+    private TableColumn<ItemWarehouseLevel, Double> tcLevelMin;
+    @FXML
+    private TableColumn<ItemWarehouseLevel, Double> tcLevelOrder;
+    @FXML
+    private TableColumn<ItemWarehouseLevel, Double> tcLevelTarget;
+    @FXML
+    private TextField txtExtraBarcode;
+    @FXML
+    private ComboBox<String> cmbBarcodeUnit;
+    @FXML
+    private TableView<ItemBarcode> tblBarcodes;
+    @FXML
+    private TableColumn<ItemBarcode, String> tcBarcodeValue;
+    @FXML
+    private TableColumn<ItemBarcode, String> tcBarcodeUnit;
 
     private ICommonDao<Item> itemDao;
     private ICommonDao<ItemPartnerCode> partnerCodeDao;
+    private ICommonDao<ItemWarehouseLevel> levelDao;
+    private ICommonDao<ItemBarcode> barcodeDao;
     private Item currentRow;
     private ValidationSupport validationSupport;
     private final ObservableList<ItemPartnerCode> supplierCodes = FXCollections.observableArrayList();
     private final ObservableList<ItemPartnerCode> customerCodes = FXCollections.observableArrayList();
+    private final ObservableList<ItemWarehouseLevel> warehouseLevels = FXCollections.observableArrayList();
+    private final ObservableList<ItemBarcode> extraBarcodes = FXCollections.observableArrayList();
     private final Set<Long> loadedPartnerIds = new HashSet<>();
+    private final Set<Long> loadedLevelIds = new HashSet<>();
+    private final Set<Long> loadedBarcodeIds = new HashSet<>();
     private boolean hadParseError;
     private RecordAuditBar auditBar;
 
@@ -170,8 +215,14 @@ public class ItemEditFormController implements Initializable {
         this.currentRow = row;
         supplierCodes.clear();
         customerCodes.clear();
+        warehouseLevels.clear();
+        extraBarcodes.clear();
         loadedPartnerIds.clear();
+        loadedLevelIds.clear();
+        loadedBarcodeIds.clear();
         fillVatRates();
+        fillUnits(List.of());
+        fillWarehouses();
         if (row == null) {
             cmbItemType.getSelectionModel().select(Item.TYPE_TRADE);
             chkActive.setSelected(true);
@@ -192,8 +243,9 @@ public class ItemEditFormController implements Initializable {
         txtGtin.setText(empty(row.getGtin()));
         txtOriginCountry.setText(empty(row.getOriginCountry()));
         txtNotes.setText(empty(row.getNotes()));
-        txtItemUnit.setText(empty(row.getItemUnit()));
-        txtSecondUnit.setText(empty(row.getSecondUnit()));
+        fillUnits(unitExtras(row.getItemUnit(), row.getSecondUnit()));
+        StockCombos.select(cmbItemUnit, row.getItemUnit());
+        StockCombos.select(cmbSecondUnit, row.getSecondUnit());
         txtUnitFactor.setText(num(row.getUnitFactor()));
         txtWeight.setText(num(row.getWeight()));
         txtVolume.setText(num(row.getVolume()));
@@ -228,6 +280,7 @@ public class ItemEditFormController implements Initializable {
                     }
                 }
             }
+            loadLevelsAndBarcodes(row.getItemId());
         }
         showAudit();
     }
@@ -261,7 +314,103 @@ public class ItemEditFormController implements Initializable {
     }
 
     @FXML
+    private void onActionAddLevel(ActionEvent event) {
+        hadParseError = false;
+        String warehouseCode = StockCombos.codeOf(cmbLevelWarehouse);
+        if (warehouseCode == null) {
+            showFormError("Eksik satır", "Depo seçin.");
+            return;
+        }
+        for (ItemWarehouseLevel existing : warehouseLevels) {
+            if (warehouseCode.equals(existing.getWarehouseCode())) {
+                showFormError("Mükerrer satır", "Bu depo zaten listede.");
+                return;
+            }
+        }
+        Double min = parseDouble(txtLevelMin.getText(), "Min");
+        Double order = parseDouble(txtLevelOrder.getText(), "Sipariş");
+        Double target = parseDouble(txtLevelTarget.getText(), "Hedef");
+        if (hadParseError) {
+            hadParseError = false;
+            return;
+        }
+        ItemWarehouseLevel row = new ItemWarehouseLevel();
+        row.setWarehouseCode(warehouseCode);
+        row.setMinStock(min);
+        row.setOrderLevel(order);
+        row.setTargetStock(target);
+        warehouseLevels.add(row);
+        cmbLevelWarehouse.getSelectionModel().clearSelection();
+        if (cmbLevelWarehouse.getEditor() != null) {
+            cmbLevelWarehouse.getEditor().clear();
+        }
+        txtLevelMin.clear();
+        txtLevelOrder.clear();
+        txtLevelTarget.clear();
+    }
+
+    @FXML
+    private void onActionRemoveLevel(ActionEvent event) {
+        ItemWarehouseLevel selected = tblLevels.getSelectionModel().getSelectedItem();
+        if (selected != null) {
+            warehouseLevels.remove(selected);
+        }
+    }
+
+    @FXML
+    private void onActionAddBarcode(ActionEvent event) {
+        String barcode = trimToNull(txtExtraBarcode.getText());
+        if (barcode == null) {
+            showFormError("Eksik satır", "Barkod yazın.");
+            return;
+        }
+        for (ItemBarcode existing : extraBarcodes) {
+            if (barcode.equals(existing.getBarcode())) {
+                showFormError("Mükerrer satır", "Bu barkod zaten listede.");
+                return;
+            }
+        }
+        ItemBarcode row = new ItemBarcode();
+        row.setBarcode(barcode);
+        row.setUnit(StockCombos.codeOf(cmbBarcodeUnit));
+        extraBarcodes.add(row);
+        txtExtraBarcode.clear();
+        cmbBarcodeUnit.getSelectionModel().clearSelection();
+        if (cmbBarcodeUnit.getEditor() != null) {
+            cmbBarcodeUnit.getEditor().clear();
+        }
+    }
+
+    @FXML
+    private void onActionRemoveBarcode(ActionEvent event) {
+        ItemBarcode selected = tblBarcodes.getSelectionModel().getSelectedItem();
+        if (selected != null) {
+            extraBarcodes.remove(selected);
+        }
+    }
+
+    @FXML
+    private void onActionBtnPrintLabel(ActionEvent event) {
+        String barcode = trimToNull(txtBarcode.getText());
+        if (barcode == null && !extraBarcodes.isEmpty()) {
+            barcode = extraBarcodes.get(0).getBarcode();
+        }
+        String unit = StockCombos.codeOf(cmbItemUnit);
+        Map<String, String> values = new LinkedHashMap<>();
+        values.put("ITEM_CODE", empty(txtItemId.getText()).trim());
+        values.put("ITEM_DESC", empty(txtItemDesc.getText()).trim());
+        values.put("BARCODE", barcode == null ? "" : barcode);
+        values.put("UNIT", unit == null ? "" : unit);
+        String body = "{ITEM_CODE}  {ITEM_DESC}\n{BARCODE}  {UNIT}";
+        javafx.stage.Window owner = btnPrintLabel == null || btnPrintLabel.getScene() == null
+                ? null : btnPrintLabel.getScene().getWindow();
+        DocumentPrint.print(owner, "STOK_ETIKET", "Stok etiket", body, values);
+    }
+
+    @FXML
     private void onActionBtnSubmit(ActionEvent event) {
+        commitCombo(cmbItemUnit);
+        commitCombo(cmbSecondUnit);
         if (validationSupport.isInvalid()) {
             Alert alert = new Alert(AlertType.ERROR);
             alert.setTitle("Form hatası");
@@ -322,8 +471,17 @@ public class ItemEditFormController implements Initializable {
         row.setGtin(trimToNull(txtGtin.getText()));
         row.setOriginCountry(trimToNull(txtOriginCountry.getText()));
         row.setNotes(trimToNull(txtNotes.getText()));
-        row.setItemUnit(txtItemUnit.getText().trim());
-        row.setSecondUnit(trimToNull(txtSecondUnit.getText()));
+        String itemUnit = StockCombos.codeOf(cmbItemUnit);
+        if (itemUnit == null) {
+            Alert alert = new Alert(AlertType.ERROR);
+            alert.setTitle("Form hatası");
+            alert.setHeaderText("Zorunlu alanlar eksik");
+            alert.setContentText("Kod, tanım ve ana birim zorunludur.");
+            alert.show();
+            return;
+        }
+        row.setItemUnit(itemUnit);
+        row.setSecondUnit(StockCombos.codeOf(cmbSecondUnit));
         row.setUnitFactor(unitFactor);
         row.setWeight(weight);
         row.setVolume(volume);
@@ -359,6 +517,7 @@ public class ItemEditFormController implements Initializable {
             return;
         }
         persistPartnerCodes(saved.getRowId(), now);
+        persistLevelsAndBarcodes(saved.getItemId());
         close();
     }
 
@@ -371,21 +530,36 @@ public class ItemEditFormController implements Initializable {
     public void initialize(URL url, ResourceBundle rb) {
         this.itemDao = TerpApplication.getInstance().getPersistence().createDao(Item.class);
         this.partnerCodeDao = TerpApplication.getInstance().getPersistence().createDao(ItemPartnerCode.class);
+        this.levelDao = TerpApplication.getInstance().getPersistence().createDao(ItemWarehouseLevel.class);
+        this.barcodeDao = TerpApplication.getInstance().getPersistence().createDao(ItemBarcode.class);
         cmbItemType.getItems().addAll(Item.TYPE_LABELS);
         cmbItemType.getSelectionModel().select(Item.TYPE_TRADE);
         bindPartnerTable(tblSupplierCodes, tcSupplierAccountCode, tcSupplierAccountName,
                 tcSupplierItemCode, tcSupplierItemName, supplierCodes);
         bindPartnerTable(tblCustomerCodes, tcCustomerAccountCode, tcCustomerAccountName,
                 tcCustomerItemCode, tcCustomerItemName, customerCodes);
+        tcLevelWarehouse.setCellValueFactory(new PropertyValueFactory<>("warehouseCode"));
+        tcLevelMin.setCellValueFactory(new PropertyValueFactory<>("minStock"));
+        NumericCells.apply(tcLevelMin);
+        tcLevelOrder.setCellValueFactory(new PropertyValueFactory<>("orderLevel"));
+        NumericCells.apply(tcLevelOrder);
+        tcLevelTarget.setCellValueFactory(new PropertyValueFactory<>("targetStock"));
+        NumericCells.apply(tcLevelTarget);
+        tblLevels.setItems(warehouseLevels);
+        tcBarcodeValue.setCellValueFactory(new PropertyValueFactory<>("barcode"));
+        tcBarcodeUnit.setCellValueFactory(new PropertyValueFactory<>("unit"));
+        tblBarcodes.setItems(extraBarcodes);
         fillAccountCombo(cmbSupplierAccount, true);
         fillAccountCombo(cmbCustomerAccount, false);
         fillVatRates();
+        fillUnits(List.of());
+        fillWarehouses();
         this.validationSupport = new ValidationSupport();
         this.validationSupport.registerValidator(txtItemId, true,
                 Validator.createEmptyValidator("Kod zorunlu"));
         this.validationSupport.registerValidator(txtItemDesc, true,
                 Validator.createEmptyValidator("Tanım zorunlu"));
-        this.validationSupport.registerValidator(txtItemUnit, true,
+        this.validationSupport.registerValidator(cmbItemUnit, true,
                 Validator.createEmptyValidator("Ana birim zorunlu"));
         this.auditBar = RecordAuditBar.install(txtItemId);
         showAudit();
@@ -410,6 +584,116 @@ public class ItemEditFormController implements Initializable {
                 partnerCodeDao.delete(oldId);
             }
         }
+    }
+
+    private void loadLevelsAndBarcodes(String itemCode) {
+        if (itemCode == null || itemCode.isBlank()) {
+            return;
+        }
+        String escaped = itemCode.replace("'", "''");
+        List<ItemWarehouseLevel> storedLevels = levelDao.findAll(
+                "from ItemWarehouseLevel e where " + CompanyScope.predicate("e")
+                        + " and e.itemCode = '" + escaped + "'");
+        if (storedLevels != null) {
+            for (ItemWarehouseLevel level : storedLevels) {
+                if (level.getRowId() != null) {
+                    loadedLevelIds.add(level.getRowId());
+                }
+                warehouseLevels.add(level);
+            }
+        }
+        List<ItemBarcode> storedBarcodes = barcodeDao.findAll(
+                "from ItemBarcode e where " + CompanyScope.predicate("e")
+                        + " and e.itemCode = '" + escaped + "'");
+        if (storedBarcodes != null) {
+            for (ItemBarcode barcode : storedBarcodes) {
+                if (barcode.getRowId() != null) {
+                    loadedBarcodeIds.add(barcode.getRowId());
+                }
+                extraBarcodes.add(barcode);
+            }
+        }
+    }
+
+    private void persistLevelsAndBarcodes(String itemCode) {
+        Set<Long> keepLevels = new HashSet<>();
+        for (ItemWarehouseLevel level : warehouseLevels) {
+            CompanyScope.stamp(level);
+            level.setItemCode(itemCode);
+            ItemWarehouseLevel saved = levelDao.addOrUpdate(level);
+            if (saved != null && saved.getRowId() != null) {
+                keepLevels.add(saved.getRowId());
+            } else if (level.getRowId() != null) {
+                keepLevels.add(level.getRowId());
+            }
+        }
+        for (Long oldId : loadedLevelIds) {
+            if (oldId != null && !keepLevels.contains(oldId)) {
+                levelDao.delete(oldId);
+            }
+        }
+        Set<Long> keepBarcodes = new HashSet<>();
+        for (ItemBarcode barcode : extraBarcodes) {
+            CompanyScope.stamp(barcode);
+            barcode.setItemCode(itemCode);
+            ItemBarcode saved = barcodeDao.addOrUpdate(barcode);
+            if (saved != null && saved.getRowId() != null) {
+                keepBarcodes.add(saved.getRowId());
+            } else if (barcode.getRowId() != null) {
+                keepBarcodes.add(barcode.getRowId());
+            }
+        }
+        for (Long oldId : loadedBarcodeIds) {
+            if (oldId != null && !keepBarcodes.contains(oldId)) {
+                barcodeDao.delete(oldId);
+            }
+        }
+    }
+
+    private static List<String> unitExtras(String... codes) {
+        List<String> extras = new ArrayList<>();
+        if (codes == null) {
+            return extras;
+        }
+        for (String code : codes) {
+            if (code != null && !code.isBlank()) {
+                extras.add(code);
+            }
+        }
+        return extras;
+    }
+
+    private void fillUnits(List<String> extras) {
+        List<String> extraCodes = extras == null ? new ArrayList<>() : new ArrayList<>(extras);
+        extraCodes.add(StockCombos.codeOf(cmbItemUnit));
+        extraCodes.add(StockCombos.codeOf(cmbSecondUnit));
+        StockForms.fillUnits(cmbItemUnit, extraCodes);
+        StockForms.fillUnits(cmbSecondUnit, extraCodes);
+        StockForms.fillUnits(cmbBarcodeUnit, extraCodes);
+    }
+
+    private void fillWarehouses() {
+        List<String> labels = new ArrayList<>();
+        IWarehouseLookup warehouses = TerpApplication.getInstance().getWarehouseLookup();
+        if (warehouses != null) {
+            List<IStockWarehouse> rows = warehouses.findActive();
+            if (rows != null) {
+                for (IStockWarehouse warehouse : rows) {
+                    if (warehouse != null && warehouse.getDisplayLabel() != null) {
+                        labels.add(warehouse.getDisplayLabel());
+                    }
+                }
+            }
+        }
+        StockCombos.fill(cmbLevelWarehouse, labels);
+    }
+
+    private void showFormError(String header, String content) {
+        Alert alert = new Alert(AlertType.ERROR);
+        alert.setTitle("Form hatası");
+        alert.setHeaderText(header);
+        alert.setContentText(content);
+        alert.show();
     }
 
     private Long savePartner(ItemPartnerCode code, Long itemRowId, int role, Date now) {
@@ -569,9 +853,8 @@ public class ItemEditFormController implements Initializable {
         if (text == null || text.isBlank()) {
             return null;
         }
-        try {
-            return Double.valueOf(text.trim().replace(',', '.'));
-        } catch (NumberFormatException ex) {
+        Double value = NumericCells.parse(text);
+        if (value == null) {
             hadParseError = true;
             Alert alert = new Alert(AlertType.ERROR);
             alert.setTitle("Sayı hatası");
@@ -580,6 +863,7 @@ public class ItemEditFormController implements Initializable {
             alert.show();
             return null;
         }
+        return value;
     }
 
     private Integer parseInt(String text, String field) {
@@ -609,7 +893,7 @@ public class ItemEditFormController implements Initializable {
     }
 
     private static String num(Double value) {
-        return value == null ? "" : value.toString();
+        return NumericCells.text(value);
     }
 
     private static String trimToNull(String value) {
@@ -618,6 +902,17 @@ public class ItemEditFormController implements Initializable {
         }
         String trimmed = value.trim();
         return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private static void commitCombo(ComboBox<String> combo) {
+        if (combo == null || combo.getEditor() == null) {
+            return;
+        }
+        String text = combo.getEditor().getText();
+        if (text != null && !text.isBlank()
+                && (combo.getValue() == null || combo.getValue().isBlank())) {
+            combo.setValue(text.trim());
+        }
     }
 
     private static String comboCode(ComboBox<String> combo) {

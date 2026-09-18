@@ -94,6 +94,9 @@ public class EditCompanyFormController implements Initializable {
     
     @FXML
     private TextField txtCity;
+
+    @FXML
+    private TextField txtCurrency;
     
 //</editor-fold>
     
@@ -164,6 +167,8 @@ public class EditCompanyFormController implements Initializable {
         applyIfPresent(txtPhone, newCompany::setPhone);
         applyIfPresent(txtFax, newCompany::setFax);
         applyIfPresent(txtEmail, newCompany::setEmail);
+        String currency = textOf(txtCurrency);
+        newCompany.setCurrency(currency.isBlank() ? "TRY" : currency.trim());
         newCompany.setNotes(textOf(txtNotes));
         newCompany.setStatus(this.chkActive.isSelected() ? 0 : 1);
         
@@ -228,6 +233,7 @@ public class EditCompanyFormController implements Initializable {
         this.txtRowId.setText(row.getRowId() == null ? "" : row.getRowId().toString());
         this.txtStateTaxId.setText(empty(row.getStateTaxCode()));
         this.txtStateTaxRegion.setText(empty(row.getStateTaxRegion()));
+        this.txtCurrency.setText(empty(row.getCurrency()));
         this.chkActive.setSelected(row.getStatus() == 0);
         if (auditBar != null) {
             auditBar.bind(row);

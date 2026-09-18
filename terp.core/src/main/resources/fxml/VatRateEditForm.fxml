@@ -30,7 +30,7 @@
                 <Label text="Ad" GridPane.rowIndex="1" />
                 <TextField fx:id="txtRateName" GridPane.columnIndex="1" GridPane.rowIndex="1" />
                 <Label text="Oran %" GridPane.rowIndex="2" />
-                <TextField fx:id="txtRate" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                <TextField alignment="CENTER_RIGHT" fx:id="txtRate" GridPane.columnIndex="1" GridPane.rowIndex="2" />
                 <CheckBox fx:id="chkActive" mnemonicParsing="false" selected="true" text="Aktif" GridPane.columnIndex="1" GridPane.rowIndex="3" />
             </children>
         </GridPane>

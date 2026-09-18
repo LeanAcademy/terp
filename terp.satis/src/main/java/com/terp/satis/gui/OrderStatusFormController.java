@@ -39,6 +39,7 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
+import com.terp.plugin.gui.NumericCells;
 
 public class OrderStatusFormController implements Initializable {
 
@@ -108,8 +109,11 @@ public class OrderStatusFormController implements Initializable {
         this.tcItemDesc.setCellValueFactory(new PropertyValueFactory<>("itemDesc"));
         this.tcItemUnit.setCellValueFactory(new PropertyValueFactory<>("itemUnit"));
         this.tcOrderedQty.setCellValueFactory(new PropertyValueFactory<>("orderedQty"));
+        NumericCells.apply(this.tcOrderedQty);
         this.tcDeliveredQty.setCellValueFactory(new PropertyValueFactory<>("deliveredQty"));
+        NumericCells.apply(this.tcDeliveredQty);
         this.tcRemainingQty.setCellValueFactory(new PropertyValueFactory<>("remainingQty"));
+        NumericCells.apply(this.tcRemainingQty);
         this.tcBalanceLabel.setCellValueFactory(new PropertyValueFactory<>("balanceLabel"));
         this.tcDocumentStatusLabel.setCellValueFactory(new PropertyValueFactory<>("documentStatusLabel"));
         refreshView();

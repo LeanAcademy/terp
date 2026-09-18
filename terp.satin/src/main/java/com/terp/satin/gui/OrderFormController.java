@@ -52,6 +52,7 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
+import com.terp.plugin.gui.NumericCells;
 
 public class OrderFormController implements Initializable {
 
@@ -173,9 +174,14 @@ public class OrderFormController implements Initializable {
         if (selected == null) {
             return;
         }
-        if (PurchaseDocs.hasPostedReceipt(receiptDao, receiptLineDao, lineDao, selected.getRowId())) {
+        if (selected.isReceived()
+                || PurchaseDocs.hasPostedReceipt(receiptDao, receiptLineDao, lineDao, selected.getRowId())) {
             SatinDates.showError("Satınalma siparişi", "Mal kabule bağlı",
-                    "Önce bağlı mal kabul belgesini iptal veya silin.");
+                    "Teslim alınmış sipariş silinemez. Önce bağlı mal kabul belgesini iptal veya silin.");
+            return;
+        }
+        if (selected.isCancelled()) {
+            SatinDates.showError("Satınalma siparişi", "İptal", "İptal edilmiş sipariş silinemez.");
             return;
         }
         String message = selected.isApproved()
@@ -192,7 +198,7 @@ public class OrderFormController implements Initializable {
                     selected.setStatus(PurchaseOrder.STATUS_CANCELLED);
                     selected.setLastUpdateDate(new Date());
                     orderDao.addOrUpdate(selected);
-                } else {
+                } else if (selected.isDraft()) {
                     PurchaseDocs.deleteByParent(lineDao, "PurchaseOrderLine", "orderId",
                             selected.getRowId());
                     orderDao.delete(selected.getRowId());
@@ -234,7 +240,9 @@ public class OrderFormController implements Initializable {
         this.tcLineItemDesc.setCellValueFactory(new PropertyValueFactory<>("itemDesc"));
         this.tcLineItemUnit.setCellValueFactory(new PropertyValueFactory<>("itemUnit"));
         this.tcLineQuantity.setCellValueFactory(new PropertyValueFactory<>("quantity"));
+        NumericCells.apply(this.tcLineQuantity);
         this.tcLineUnitPrice.setCellValueFactory(new PropertyValueFactory<>("unitPrice"));
+        NumericCells.apply(this.tcLineUnitPrice);
         this.tblvLineView.setPlaceholder(new Label("Belge satırı yok"));
         this.pgnOrderData.currentPageIndexProperty().addListener(
                 (ObservableValue<? extends Number> observable, Number oldValue, Number newValue) -> {
@@ -327,7 +335,10 @@ public class OrderFormController implements Initializable {
         boolean receiveDisabled = size != 1 || selected == null
                 || !PurchaseDocs.hasReceivableBalance(selected, lineDao, receiptDao, receiptLineDao, settingsDao)
                 || !receiptRights.add;
-        updateButtons(size != 1, size == 0, receiveDisabled);
+        boolean deleteDisabled = size == 0 || selected == null || selected.isReceived()
+                || selected.isCancelled()
+                || PurchaseDocs.hasPostedReceipt(receiptDao, receiptLineDao, lineDao, selected.getRowId());
+        updateButtons(size != 1, deleteDisabled, receiveDisabled);
         if (!syncingSelection && size == 1) {
             showLines(selected);
         }

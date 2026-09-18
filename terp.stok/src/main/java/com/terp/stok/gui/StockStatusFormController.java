@@ -21,6 +21,7 @@ import com.terp.plugin.TerpApplication;
 import com.terp.plugin.data.ICommonDao;
 import com.terp.plugin.gui.IIconFactory;
 import com.terp.stok.data.Item;
+import com.terp.stok.data.ItemWarehouseLevel;
 import com.terp.stok.data.StockBalanceRow;
 import com.terp.stok.data.StockBalances;
 import com.terp.stok.data.StockMovement;
@@ -40,6 +41,7 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
+import com.terp.plugin.gui.NumericCells;
 
 public class StockStatusFormController implements Initializable {
 
@@ -70,6 +72,10 @@ public class StockStatusFormController implements Initializable {
     @FXML
     private TableColumn<StockBalanceRow, Double> tcQuantity;
     @FXML
+    private TableColumn<StockBalanceRow, Double> tcUnitCost;
+    @FXML
+    private TableColumn<StockBalanceRow, Double> tcStockValue;
+    @FXML
     private TableColumn<StockBalanceRow, Double> tcMinStock;
     @FXML
     private TableColumn<StockBalanceRow, Double> tcMaxStock;
@@ -79,6 +85,7 @@ public class StockStatusFormController implements Initializable {
     private ICommonDao<Warehouse> warehouseDao;
     private ICommonDao<Item> itemDao;
     private ICommonDao<StockMovement> movementDao;
+    private ICommonDao<ItemWarehouseLevel> levelDao;
 
     @FXML
     public void onActionBtnRefresh(ActionEvent event) {
@@ -90,6 +97,7 @@ public class StockStatusFormController implements Initializable {
         this.warehouseDao = TerpApplication.getInstance().getPersistence().createDao(Warehouse.class);
         this.itemDao = TerpApplication.getInstance().getPersistence().createDao(Item.class);
         this.movementDao = TerpApplication.getInstance().getPersistence().createDao(StockMovement.class);
+        this.levelDao = TerpApplication.getInstance().getPersistence().createDao(ItemWarehouseLevel.class);
         IIconFactory icons = TerpApplication.getInstance().getIconFactory();
         if (icons != null) {
             try {
@@ -104,8 +112,15 @@ public class StockStatusFormController implements Initializable {
         this.tcItemDesc.setCellValueFactory(new PropertyValueFactory<>("itemDesc"));
         this.tcItemUnit.setCellValueFactory(new PropertyValueFactory<>("itemUnit"));
         this.tcQuantity.setCellValueFactory(new PropertyValueFactory<>("quantity"));
+        NumericCells.apply(this.tcQuantity);
+        this.tcUnitCost.setCellValueFactory(new PropertyValueFactory<>("unitCost"));
+        NumericCells.apply(this.tcUnitCost);
+        this.tcStockValue.setCellValueFactory(new PropertyValueFactory<>("stockValue"));
+        NumericCells.apply(this.tcStockValue);
         this.tcMinStock.setCellValueFactory(new PropertyValueFactory<>("minStock"));
+        NumericCells.apply(this.tcMinStock);
         this.tcMaxStock.setCellValueFactory(new PropertyValueFactory<>("maxStock"));
+        NumericCells.apply(this.tcMaxStock);
         this.tcStatusLabel.setCellValueFactory(new PropertyValueFactory<>("statusLabel"));
         fillWarehouses();
         refreshView();
@@ -130,12 +145,14 @@ public class StockStatusFormController implements Initializable {
         List<Warehouse> warehouses = warehouseDao.findAll(CompanyScope.from("Warehouse"));
         List<Item> items = itemDao.findAll(CompanyScope.from("Item"));
         List<StockMovement> movements = movementDao.findAll(CompanyScope.from("StockMovement"));
+        List<ItemWarehouseLevel> levels = levelDao.findAll(CompanyScope.from("ItemWarehouseLevel"));
         boolean onlyNonZero = chkOnlyNonZero != null && chkOnlyNonZero.isSelected();
         boolean onlyBelowMin = chkOnlyBelowMin != null && chkOnlyBelowMin.isSelected();
         List<StockBalanceRow> rows = StockBalances.report(
                 warehouses == null ? List.of() : warehouses,
                 items == null ? List.of() : items,
                 movements,
+                levels == null ? List.of() : levels,
                 onlyNonZero,
                 onlyBelowMin);
         String warehouseCode = selectedWarehouseCode();

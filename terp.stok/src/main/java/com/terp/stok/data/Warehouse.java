@@ -151,6 +151,11 @@ public class Warehouse extends CommonFields implements Serializable, ICompanySco
         return getAllowNegative() != 0;
     }
 
+    @Override
+    public boolean allowsNegative() {
+        return isNegativeAllowed();
+    }
+
     public int getStatus() {
         return status == null ? 0 : status;
     }

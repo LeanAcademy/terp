@@ -21,14 +21,20 @@ import com.terp.plugin.PluginMenu;
 import com.terp.plugin.TerpApplication;
 import com.terp.plugin.gui.IDesktopManager;
 import com.terp.stok.data.Item;
+import com.terp.stok.data.ItemBarcode;
 import com.terp.stok.data.ItemLookup;
 import com.terp.stok.data.ItemPartnerCode;
+import com.terp.stok.data.ItemWarehouseLevel;
 import com.terp.stok.data.MovementReason;
 import com.terp.stok.data.MovementReasonLookup;
+import com.terp.stok.data.MovementReasons;
 import com.terp.stok.data.StockCount;
 import com.terp.stok.data.StockCountLine;
+import com.terp.stok.data.StockOpening;
+import com.terp.stok.data.StockOpeningLine;
 import com.terp.stok.data.StockLedger;
 import com.terp.stok.data.StockMovement;
+import com.terp.stok.data.StockMovements;
 import com.terp.stok.data.Warehouse;
 import com.terp.stok.data.WarehouseLookup;
 import java.io.IOException;
@@ -56,7 +62,9 @@ public class Plugin implements IPlugin {
         this.app = TerpApplication.getInstance();
         this.desktopManager = app.getDesktopManager();
         if (app.getPersistence() != null) {
-            ItemLookup items = new ItemLookup(app.getPersistence().createDao(Item.class));
+            ItemLookup items = new ItemLookup(
+                    app.getPersistence().createDao(Item.class),
+                    app.getPersistence().createDao(ItemBarcode.class));
             WarehouseLookup warehouses = new WarehouseLookup(app.getPersistence().createDao(Warehouse.class));
             MovementReasonLookup reasons = new MovementReasonLookup(
                     app.getPersistence().createDao(MovementReason.class));
@@ -66,6 +74,8 @@ public class Plugin implements IPlugin {
             app.setStockLedger(new StockLedger(
                     app.getPersistence().createDao(StockMovement.class),
                     items, warehouses, reasons));
+            MovementReasons.ensureSeeded(app.getPersistence().createDao(MovementReason.class));
+            StockMovements.normalize(app.getPersistence().createDao(StockMovement.class));
         }
     }
 
@@ -101,8 +111,9 @@ public class Plugin implements IPlugin {
 
     @Override
     public List<Class<?>> getPersistentClasses() {
-        return List.of(Item.class, ItemPartnerCode.class, Warehouse.class, StockMovement.class,
-                MovementReason.class, StockCount.class, StockCountLine.class);
+        return List.of(Item.class, ItemPartnerCode.class, ItemWarehouseLevel.class, ItemBarcode.class,
+                Warehouse.class, StockMovement.class, MovementReason.class, StockCount.class,
+                StockCountLine.class, StockOpening.class, StockOpeningLine.class);
     }
 
     @Override
@@ -112,6 +123,7 @@ public class Plugin implements IPlugin {
                 PluginMenu.program("STK02", "Malzeme kartı", "STK01", "ItemForm"),
                 PluginMenu.program("STK04", "Stok işlemleri", "STK01", "MovementForm"),
                 PluginMenu.program("STK07", "Stok sayım", "STK01", "CountForm"),
+                PluginMenu.program("STK08", "Stok açılış", "STK01", "OpeningForm"),
                 PluginMenu.program("STK05", "Stok durum", "STK01", "StockStatusForm"),
                 PluginMenu.program("STK03", "Depo tanımı", "SYS01", "WarehouseForm"),
                 PluginMenu.program("STK06", "Hareket nedeni", "SYS01", "ReasonForm"));
@@ -156,6 +168,9 @@ public class Plugin implements IPlugin {
         }
         if ("CountForm".equals(program)) {
             return "STK07";
+        }
+        if ("OpeningForm".equals(program)) {
+            return "STK08";
         }
         if ("ReasonForm".equals(program)) {
             return "STK06";

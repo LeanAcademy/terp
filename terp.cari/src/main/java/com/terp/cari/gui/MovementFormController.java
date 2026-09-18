@@ -52,6 +52,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import com.terp.plugin.gui.NumericCells;
 
 public class MovementFormController implements Initializable {
 
@@ -194,6 +195,7 @@ public class MovementFormController implements Initializable {
         this.tcAccountCode.setCellValueFactory(new PropertyValueFactory<>("accountCode"));
         this.tcAccountName.setCellValueFactory(new PropertyValueFactory<>("accountName"));
         this.tcAmount.setCellValueFactory(new PropertyValueFactory<>("amount"));
+        NumericCells.apply(this.tcAmount);
         this.tcDocumentNo.setCellValueFactory(new PropertyValueFactory<>("documentNo"));
         this.tcSourceLabel.setCellValueFactory(new PropertyValueFactory<>("sourceLabel"));
         this.pgnMovementData.currentPageIndexProperty().addListener(

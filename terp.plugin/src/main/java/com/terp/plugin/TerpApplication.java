@@ -26,14 +26,19 @@ import com.terp.plugin.data.IDocumentNumbers;
 import com.terp.plugin.data.IItemLookup;
 import com.terp.plugin.data.IMovementReasonLookup;
 import com.terp.plugin.data.IPersistence;
+import com.terp.plugin.data.IProductionOrders;
 import com.terp.plugin.data.IStockLedger;
 import com.terp.plugin.data.IUserLookup;
 import com.terp.plugin.data.IVatRateLookup;
 import com.terp.plugin.data.IWarehouseLookup;
+import com.terp.plugin.data.IUnitLookup;
+import com.terp.plugin.data.IExchangeRateLookup;
+import com.terp.plugin.data.IDocumentTemplates;
 import com.terp.plugin.data.model.ICompany;
 import com.terp.plugin.gui.IDesktopManager;
 import com.terp.plugin.gui.IMenuManager;
 import com.terp.plugin.gui.IIconFactory;
+import java.time.LocalDate;
 
 /**
  *
@@ -56,12 +61,18 @@ public class TerpApplication {
     private IWarehouseLookup warehouseLookup;
     private IMovementReasonLookup movementReasonLookup;
     private IStockLedger stockLedger;
+    private IProductionOrders productionOrders;
     private IUserLookup userLookup;
     private IDocumentNumbers documentNumbers;
     private IVatRateLookup vatRateLookup;
+    private IUnitLookup unitLookup;
+    private IExchangeRateLookup exchangeRateLookup;
+    private IDocumentTemplates documentTemplates;
     private ICompany currentCompany;
     private IIconFactory iconFactory;
     private ClassLoader loader;
+    private LocalDate periodFrom;
+    private LocalDate periodTo;
     
     private TerpApplication(){
         
@@ -223,6 +234,14 @@ public class TerpApplication {
         this.stockLedger = stockLedger;
     }
 
+    public IProductionOrders getProductionOrders() {
+        return productionOrders;
+    }
+
+    public void setProductionOrders(IProductionOrders productionOrders) {
+        this.productionOrders = productionOrders;
+    }
+
     public IUserLookup getUserLookup() {
         return userLookup;
     }
@@ -245,6 +264,46 @@ public class TerpApplication {
 
     public void setVatRateLookup(IVatRateLookup vatRateLookup) {
         this.vatRateLookup = vatRateLookup;
+    }
+
+    public IUnitLookup getUnitLookup() {
+        return unitLookup;
+    }
+
+    public void setUnitLookup(IUnitLookup unitLookup) {
+        this.unitLookup = unitLookup;
+    }
+
+    public IExchangeRateLookup getExchangeRateLookup() {
+        return exchangeRateLookup;
+    }
+
+    public void setExchangeRateLookup(IExchangeRateLookup exchangeRateLookup) {
+        this.exchangeRateLookup = exchangeRateLookup;
+    }
+
+    public IDocumentTemplates getDocumentTemplates() {
+        return documentTemplates;
+    }
+
+    public void setDocumentTemplates(IDocumentTemplates documentTemplates) {
+        this.documentTemplates = documentTemplates;
+    }
+
+    public LocalDate getPeriodFrom() {
+        return periodFrom;
+    }
+
+    public void setPeriodFrom(LocalDate periodFrom) {
+        this.periodFrom = periodFrom;
+    }
+
+    public LocalDate getPeriodTo() {
+        return periodTo;
+    }
+
+    public void setPeriodTo(LocalDate periodTo) {
+        this.periodTo = periodTo;
     }
 
     public ICompany getCurrentCompany() {

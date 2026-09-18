@@ -22,6 +22,7 @@ import com.terp.plugin.TerpApplication;
 import com.terp.plugin.data.ICommonDao;
 import com.terp.satin.data.PurchaseDocs;
 import com.terp.satin.data.PurchaseSettings;
+import com.terp.plugin.gui.NumericCells;
 import com.terp.plugin.gui.RecordAuditBar;
 import java.net.URL;
 import java.util.Date;
@@ -82,12 +83,12 @@ public class SettingsFormController implements Initializable {
         this.btnSave.setDisable(!rights.add && !rights.edit);
         this.auditBar = RecordAuditBar.install(txtOverReceiptPercent);
         if (!CompanyScope.hasCompany()) {
-            txtOverReceiptPercent.setText("0");
+            txtOverReceiptPercent.setText(NumericCells.format(0d));
             showAudit(null);
             return;
         }
         PurchaseSettings row = PurchaseDocs.loadSettings(settingsDao);
-        txtOverReceiptPercent.setText(row == null ? "0" : Double.toString(row.getOverReceiptPercent()));
+        txtOverReceiptPercent.setText(NumericCells.text(row == null ? 0d : row.getOverReceiptPercent()));
         showAudit(row);
     }
 

@@ -92,7 +92,8 @@ public final class SalesDocs {
         }
         List<SalesDelivery> posted = deliveryDao.findAll(
                 "from SalesDelivery e where e.sourceOrderId = " + orderId
-                        + " and e.status = " + SalesDelivery.STATUS_POSTED);
+                        + " and e.status in (" + SalesDelivery.STATUS_POSTED
+                        + "," + SalesDelivery.STATUS_INVOICED + ")");
         if (posted != null && !posted.isEmpty()) {
             return true;
         }
@@ -593,7 +594,7 @@ public final class SalesDocs {
             if (delivery == null || delivery.isCancelled()) {
                 continue;
             }
-            if (delivery.isPosted() || (includeDraft && delivery.isDraft())) {
+            if (delivery.countsAsPosted() || (includeDraft && delivery.isDraft())) {
                 sum += line.getQuantity() == null ? 0d : line.getQuantity();
             }
         }
@@ -684,7 +685,8 @@ public final class SalesDocs {
             return totals;
         }
         List<SalesDelivery> deliveries = deliveryDao.findAll(CompanyScope.from("SalesDelivery")
-                + " and e.status = " + SalesDelivery.STATUS_POSTED);
+                + " and e.status in (" + SalesDelivery.STATUS_POSTED
+                + "," + SalesDelivery.STATUS_INVOICED + ")");
         if (deliveries == null || deliveries.isEmpty()) {
             return totals;
         }

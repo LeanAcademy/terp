@@ -220,5 +220,18 @@ public class Company extends CommonFields implements Serializable, ICompany {
     public void setEmail(String email) {
         this.email = email;
     }
+
+    @Column(name = "para_birimi", length = 10)
+    private String currency;
+
+    @Override
+    public String getCurrency() {
+        return currency == null || currency.isBlank() ? "TRY" : currency;
+    }
+
+    @Override
+    public void setCurrency(String currency) {
+        this.currency = currency;
+    }
     
 }

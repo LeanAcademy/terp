@@ -35,7 +35,7 @@
                                         <ColumnConstraints prefWidth="160.0" />
                                     </columnConstraints>
                                     <children>
-                                        <TextField fx:id="txtDocumentNo" promptText="Belge no" />
+                                        <TextField fx:id="txtDocumentNo" promptText="Sistem / belge no" />
                                         <TextField fx:id="txtAccountCode" promptText="Tedarikçi" GridPane.columnIndex="1" />
                                         <ComboBox fx:id="cmbSearchStatus" prefWidth="160.0" promptText="Durum" GridPane.columnIndex="2" />
                                     </children>
@@ -50,7 +50,8 @@
                         <TableView fx:id="tblvInvoiceView" tableMenuButtonVisible="true" BorderPane.alignment="CENTER">
                             <columns>
                                 <TableColumn fx:id="tcDateLabel" prefWidth="100.0" text="Tarih" />
-                                <TableColumn fx:id="tcDocumentNo" prefWidth="120.0" text="Belge" />
+                                <TableColumn fx:id="tcDocumentNo" prefWidth="110.0" text="Sistem no" />
+                                <TableColumn fx:id="tcOfficialNo" prefWidth="120.0" text="Belge no" />
                                 <TableColumn fx:id="tcAccountCode" prefWidth="110.0" text="Cari" />
                                 <TableColumn fx:id="tcAccountName" prefWidth="200.0" text="Unvan" />
                                 <TableColumn fx:id="tcWarehouseCode" prefWidth="90.0" text="Depo" />

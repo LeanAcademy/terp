@@ -130,6 +130,16 @@
             <Font size="11.0" />
          </font>
       </TextField>
+      <Label layoutX="440.0" layoutY="46.0" prefHeight="30.0" prefWidth="100.0" text="Para birimi" AnchorPane.leftAnchor="440.0" AnchorPane.topAnchor="46.0">
+         <font>
+            <Font size="11.0" />
+         </font>
+      </Label>
+      <TextField fx:id="txtCurrency" layoutX="540.0" layoutY="49.0" prefHeight="25.0" prefWidth="80.0" promptText="TRY" AnchorPane.leftAnchor="540.0" AnchorPane.topAnchor="49.0">
+         <font>
+            <Font size="11.0" />
+         </font>
+      </TextField>
       <CheckBox fx:id="chkActive" layoutX="539.0" layoutY="77.0" mnemonicParsing="false" text="Active" AnchorPane.leftAnchor="540.0" AnchorPane.topAnchor="77.0">
          <font>
             <Font size="11.0" />

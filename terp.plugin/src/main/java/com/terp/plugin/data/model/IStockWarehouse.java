@@ -38,4 +38,8 @@ public interface IStockWarehouse {
         }
         return code + " — " + name;
     }
+
+    default boolean allowsNegative() {
+        return false;
+    }
 }

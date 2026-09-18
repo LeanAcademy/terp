@@ -53,6 +53,7 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
+import com.terp.plugin.gui.NumericCells;
 
 public class DeliveryFormController implements Initializable {
 
@@ -84,6 +85,8 @@ public class DeliveryFormController implements Initializable {
     private Pagination pgnDeliveryData;
     @FXML
     private TableColumn<SalesDelivery, String> tcDateLabel;
+    @FXML
+    private TableColumn<SalesDelivery, String> tcShipmentDateLabel;
     @FXML
     private TableColumn<SalesDelivery, String> tcDocumentNo;
     @FXML
@@ -244,6 +247,7 @@ public class DeliveryFormController implements Initializable {
         cmbSearchStatus.getItems().addAll(ALL_STATUS, "Taslak", "Onaylı", "Faturalandı", "İptal");
         cmbSearchStatus.getSelectionModel().select(ALL_STATUS);
         this.tcDateLabel.setCellValueFactory(new PropertyValueFactory<>("dateLabel"));
+        this.tcShipmentDateLabel.setCellValueFactory(new PropertyValueFactory<>("shipmentDateLabel"));
         this.tcDocumentNo.setCellValueFactory(new PropertyValueFactory<>("documentNo"));
         this.tcAccountCode.setCellValueFactory(new PropertyValueFactory<>("accountCode"));
         this.tcAccountName.setCellValueFactory(new PropertyValueFactory<>("accountName"));
@@ -256,7 +260,9 @@ public class DeliveryFormController implements Initializable {
         this.tcLineItemDesc.setCellValueFactory(new PropertyValueFactory<>("itemDesc"));
         this.tcLineItemUnit.setCellValueFactory(new PropertyValueFactory<>("itemUnit"));
         this.tcLineQuantity.setCellValueFactory(new PropertyValueFactory<>("quantity"));
+        NumericCells.apply(this.tcLineQuantity);
         this.tcLineUnitPrice.setCellValueFactory(new PropertyValueFactory<>("unitPrice"));
+        NumericCells.apply(this.tcLineUnitPrice);
         this.tblvLineView.setPlaceholder(new Label("Belge satırı yok"));
         this.pgnDeliveryData.currentPageIndexProperty().addListener(
                 (ObservableValue<? extends Number> observable, Number oldValue, Number newValue) -> {

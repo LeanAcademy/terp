@@ -38,6 +38,7 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
+import com.terp.plugin.gui.NumericCells;
 
 public class AccountStatusFormController implements Initializable {
 
@@ -88,8 +89,11 @@ public class AccountStatusFormController implements Initializable {
         this.tcAccountName.setCellValueFactory(new PropertyValueFactory<>("accountName"));
         this.tcRoleLabel.setCellValueFactory(new PropertyValueFactory<>("roleLabel"));
         this.tcDebitTotal.setCellValueFactory(new PropertyValueFactory<>("debitTotal"));
+        NumericCells.apply(this.tcDebitTotal);
         this.tcCreditTotal.setCellValueFactory(new PropertyValueFactory<>("creditTotal"));
+        NumericCells.apply(this.tcCreditTotal);
         this.tcBalance.setCellValueFactory(new PropertyValueFactory<>("balance"));
+        NumericCells.apply(this.tcBalance);
         this.tcBalanceLabel.setCellValueFactory(new PropertyValueFactory<>("balanceLabel"));
         refreshView();
     }

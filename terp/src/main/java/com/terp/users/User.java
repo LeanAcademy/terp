@@ -43,6 +43,7 @@ public final class User implements IUser {
     private final EmployeeDaoImpl employeeDao;
     private Object password;
     private final Set<Long> companyIds = new HashSet<>();
+    private final Set<String> warehouseCodes = new HashSet<>();
     private final Map<String, GroupPermission> menuRights = new HashMap<>();
 
     public User() {
@@ -154,6 +155,20 @@ public final class User implements IUser {
         return new ArrayList<>(companyIds);
     }
 
+    @Override
+    public boolean canUseWarehouse(String warehouseCode) {
+        if (administrator) {
+            return true;
+        }
+        if (warehouseCodes.isEmpty()) {
+            return true;
+        }
+        if (warehouseCode == null || warehouseCode.isBlank()) {
+            return false;
+        }
+        return warehouseCodes.contains(warehouseCode.trim());
+    }
+
     public void login() {
         if (this.authenticated) {
             return;
@@ -172,11 +187,24 @@ public final class User implements IUser {
             EmployeeGroup group = emp.getGroup() instanceof EmployeeGroup eg ? eg : null;
             this.groupId = group == null || group.getRowId() == null ? -1 : group.getRowId();
             this.administrator = group != null && group.isSystemAdmin();
+            loadWarehouseCodes(group);
             loadRights();
         } else {
             this.authenticated = false;
             this.groupId = -1;
             this.administrator = false;
+        }
+    }
+
+    private void loadWarehouseCodes(EmployeeGroup group) {
+        warehouseCodes.clear();
+        if (group == null || group.getWarehouseCodes() == null || group.getWarehouseCodes().isBlank()) {
+            return;
+        }
+        for (String token : group.getWarehouseCodes().split(",")) {
+            if (token != null && !token.isBlank()) {
+                warehouseCodes.add(token.trim());
+            }
         }
     }
 

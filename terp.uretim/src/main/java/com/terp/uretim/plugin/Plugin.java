@@ -20,6 +20,10 @@ import com.terp.plugin.IPlugin;
 import com.terp.plugin.PluginMenu;
 import com.terp.plugin.TerpApplication;
 import com.terp.plugin.gui.IDesktopManager;
+import com.terp.uretim.data.ProductionCompletion;
+import com.terp.uretim.data.ProductionCompletionMaterial;
+import com.terp.uretim.data.ProductionOrder;
+import com.terp.uretim.data.ProductionOrderMaterial;
 import com.terp.uretim.data.Recipe;
 import com.terp.uretim.data.RecipeLine;
 import java.io.IOException;
@@ -46,6 +50,7 @@ public class Plugin implements IPlugin {
     public void run() {
         this.app = TerpApplication.getInstance();
         this.desktopManager = app.getDesktopManager();
+        app.setProductionOrders(new ProductionOrders());
     }
 
     @Override
@@ -80,14 +85,18 @@ public class Plugin implements IPlugin {
 
     @Override
     public List<Class<?>> getPersistentClasses() {
-        return List.of(Recipe.class, RecipeLine.class);
+        return List.of(Recipe.class, RecipeLine.class,
+                ProductionOrder.class, ProductionOrderMaterial.class,
+                ProductionCompletion.class, ProductionCompletionMaterial.class);
     }
 
     @Override
     public List<PluginMenu> getMenus() {
         return List.of(
                 PluginMenu.folder("URT01", "Üretim"),
-                PluginMenu.program("URT02", "Reçete", "URT01", "RecipeForm"));
+                PluginMenu.program("URT02", "Reçete", "URT01", "RecipeForm"),
+                PluginMenu.program("URT03", "Üretim emri", "URT01", "ProductionOrderForm"),
+                PluginMenu.program("URT04", "İş bitti", "URT01", "ProductionCompletionListForm"));
     }
 
     @Override
@@ -117,6 +126,12 @@ public class Plugin implements IPlugin {
     private static String programMenuId(String program) {
         if ("RecipeForm".equals(program)) {
             return "URT02";
+        }
+        if ("ProductionOrderForm".equals(program)) {
+            return "URT03";
+        }
+        if ("ProductionCompletionListForm".equals(program)) {
+            return "URT04";
         }
         return program;
     }

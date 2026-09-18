@@ -49,6 +49,7 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
+import com.terp.plugin.gui.NumericCells;
 
 public class QuoteFormController implements Initializable {
 
@@ -219,7 +220,9 @@ public class QuoteFormController implements Initializable {
         this.tcLineItemDesc.setCellValueFactory(new PropertyValueFactory<>("itemDesc"));
         this.tcLineItemUnit.setCellValueFactory(new PropertyValueFactory<>("itemUnit"));
         this.tcLineQuantity.setCellValueFactory(new PropertyValueFactory<>("quantity"));
+        NumericCells.apply(this.tcLineQuantity);
         this.tcLineUnitPrice.setCellValueFactory(new PropertyValueFactory<>("unitPrice"));
+        NumericCells.apply(this.tcLineUnitPrice);
         this.tblvLineView.setPlaceholder(new Label("Belge satırı yok"));
         this.pgnQuoteData.currentPageIndexProperty().addListener(
                 (ObservableValue<? extends Number> observable, Number oldValue, Number newValue) -> {

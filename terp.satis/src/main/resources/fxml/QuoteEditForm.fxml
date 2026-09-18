@@ -42,9 +42,9 @@
         <HBox spacing="8.0" AnchorPane.leftAnchor="16.0" AnchorPane.rightAnchor="16.0" AnchorPane.topAnchor="190.0">
             <children>
                 <ComboBox fx:id="cmbItem" editable="true" maxWidth="Infinity" prefWidth="260.0" promptText="Malzeme" />
-                <TextField fx:id="txtQuantity" prefWidth="90.0" promptText="Miktar" />
+                <TextField alignment="CENTER_RIGHT" fx:id="txtQuantity" prefWidth="90.0" promptText="Miktar" />
                 <TextField fx:id="txtUnit" prefWidth="70.0" promptText="Birim" />
-                <TextField fx:id="txtUnitPrice" prefWidth="90.0" promptText="Fiyat" />
+                <TextField alignment="CENTER_RIGHT" fx:id="txtUnitPrice" prefWidth="90.0" promptText="Fiyat" />
                 <ComboBox fx:id="cmbVatRate" prefWidth="180.0" promptText="KDV" />
                 <Button fx:id="btnAddLine" mnemonicParsing="false" onAction="#onActionBtnAddLine" text="Satır ekle" />
                 <Button fx:id="btnRemoveLine" mnemonicParsing="false" onAction="#onActionBtnRemoveLine" text="Satır sil" />

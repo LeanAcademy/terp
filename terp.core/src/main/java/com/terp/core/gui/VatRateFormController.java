@@ -51,6 +51,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import com.terp.plugin.gui.NumericCells;
 
 public class VatRateFormController implements Initializable {
 
@@ -151,6 +152,7 @@ public class VatRateFormController implements Initializable {
         this.tcRateCode.setCellValueFactory(new PropertyValueFactory<>("rateCode"));
         this.tcRateName.setCellValueFactory(new PropertyValueFactory<>("rateName"));
         this.tcRate.setCellValueFactory(new PropertyValueFactory<>("rate"));
+        NumericCells.apply(this.tcRate);
         this.tcStatusLabel.setCellValueFactory(new PropertyValueFactory<>("statusLabel"));
         this.pgnVatRateData.currentPageIndexProperty().addListener(
                 (ObservableValue<? extends Number> observable, Number oldValue, Number newValue) -> {

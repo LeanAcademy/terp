@@ -40,19 +40,21 @@
                 <Label text="Malzeme" GridPane.rowIndex="3" />
                 <ComboBox fx:id="cmbItem" editable="true" maxWidth="Infinity" GridPane.columnIndex="1" GridPane.columnSpan="3" GridPane.rowIndex="3" />
                 <Label text="Miktar" GridPane.rowIndex="4" />
-                <TextField fx:id="txtQuantity" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+                <TextField alignment="CENTER_RIGHT" fx:id="txtQuantity" GridPane.columnIndex="1" GridPane.rowIndex="4" />
                 <Label text="Birim" GridPane.columnIndex="2" GridPane.rowIndex="4" />
                 <TextField fx:id="txtItemUnit" GridPane.columnIndex="3" GridPane.rowIndex="4" />
                 <Label text="Birim fiyat" GridPane.rowIndex="5" />
-                <TextField fx:id="txtUnitPrice" GridPane.columnIndex="1" GridPane.rowIndex="5" />
+                <TextField alignment="CENTER_RIGHT" fx:id="txtUnitPrice" GridPane.columnIndex="1" GridPane.rowIndex="5" />
                 <Label text="Cari" GridPane.columnIndex="2" GridPane.rowIndex="5" />
                 <ComboBox fx:id="cmbAccount" editable="true" maxWidth="Infinity" GridPane.columnIndex="3" GridPane.rowIndex="5" />
                 <Label text="Belge no" GridPane.rowIndex="6" />
-                <TextField fx:id="txtDocumentNo" GridPane.columnIndex="1" GridPane.rowIndex="6" />
+                <TextField fx:id="txtDocumentNo" promptText="Boş = otomatik" GridPane.columnIndex="1" GridPane.rowIndex="6" />
                 <Label text="Lot no" GridPane.columnIndex="2" GridPane.rowIndex="6" />
-                <TextField fx:id="txtLotNo" GridPane.columnIndex="3" GridPane.rowIndex="6" />
+                <ComboBox fx:id="cmbLot" editable="true" maxWidth="Infinity" GridPane.columnIndex="3" GridPane.rowIndex="6" />
                 <Label text="Seri no" GridPane.rowIndex="7" />
                 <TextField fx:id="txtSerialNo" GridPane.columnIndex="1" GridPane.rowIndex="7" />
+                <Label text="SKT" GridPane.columnIndex="2" GridPane.rowIndex="7" />
+                <DatePicker fx:id="dtExpiry" maxWidth="Infinity" GridPane.columnIndex="3" GridPane.rowIndex="7" />
                 <Label text="Notlar" GridPane.rowIndex="8" />
                 <TextArea fx:id="txtNotes" prefHeight="80.0" wrapText="true" GridPane.columnIndex="1" GridPane.columnSpan="3" GridPane.rowIndex="8" />
             </children>

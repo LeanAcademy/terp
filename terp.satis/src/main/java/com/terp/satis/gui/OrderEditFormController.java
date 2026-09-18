@@ -54,6 +54,7 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
+import com.terp.plugin.gui.NumericCells;
 
 public class OrderEditFormController implements Initializable {
 
@@ -63,6 +64,8 @@ public class OrderEditFormController implements Initializable {
     private Button btnApprove;
     @FXML
     private Button btnDeliver;
+    @FXML
+    private Button btnProduce;
     @FXML
     private Button btnCancelPosted;
     @FXML
@@ -227,13 +230,31 @@ public class OrderEditFormController implements Initializable {
     }
 
     @FXML
-    private void onActionBtnCancelPosted(ActionEvent event) {
-        if (currentRow == null || currentRow.getRowId() == null || !currentRow.isApproved()) {
+    private void onActionBtnProduce(ActionEvent event) {
+        if (currentRow == null || currentRow.getRowId() == null) {
             return;
         }
-        if (SalesDocs.hasPostedDelivery(deliveryDao, deliveryLineDao, lineDao, currentRow.getRowId())) {
+        SatisWindows.convertToProduction(currentRow, orderDao, lineDao, () -> {
+            SalesOrder reloaded = orderDao.firstOrDefault(currentRow.getRowId());
+            if (reloaded != null) {
+                this.currentRow = reloaded;
+                applyLock(reloaded.getStatus());
+                showAudit();
+            }
+            notifyChanged();
+        });
+    }
+
+    @FXML
+    private void onActionBtnCancelPosted(ActionEvent event) {
+        if (currentRow == null || currentRow.getRowId() == null
+                || currentRow.isDraft() || currentRow.isCancelled()) {
+            return;
+        }
+        if (currentRow.isDelivered()
+                || SalesDocs.hasPostedDelivery(deliveryDao, deliveryLineDao, lineDao, currentRow.getRowId())) {
             SatisDates.showError("Satış siparişi", "İrsaliyeye bağlı",
-                    "Önce bağlı satış irsaliyesini iptal veya silin.");
+                    "Teslim edilmiş sipariş silinemez. Önce bağlı satış irsaliyesini iptal veya silin.");
             return;
         }
         Long quoteId = currentRow.getSourceQuoteId();
@@ -251,6 +272,7 @@ public class OrderEditFormController implements Initializable {
 
     @FXML
     private void onActionBtnAddLine(ActionEvent event) {
+        SalesOrderLine selected = tblvLines.getSelectionModel().getSelectedItem();
         String itemCode = SatisCombos.codeOf(cmbItem);
         Double quantity = SatisDates.parseDouble(txtQuantity.getText());
         Double price = SatisDates.parseDouble(txtUnitPrice.getText());
@@ -263,17 +285,22 @@ public class OrderEditFormController implements Initializable {
         if (SatisDates.rejectIfNotSellable("Satış siparişi", item)) {
             return;
         }
-        SalesOrderLine line = new SalesOrderLine();
+        SalesOrderLine line = selected != null ? selected : new SalesOrderLine();
         line.setItemCode(itemCode);
         line.setItemDesc(item == null ? SatisCombos.nameOf(cmbItem) : item.getItemDesc());
         String unit = SatisDates.trimToNull(txtUnit.getText());
         line.setItemUnit(unit == null && item != null ? item.getItemUnit() : unit);
         line.setQuantity(quantity);
         line.setUnitPrice(price);
-        line.setLineNo(lines.size() + 1);
-        lines.add(line);
+        if (selected == null) {
+            line.setLineNo(lines.size() + 1);
+            lines.add(line);
+        } else {
+            tblvLines.refresh();
+        }
         txtQuantity.clear();
         txtUnitPrice.clear();
+        tblvLines.getSelectionModel().clearSelection();
     }
 
     @FXML
@@ -299,8 +326,15 @@ public class OrderEditFormController implements Initializable {
         this.tcItemDesc.setCellValueFactory(new PropertyValueFactory<>("itemDesc"));
         this.tcItemUnit.setCellValueFactory(new PropertyValueFactory<>("itemUnit"));
         this.tcQuantity.setCellValueFactory(new PropertyValueFactory<>("quantity"));
+        NumericCells.apply(this.tcQuantity);
         this.tcUnitPrice.setCellValueFactory(new PropertyValueFactory<>("unitPrice"));
+        NumericCells.apply(this.tcUnitPrice);
         this.tblvLines.setItems(lines);
+        this.tblvLines.getSelectionModel().selectedItemProperty().addListener((obs, old, selected) -> {
+            if (selected != null) {
+                loadLineEditor(selected);
+            }
+        });
         cmbItem.valueProperty().addListener((obs, old, value) -> applyItem(SatisCombos.codeOf(cmbItem)));
         this.auditBar = RecordAuditBar.install(txtDocumentNo);
         showAudit();
@@ -349,9 +383,9 @@ public class OrderEditFormController implements Initializable {
             row.setAddedDate(now);
             row.setStatus(SalesOrder.STATUS_DRAFT);
         }
-        if (!row.isDraft()) {
+        if (!row.isDraft() && !row.isCancelled()) {
             SatisDates.showError("Satış siparişi", "Kilitli belge",
-                    "Onaylı veya iptal sipariş taslak olarak kaydedilemez.");
+                    "Onaylı sipariş taslak olarak kaydedilemez.");
             return false;
         }
         if (!CompanyScope.stamp(row)) {
@@ -457,6 +491,13 @@ public class OrderEditFormController implements Initializable {
         SatisCombos.fill(cmbAccount, accountLabels);
     }
 
+    private void loadLineEditor(SalesOrderLine line) {
+        SatisCombos.select(cmbItem, line.getItemCode());
+        txtUnit.setText(SatisDates.empty(line.getItemUnit()));
+        txtQuantity.setText(NumericCells.text(line.getQuantity()));
+        txtUnitPrice.setText(NumericCells.text(line.getUnitPrice()));
+    }
+
     private void applyItem(String itemCode) {
         IItemLookup items = TerpApplication.getInstance().getItemLookup();
         IStockItem item = items == null ? null : items.findByCode(itemCode);
@@ -469,24 +510,30 @@ public class OrderEditFormController implements Initializable {
         boolean draft = status == SalesOrder.STATUS_DRAFT;
         boolean approved = status == SalesOrder.STATUS_APPROVED;
         boolean delivered = status == SalesOrder.STATUS_DELIVERED;
-        txtDocumentNo.setDisable(!draft);
-        dtDocumentDate.setDisable(!draft);
-        cmbAccount.setDisable(!draft);
-        cmbWarehouse.setDisable(!draft);
-        txtNotes.setDisable(!draft);
-        cmbItem.setDisable(!draft);
-        txtQuantity.setDisable(!draft);
-        txtUnit.setDisable(!draft);
-        txtUnitPrice.setDisable(!draft);
-        btnAddLine.setDisable(!draft);
-        btnRemoveLine.setDisable(!draft);
-        btnSave.setDisable(!draft);
-        btnApprove.setDisable(!draft);
+        boolean editable = draft || status == SalesOrder.STATUS_CANCELLED;
+        txtDocumentNo.setDisable(!editable);
+        dtDocumentDate.setDisable(!editable);
+        cmbAccount.setDisable(!editable);
+        cmbWarehouse.setDisable(!editable);
+        txtNotes.setDisable(!editable);
+        cmbItem.setDisable(!editable);
+        txtQuantity.setDisable(!editable);
+        txtUnit.setDisable(!editable);
+        txtUnitPrice.setDisable(!editable);
+        btnAddLine.setDisable(!editable);
+        btnRemoveLine.setDisable(!editable);
+        btnSave.setDisable(!editable);
+        btnApprove.setDisable(!editable);
         boolean canDeliver = currentRow != null && currentRow.getRowId() != null
                 && SalesDocs.hasDeliverableBalance(currentRow, lineDao, deliveryDao, deliveryLineDao);
         btnDeliver.setDisable(!canDeliver);
         btnDeliver.setVisible(approved || delivered);
         btnDeliver.setManaged(approved || delivered);
+        boolean canProduce = currentRow != null && currentRow.getRowId() != null
+                && SatisWindows.hasProducibleBalance(currentRow, lineDao);
+        btnProduce.setDisable(!canProduce);
+        btnProduce.setVisible(approved || delivered);
+        btnProduce.setManaged(approved || delivered);
         boolean posted = currentRow != null && currentRow.getRowId() != null
                 && SalesDocs.hasPostedDelivery(deliveryDao, deliveryLineDao, lineDao, currentRow.getRowId());
         btnCancelPosted.setDisable(!approved || posted);

@@ -17,6 +17,8 @@
 package com.terp.stok.data;
 
 import com.terp.plugin.CompanyScope;
+import com.terp.plugin.IUser;
+import com.terp.plugin.TerpApplication;
 import com.terp.plugin.data.ICommonDao;
 import com.terp.plugin.data.IWarehouseLookup;
 import com.terp.plugin.data.model.IStockWarehouse;
@@ -38,8 +40,10 @@ public class WarehouseLookup implements IWarehouseLookup {
         if (rows == null) {
             return result;
         }
+        IUser user = TerpApplication.getInstance().getUser();
         for (Warehouse row : rows) {
-            if (row != null && row.getStatus() == 0) {
+            if (row != null && row.getStatus() == 0
+                    && (user == null || user.canUseWarehouse(row.getWarehouseCode()))) {
                 result.add(row);
             }
         }

@@ -24,8 +24,11 @@ import com.terp.plugin.data.ICommonDao;
 import com.terp.plugin.data.IItemLookup;
 import com.terp.plugin.data.IStockLedger;
 import com.terp.plugin.data.IWarehouseLookup;
+import com.terp.plugin.data.StockCard;
 import com.terp.plugin.data.StockDirection;
 import com.terp.plugin.data.StockPosting;
+import com.terp.plugin.data.WorkingPeriod;
+import com.terp.plugin.gui.DocumentPrint;
 import com.terp.plugin.data.model.IAccount;
 import com.terp.plugin.data.model.IMovementReason;
 import com.terp.plugin.data.model.IStockItem;
@@ -60,8 +63,7 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.control.cell.TextFieldTableCell;
-import javafx.util.StringConverter;
+import com.terp.plugin.gui.NumericCells;
 
 public class DeliveryEditFormController implements Initializable {
 
@@ -79,6 +81,8 @@ public class DeliveryEditFormController implements Initializable {
     private TextField txtDocumentNo;
     @FXML
     private DatePicker dtDocumentDate;
+    @FXML
+    private DatePicker dtShipmentDate;
     @FXML
     private ComboBox<String> cmbAccount;
     @FXML
@@ -100,6 +104,12 @@ public class DeliveryEditFormController implements Initializable {
     @FXML
     private TextField txtUnitPrice;
     @FXML
+    private ComboBox<String> cmbLot;
+    @FXML
+    private TextField txtSerialNo;
+    @FXML
+    private DatePicker dtExpiry;
+    @FXML
     private Label lblRemaining;
     @FXML
     private Button btnAddLine;
@@ -119,6 +129,10 @@ public class DeliveryEditFormController implements Initializable {
     private TableColumn<SalesDeliveryLine, Double> tcQuantity;
     @FXML
     private TableColumn<SalesDeliveryLine, Double> tcUnitPrice;
+    @FXML
+    private TableColumn<SalesDeliveryLine, String> tcLotNo;
+    @FXML
+    private Button btnPrint;
 
     private ICommonDao<SalesDelivery> deliveryDao;
     private ICommonDao<SalesDeliveryLine> lineDao;
@@ -150,6 +164,7 @@ public class DeliveryEditFormController implements Initializable {
         cmbSourceOrder.getSelectionModel().clearSelection();
         cmbOrder.getSelectionModel().clearSelection();
         dtDocumentDate.setValue(LocalDate.now());
+        dtShipmentDate.setValue(LocalDate.now());
         this.currentRow = row;
         if (row == null) {
             applyLock(SalesDelivery.STATUS_DRAFT);
@@ -158,6 +173,7 @@ public class DeliveryEditFormController implements Initializable {
         }
         txtDocumentNo.setText(SatisDates.empty(row.getDocumentNo()));
         dtDocumentDate.setValue(SatisDates.toLocalDate(row.getDocumentDate()));
+        dtShipmentDate.setValue(SatisDates.toLocalDate(row.effectiveShipmentDate()));
         SatisCombos.select(cmbAccount, row.getAccountCode());
         SatisCombos.select(cmbWarehouse, row.getWarehouseCode());
         txtNotes.setText(SatisDates.empty(row.getNotes()));
@@ -186,6 +202,7 @@ public class DeliveryEditFormController implements Initializable {
         this.currentRow.setWarehouseName(order.getWarehouseName());
         this.currentRow.setNotes(order.getNotes());
         dtDocumentDate.setValue(LocalDate.now());
+        dtShipmentDate.setValue(LocalDate.now());
         txtDocumentNo.clear();
         SatisCombos.select(cmbAccount, order.getAccountCode());
         SatisCombos.select(cmbWarehouse, order.getWarehouseCode());
@@ -276,6 +293,31 @@ public class DeliveryEditFormController implements Initializable {
     }
 
     @FXML
+    private void onActionBtnPrint(ActionEvent event) {
+        if (currentRow == null) {
+            return;
+        }
+        StringBuilder linesText = new StringBuilder();
+        for (SalesDeliveryLine line : lines) {
+            if (line == null) {
+                continue;
+            }
+            linesText.append(line.getItemCode()).append("  ").append(line.getItemDesc())
+                    .append("  ").append(line.getQuantity()).append(" ")
+                    .append(line.getItemUnit() == null ? "" : line.getItemUnit()).append('\n');
+        }
+        java.util.Map<String, String> values = new java.util.LinkedHashMap<>();
+        values.put("DOCUMENT_NO", SatisDates.empty(currentRow.getDocumentNo()));
+        values.put("ACCOUNT", SatisDates.empty(currentRow.getAccountName()));
+        values.put("DATE", currentRow.getDateLabel());
+        values.put("SHIP_DATE", currentRow.getShipmentDateLabel());
+        values.put("LINES", linesText.toString());
+        javafx.stage.Window owner = btnPrint.getScene() == null ? null : btnPrint.getScene().getWindow();
+        DocumentPrint.print(owner, "SATIS_IRSALIYE", "İrsaliye " + SatisDates.empty(currentRow.getDocumentNo()),
+                "İrsaliye {DOCUMENT_NO}\nCari: {ACCOUNT}\nOluşturma: {DATE}\nSevk: {SHIP_DATE}\n\n{LINES}", values);
+    }
+
+    @FXML
     private void onActionBtnClose(ActionEvent event) {
         close();
     }
@@ -294,6 +336,7 @@ public class DeliveryEditFormController implements Initializable {
 
     @FXML
     private void onActionBtnAddLine(ActionEvent event) {
+        SalesDeliveryLine selected = tblvLines.getSelectionModel().getSelectedItem();
         String orderNo = SatisCombos.codeOf(cmbOrder);
         String itemCode = SatisCombos.codeOf(cmbItem);
         Double quantity = SatisDates.parseDouble(txtQuantity.getText());
@@ -307,11 +350,19 @@ public class DeliveryEditFormController implements Initializable {
         if (SatisDates.rejectIfNotSellable("Satış irsaliyesi", item)) {
             return;
         }
+        String lotNo = SatisCombos.codeOf(cmbLot);
+        String tracking = StockCard.trackingError(item, lotNo, SatisDates.trimToNull(txtSerialNo.getText()));
+        if (tracking != null) {
+            SatisDates.showError("Satış irsaliyesi", "İzleme", tracking);
+            return;
+        }
         SalesOrder order = null;
         SalesOrderLine orderLine = null;
         if (orderNo != null) {
             order = resolveOrder(orderNo);
-            if (!usableOrder(order)) {
+            boolean sameSource = selected != null && order != null
+                    && order.getRowId() != null && order.getRowId().equals(selected.getSourceOrderId());
+            if (!sameSource && !usableOrder(order)) {
                 return;
             }
             orderLine = SalesDocs.findOrderLine(orderLineDao, order.getRowId(), itemCode);
@@ -320,19 +371,22 @@ public class DeliveryEditFormController implements Initializable {
                         itemCode + " bu siparişte yok: " + order.getDocumentNo());
                 return;
             }
-            String error = validateQty(orderLine, quantity, null);
+            String error = validateQty(orderLine, quantity, selected);
             if (error != null) {
                 SatisDates.showError("Satış irsaliyesi", "Miktar", error);
                 return;
             }
         }
-        SalesDeliveryLine line = new SalesDeliveryLine();
+        SalesDeliveryLine line = selected != null ? selected : new SalesDeliveryLine();
         line.setItemCode(itemCode);
         line.setItemDesc(item == null ? SatisCombos.nameOf(cmbItem) : item.getItemDesc());
         String unit = SatisDates.trimToNull(txtUnit.getText());
         line.setItemUnit(unit == null && item != null ? item.getItemUnit() : unit);
         line.setQuantity(quantity);
-        line.setUnitPrice(price);
+        line.setUnitPrice(StockCard.fillPrice(item, price, false));
+        line.setLotNo(lotNo);
+        line.setSerialNo(SatisDates.trimToNull(txtSerialNo.getText()));
+        line.setExpiryDate(dtExpiry.getValue() == null ? null : SatisDates.toDate(dtExpiry.getValue()));
         if (order != null) {
             line.setSourceOrderId(order.getRowId());
             line.setSourceOrderNo(order.getDocumentNo());
@@ -344,11 +398,23 @@ public class DeliveryEditFormController implements Initializable {
                 line.setUnitPrice(orderLine.getUnitPrice());
             }
             applyOrderHeader(order);
+        } else {
+            line.setSourceOrderId(null);
+            line.setSourceOrderNo(null);
+            line.setSourceOrderLineId(null);
         }
-        line.setLineNo(lines.size() + 1);
-        lines.add(line);
+        if (selected == null) {
+            line.setLineNo(lines.size() + 1);
+            lines.add(line);
+        } else {
+            tblvLines.refresh();
+        }
         txtQuantity.clear();
         txtUnitPrice.clear();
+        cmbLot.getSelectionModel().clearSelection();
+        txtSerialNo.clear();
+        dtExpiry.setValue(null);
+        tblvLines.getSelectionModel().clearSelection();
         refreshRemainingHint();
     }
 
@@ -378,8 +444,11 @@ public class DeliveryEditFormController implements Initializable {
         this.tcItemDesc.setCellValueFactory(new PropertyValueFactory<>("itemDesc"));
         this.tcItemUnit.setCellValueFactory(new PropertyValueFactory<>("itemUnit"));
         this.tcQuantity.setCellValueFactory(new PropertyValueFactory<>("quantity"));
+        NumericCells.apply(this.tcQuantity);
         this.tcUnitPrice.setCellValueFactory(new PropertyValueFactory<>("unitPrice"));
-        this.tcQuantity.setCellFactory(TextFieldTableCell.forTableColumn(qtyConverter()));
+        NumericCells.apply(this.tcUnitPrice);
+        this.tcLotNo.setCellValueFactory(new PropertyValueFactory<>("lotNo"));
+        NumericCells.applyEditable(this.tcQuantity);
         this.tcQuantity.setOnEditCommit(event -> {
             SalesDeliveryLine line = event.getRowValue();
             Double value = event.getNewValue();
@@ -404,14 +473,23 @@ public class DeliveryEditFormController implements Initializable {
             refreshRemainingHint();
         });
         this.tblvLines.setItems(lines);
+        this.tblvLines.getSelectionModel().selectedItemProperty().addListener((obs, old, selected) -> {
+            if (selected != null) {
+                loadLineEditor(selected);
+            }
+        });
         cmbItem.valueProperty().addListener((obs, old, value) -> {
             applyItem(SatisCombos.codeOf(cmbItem));
             applyOrderDefaults();
         });
+        cmbWarehouse.valueProperty().addListener((obs, old, value) -> fillFefoLots());
         cmbOrder.valueProperty().addListener((obs, old, value) -> applyOrderDefaults());
         fillLookups();
         if (dtDocumentDate.getValue() == null) {
             dtDocumentDate.setValue(LocalDate.now());
+        }
+        if (dtShipmentDate.getValue() == null) {
+            dtShipmentDate.setValue(dtDocumentDate.getValue());
         }
         applyLock(SalesDelivery.STATUS_DRAFT);
         this.auditBar = RecordAuditBar.install(txtDocumentNo);
@@ -435,6 +513,24 @@ public class DeliveryEditFormController implements Initializable {
         if (warehouseCode == null) {
             SatisDates.showError("Satış irsaliyesi", "Depo eksik", "Depo seçin.");
             return false;
+        }
+        String periodError = WorkingPeriod.rejectIfOutside(SatisDates.toDate(dtDocumentDate.getValue()));
+        if (periodError == null) {
+            periodError = WorkingPeriod.rejectIfOutside(SatisDates.toDate(dtShipmentDate.getValue()));
+        }
+        if (periodError != null) {
+            SatisDates.showError("Satış irsaliyesi", "Dönem", periodError);
+            return false;
+        }
+        IItemLookup items = TerpApplication.getInstance().getItemLookup();
+        for (SalesDeliveryLine line : lines) {
+            IStockItem item = items == null || line == null ? null : items.findByCode(line.getItemCode());
+            String tracking = StockCard.trackingError(item, line == null ? null : line.getLotNo(),
+                    line == null ? null : line.getSerialNo());
+            if (tracking != null) {
+                SatisDates.showError("Satış irsaliyesi", "İzleme", tracking);
+                return false;
+            }
         }
         if (lines.isEmpty()) {
             SatisDates.showError("Satış irsaliyesi", "Satır yok", "En az bir malzeme satırı ekleyin.");
@@ -466,9 +562,9 @@ public class DeliveryEditFormController implements Initializable {
             row.setAddedDate(now);
             row.setStatus(SalesDelivery.STATUS_DRAFT);
         }
-        if (!row.isDraft()) {
+        if (!row.isDraft() && !row.isCancelled()) {
             SatisDates.showError("Satış irsaliyesi", "Kilitli belge",
-                    "Onaylı veya iptal belge taslak olarak kaydedilemez.");
+                    "Onaylı belge taslak olarak kaydedilemez.");
             return false;
         }
         if (!CompanyScope.stamp(row)) {
@@ -485,6 +581,11 @@ public class DeliveryEditFormController implements Initializable {
         }
         row.setDocumentNo(documentNo);
         row.setDocumentDate(SatisDates.toDate(dtDocumentDate.getValue()));
+        Date shipmentDate = SatisDates.toDate(dtShipmentDate.getValue());
+        if (shipmentDate == null) {
+            shipmentDate = row.getDocumentDate();
+        }
+        row.setShipmentDate(shipmentDate);
         row.setAccountCode(accountCode);
         IAccountLookup accounts = TerpApplication.getInstance().getAccountLookup();
         IAccount account = accounts == null ? null : accounts.findByCode(accountCode);
@@ -535,6 +636,9 @@ public class DeliveryEditFormController implements Initializable {
             copy.setItemUnit(line.getItemUnit());
             copy.setQuantity(line.getQuantity());
             copy.setUnitPrice(line.getUnitPrice());
+            copy.setLotNo(line.getLotNo());
+            copy.setSerialNo(line.getSerialNo());
+            copy.setExpiryDate(line.getExpiryDate());
             copy.setSourceOrderLineId(line.getSourceOrderLineId());
             copy.setSourceOrderId(line.getSourceOrderId());
             copy.setSourceOrderNo(line.getSourceOrderNo());
@@ -546,7 +650,7 @@ public class DeliveryEditFormController implements Initializable {
 
     private StockPosting toPosting(SalesDeliveryLine line) {
         StockPosting posting = new StockPosting();
-        posting.setMovementDate(currentRow.getDocumentDate());
+        posting.setMovementDate(currentRow.effectiveShipmentDate());
         posting.setDirection(StockDirection.OUT);
         posting.setReasonCode(IMovementReason.CODE_SALES);
         posting.setWarehouseCode(currentRow.getWarehouseCode());
@@ -556,6 +660,9 @@ public class DeliveryEditFormController implements Initializable {
         posting.setItemUnit(line.getItemUnit());
         posting.setQuantity(line.getQuantity());
         posting.setUnitPrice(line.getUnitPrice());
+        posting.setLotNo(line.getLotNo());
+        posting.setSerialNo(line.getSerialNo());
+        posting.setExpiryDate(line.getExpiryDate());
         posting.setAccountCode(currentRow.getAccountCode());
         posting.setAccountName(currentRow.getAccountName());
         posting.setDocumentNo(currentRow.getDocumentNo());
@@ -606,12 +713,52 @@ public class DeliveryEditFormController implements Initializable {
         SatisCombos.fill(cmbOrder, orderLabels);
     }
 
+    private void loadLineEditor(SalesDeliveryLine line) {
+        applyingLookup = true;
+        try {
+            SatisCombos.select(cmbOrder, line.getSourceOrderNo());
+            SatisCombos.select(cmbItem, line.getItemCode());
+            txtUnit.setText(SatisDates.empty(line.getItemUnit()));
+            txtQuantity.setText(NumericCells.text(line.getQuantity()));
+            txtUnitPrice.setText(NumericCells.text(line.getUnitPrice()));
+            fillFefoLots();
+            SatisCombos.select(cmbLot, line.getLotNo());
+            txtSerialNo.setText(SatisDates.empty(line.getSerialNo()));
+            dtExpiry.setValue(line.getExpiryDate() == null ? null : SatisDates.toLocalDate(line.getExpiryDate()));
+            refreshRemainingHint();
+        } finally {
+            applyingLookup = false;
+        }
+    }
+
     private void applyItem(String itemCode) {
         IItemLookup items = TerpApplication.getInstance().getItemLookup();
         IStockItem item = items == null ? null : items.findByCode(itemCode);
         if (item != null && (txtUnit.getText() == null || txtUnit.getText().isBlank())) {
             txtUnit.setText(SatisDates.empty(item.getItemUnit()));
         }
+        if (item != null && (txtUnitPrice.getText() == null || txtUnitPrice.getText().isBlank())
+                && item.getSalesPrice() != null) {
+            txtUnitPrice.setText(NumericCells.text(item.getSalesPrice()));
+        }
+        fillFefoLots();
+    }
+
+    private void fillFefoLots() {
+        if (cmbLot == null) {
+            return;
+        }
+        String current = SatisCombos.codeOf(cmbLot);
+        List<String> labels = new ArrayList<>();
+        IStockLedger ledger = TerpApplication.getInstance().getStockLedger();
+        if (ledger != null) {
+            List<String> lots = ledger.fefoLots(SatisCombos.codeOf(cmbWarehouse), SatisCombos.codeOf(cmbItem));
+            if (lots != null) {
+                labels.addAll(lots);
+            }
+        }
+        SatisCombos.fill(cmbLot, labels);
+        SatisCombos.select(cmbLot, current);
     }
 
     private void applyOrderDefaults() {
@@ -638,15 +785,14 @@ public class DeliveryEditFormController implements Initializable {
                             orderLine.getQuantity() == null ? 0d : orderLine.getQuantity(), allocated);
                     if (txtQuantity.getText() == null || txtQuantity.getText().isBlank()) {
                         if (remaining > 0d) {
-                            txtQuantity.setText(Double.toString(remaining));
+                            txtQuantity.setText(NumericCells.format(remaining));
                         }
                     }
                     if (txtUnit.getText() == null || txtUnit.getText().isBlank()) {
                         txtUnit.setText(SatisDates.empty(orderLine.getItemUnit()));
                     }
                     if (txtUnitPrice.getText() == null || txtUnitPrice.getText().isBlank()) {
-                        txtUnitPrice.setText(orderLine.getUnitPrice() == null ? ""
-                                : orderLine.getUnitPrice().toString());
+                        txtUnitPrice.setText(NumericCells.text(orderLine.getUnitPrice()));
                     }
                 }
             }
@@ -836,30 +982,35 @@ public class DeliveryEditFormController implements Initializable {
         allocated += qtyOnThisDocument(orderLine.getRowId(), null);
         double remaining = SalesDocs.remainingOrdered(
                 orderLine.getQuantity() == null ? 0d : orderLine.getQuantity(), allocated);
-        lblRemaining.setText("Kalan " + remaining);
+        lblRemaining.setText("Kalan " + NumericCells.format(remaining));
     }
 
     private void applyLock(int status) {
         boolean draft = status == SalesDelivery.STATUS_DRAFT;
         boolean posted = status == SalesDelivery.STATUS_POSTED;
         boolean invoiced = status == SalesDelivery.STATUS_INVOICED;
-        txtDocumentNo.setDisable(!draft);
-        dtDocumentDate.setDisable(!draft);
-        cmbAccount.setDisable(!draft);
-        cmbWarehouse.setDisable(!draft);
-        cmbSourceOrder.setDisable(!draft);
-        btnLoadRemaining.setDisable(!draft);
-        txtNotes.setDisable(!draft);
-        cmbOrder.setDisable(!draft);
-        cmbItem.setDisable(!draft);
-        txtQuantity.setDisable(!draft);
-        txtUnit.setDisable(!draft);
-        txtUnitPrice.setDisable(!draft);
-        btnAddLine.setDisable(!draft);
-        btnRemoveLine.setDisable(!draft);
-        tblvLines.setEditable(draft);
-        btnSave.setDisable(!draft);
-        btnApprove.setDisable(!draft);
+        boolean editable = draft || status == SalesDelivery.STATUS_CANCELLED;
+        txtDocumentNo.setDisable(!editable);
+        dtDocumentDate.setDisable(!editable);
+        dtShipmentDate.setDisable(!editable);
+        cmbAccount.setDisable(!editable);
+        cmbWarehouse.setDisable(!editable);
+        cmbSourceOrder.setDisable(!editable);
+        btnLoadRemaining.setDisable(!editable);
+        txtNotes.setDisable(!editable);
+        cmbOrder.setDisable(!editable);
+        cmbItem.setDisable(!editable);
+        txtQuantity.setDisable(!editable);
+        txtUnit.setDisable(!editable);
+        txtUnitPrice.setDisable(!editable);
+        cmbLot.setDisable(!editable);
+        txtSerialNo.setDisable(!editable);
+        dtExpiry.setDisable(!editable);
+        btnAddLine.setDisable(!editable);
+        btnRemoveLine.setDisable(!editable);
+        tblvLines.setEditable(editable);
+        btnSave.setDisable(!editable);
+        btnApprove.setDisable(!editable);
         boolean canInvoice = currentRow != null && currentRow.getRowId() != null
                 && SalesDocs.hasInvoiceableBalance(currentRow, lineDao, invoiceDao, invoiceLineDao);
         if (btnInvoice != null) {
@@ -891,17 +1042,4 @@ public class DeliveryEditFormController implements Initializable {
         }
     }
 
-    private static StringConverter<Double> qtyConverter() {
-        return new StringConverter<>() {
-            @Override
-            public String toString(Double value) {
-                return value == null ? "" : value.toString();
-            }
-
-            @Override
-            public Double fromString(String text) {
-                return SatisDates.parseDouble(text);
-            }
-        };
-    }
 }

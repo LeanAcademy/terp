@@ -22,6 +22,7 @@
                                         <Button fx:id="btnAdd" mnemonicParsing="false" onAction="#onActionBtnAdd" prefWidth="95.0" text="Ekle" />
                                         <Button fx:id="btnEdit" mnemonicParsing="false" onAction="#onActionBtnEdit" prefWidth="95.0" text="Düzenle" />
                                         <Button fx:id="btnDeliver" mnemonicParsing="false" onAction="#onActionBtnDeliver" prefWidth="150.0" text="İrsaliyeye çevir" />
+                                        <Button fx:id="btnProduce" mnemonicParsing="false" onAction="#onActionBtnProduce" prefWidth="160.0" text="Üretim emrine çevir" />
                                         <Button fx:id="btnDelete" mnemonicParsing="false" onAction="#onActionBtnDelete" prefWidth="95.0" text="Sil / İptal" />
                                     </items>
                                 </ToolBar>

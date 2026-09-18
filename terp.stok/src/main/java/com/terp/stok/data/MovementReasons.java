@@ -32,21 +32,85 @@ public final class MovementReasons {
         if (dao == null || !CompanyScope.hasCompany()) {
             return;
         }
+        Date now = new Date();
         List<MovementReason> existing = dao.findAll(CompanyScope.from("MovementReason"));
-        if (existing != null && !existing.isEmpty()) {
+        remapLegacy(dao, existing, now);
+        existing = dao.findAll(CompanyScope.from("MovementReason"));
+        seedIfMissing(dao, existing, IMovementReason.CODE_OPENING, "Açılış fişi",
+                StockDirection.IN, now);
+        seedIfMissing(dao, existing, IMovementReason.CODE_PURCHASE, "Satınalma girişi",
+                StockDirection.IN, now);
+        seedIfMissing(dao, existing, "SATIS_IADE", "Satışlardan iade", StockDirection.IN, now);
+        seedIfMissing(dao, existing, IMovementReason.CODE_PRODUCTION_IN, "Üretim girişi",
+                StockDirection.IN, now);
+        seedIfMissing(dao, existing, IMovementReason.CODE_SALES, "Satış çıkışı (irsaliye)",
+                StockDirection.OUT, now);
+        seedIfMissing(dao, existing, IMovementReason.CODE_PRODUCTION_OUT, "Üretime sarf",
+                StockDirection.OUT, now);
+        seedIfMissing(dao, existing, "ALIM_IADE", "Alımlardan iade", StockDirection.OUT, now);
+        seedIfMissing(dao, existing, IMovementReason.CODE_TRANSFER_OUT, "Transfer çıkışı",
+                StockDirection.OUT, now);
+        seedIfMissing(dao, existing, IMovementReason.CODE_TRANSFER_IN, "Transfer girişi",
+                StockDirection.IN, now);
+        seedIfMissing(dao, existing, IMovementReason.CODE_COUNT_IN, "Sayım artış",
+                StockDirection.IN, now);
+        seedIfMissing(dao, existing, IMovementReason.CODE_COUNT_OUT, "Sayım azalış",
+                StockDirection.OUT, now);
+        seedIfMissing(dao, existing, "FIRE", "Fire", StockDirection.OUT, now);
+    }
+
+    private static void remapLegacy(ICommonDao<MovementReason> dao, List<MovementReason> existing,
+            Date now) {
+        if (existing == null) {
             return;
         }
-        Date now = new Date();
-        seed(dao, IMovementReason.CODE_PURCHASE, "Satınalma girişi", StockDirection.IN, now);
-        seed(dao, "SATIS_IADE", "Satışlardan iade", StockDirection.IN, now);
-        seed(dao, "URETIM_GIRIS", "Üretim girişi", StockDirection.IN, now);
-        seed(dao, IMovementReason.CODE_SALES, "Satış çıkışı (irsaliye)", StockDirection.OUT, now);
-        seed(dao, "URETIM_SARF", "Üretime sarf", StockDirection.OUT, now);
-        seed(dao, "ALIM_IADE", "Alımlardan iade", StockDirection.OUT, now);
-        seed(dao, "TRANSFER", "Transfer", StockDirection.TRANSFER, now);
-        seed(dao, IMovementReason.CODE_COUNT_IN, "Sayım artış", StockDirection.COUNT_IN, now);
-        seed(dao, IMovementReason.CODE_COUNT_OUT, "Sayım azalış", StockDirection.COUNT_OUT, now);
-        seed(dao, "FIRE", "Fire", StockDirection.SCRAP, now);
+        for (MovementReason row : existing) {
+            if (row == null) {
+                continue;
+            }
+            boolean dirty = false;
+            if (IMovementReason.CODE_TRANSFER_LEGACY.equals(row.getReasonCode())) {
+                row.setReasonCode(IMovementReason.CODE_TRANSFER_OUT);
+                if (row.getReasonName() == null || "Transfer".equals(row.getReasonName())) {
+                    row.setReasonName("Transfer çıkışı");
+                }
+                dirty = true;
+            }
+            int next = StockDirection.of(row.getDirection());
+            if (next != row.getDirection()) {
+                row.setDirection(next);
+                dirty = true;
+            }
+            if (dirty) {
+                row.setLastUpdateDate(now);
+                dao.addOrUpdate(row);
+            }
+        }
+    }
+
+    private static void seedIfMissing(ICommonDao<MovementReason> dao, List<MovementReason> existing,
+            String code, String name, int direction, Date now) {
+        if (findCode(existing, code) != null) {
+            return;
+        }
+        seed(dao, code, name, direction, now);
+        MovementReason created = dao.getEmpty();
+        if (created != null) {
+            created.setReasonCode(code);
+            existing.add(created);
+        }
+    }
+
+    private static MovementReason findCode(List<MovementReason> existing, String code) {
+        if (existing == null) {
+            return null;
+        }
+        for (MovementReason row : existing) {
+            if (row != null && code.equals(row.getReasonCode())) {
+                return row;
+            }
+        }
+        return null;
     }
 
     private static void seed(ICommonDao<MovementReason> dao, String code, String name,

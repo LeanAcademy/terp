@@ -16,13 +16,22 @@
  */
 package com.terp.stok.gui;
 
+import com.terp.plugin.TerpApplication;
 import com.terp.plugin.data.DocumentNumbers;
+import com.terp.plugin.gui.NumericCells;
+import com.terp.plugin.data.IUnitLookup;
+import com.terp.plugin.data.model.IUnitOfMeasure;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.Date;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextField;
 
 final class StockForms {
@@ -47,15 +56,55 @@ final class StockForms {
         return Date.from(local.atStartOfDay(ZoneId.systemDefault()).toInstant());
     }
 
+    static Date toDateOrNull(LocalDate local) {
+        if (local == null) {
+            return null;
+        }
+        return Date.from(local.atStartOfDay(ZoneId.systemDefault()).toInstant());
+    }
+
+    static void fillUnits(ComboBox<String> combo, List<String> extraCodes) {
+        if (combo == null) {
+            return;
+        }
+        String current = StockCombos.codeOf(combo);
+        List<String> labels = new ArrayList<>();
+        Set<String> seen = new HashSet<>();
+        IUnitLookup lookup = TerpApplication.getInstance().getUnitLookup();
+        if (lookup != null) {
+            List<IUnitOfMeasure> rows = lookup.findActive();
+            if (rows != null) {
+                for (IUnitOfMeasure unit : rows) {
+                    if (unit == null || unit.getUnitCode() == null || unit.getUnitCode().isBlank()) {
+                        continue;
+                    }
+                    if (seen.add(unit.getUnitCode().toLowerCase())) {
+                        labels.add(unit.getDisplayLabel());
+                    }
+                }
+            }
+        }
+        if (extraCodes != null) {
+            for (String code : extraCodes) {
+                if (code == null || code.isBlank()) {
+                    continue;
+                }
+                if (seen.add(code.toLowerCase())) {
+                    labels.add(code);
+                }
+            }
+        }
+        if (current != null && seen.add(current.toLowerCase())) {
+            labels.add(current);
+        }
+        StockCombos.fill(combo, labels);
+        if (current != null) {
+            StockCombos.select(combo, current);
+        }
+    }
+
     static Double parseDouble(String text) {
-        if (text == null || text.isBlank()) {
-            return null;
-        }
-        try {
-            return Double.valueOf(text.trim().replace(',', '.'));
-        } catch (NumberFormatException ex) {
-            return null;
-        }
+        return NumericCells.parse(text);
     }
 
     static String empty(String value) {

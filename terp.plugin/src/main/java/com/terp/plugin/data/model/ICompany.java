@@ -54,6 +54,13 @@ public interface ICompany extends ICommonFields{
     public String getEmail();
     public void setEmail(String email);
 
+    default String getCurrency() {
+        return "TRY";
+    }
+
+    default void setCurrency(String currency) {
+    }
+
     default String getDisplayLabel() {
         String code = getCompanyName() == null ? "" : getCompanyName();
         String name = getCompanyLongName() == null ? "" : getCompanyLongName();

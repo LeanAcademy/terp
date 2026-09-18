@@ -52,6 +52,7 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
+import com.terp.plugin.gui.NumericCells;
 
 public class QuoteEditFormController implements Initializable {
 
@@ -222,6 +223,7 @@ public class QuoteEditFormController implements Initializable {
 
     @FXML
     private void onActionBtnAddLine(ActionEvent event) {
+        SalesQuoteLine selected = tblvLines.getSelectionModel().getSelectedItem();
         String itemCode = SatisCombos.codeOf(cmbItem);
         Double quantity = SatisDates.parseDouble(txtQuantity.getText());
         Double price = SatisDates.parseDouble(txtUnitPrice.getText());
@@ -239,7 +241,7 @@ public class QuoteEditFormController implements Initializable {
         if (SatisDates.rejectIfNotSellable("Satış teklifi", item)) {
             return;
         }
-        SalesQuoteLine line = new SalesQuoteLine();
+        SalesQuoteLine line = selected != null ? selected : new SalesQuoteLine();
         line.setItemCode(itemCode);
         line.setItemDesc(item == null ? SatisCombos.nameOf(cmbItem) : item.getItemDesc());
         String unit = SatisDates.trimToNull(txtUnit.getText());
@@ -247,10 +249,15 @@ public class QuoteEditFormController implements Initializable {
         line.setQuantity(quantity);
         line.setUnitPrice(price);
         line.setVatRate(vatRate);
-        line.setLineNo(lines.size() + 1);
-        lines.add(line);
+        if (selected == null) {
+            line.setLineNo(lines.size() + 1);
+            lines.add(line);
+        } else {
+            tblvLines.refresh();
+        }
         txtQuantity.clear();
         txtUnitPrice.clear();
+        tblvLines.getSelectionModel().clearSelection();
         refreshTotals();
     }
 
@@ -276,12 +283,23 @@ public class QuoteEditFormController implements Initializable {
         this.tcItemDesc.setCellValueFactory(new PropertyValueFactory<>("itemDesc"));
         this.tcItemUnit.setCellValueFactory(new PropertyValueFactory<>("itemUnit"));
         this.tcQuantity.setCellValueFactory(new PropertyValueFactory<>("quantity"));
+        NumericCells.apply(this.tcQuantity);
         this.tcUnitPrice.setCellValueFactory(new PropertyValueFactory<>("unitPrice"));
+        NumericCells.apply(this.tcUnitPrice);
         this.tcVatRate.setCellValueFactory(new PropertyValueFactory<>("vatRate"));
+        NumericCells.apply(this.tcVatRate);
         this.tcNetAmount.setCellValueFactory(new PropertyValueFactory<>("netAmount"));
+        NumericCells.apply(this.tcNetAmount);
         this.tcVatAmount.setCellValueFactory(new PropertyValueFactory<>("vatAmount"));
+        NumericCells.apply(this.tcVatAmount);
         this.tcGrossAmount.setCellValueFactory(new PropertyValueFactory<>("grossAmount"));
+        NumericCells.apply(this.tcGrossAmount);
         this.tblvLines.setItems(lines);
+        this.tblvLines.getSelectionModel().selectedItemProperty().addListener((obs, old, selected) -> {
+            if (selected != null) {
+                loadLineEditor(selected);
+            }
+        });
         cmbItem.valueProperty().addListener((obs, old, value) -> applyItem(SatisCombos.codeOf(cmbItem)));
         this.auditBar = RecordAuditBar.install(txtDocumentNo);
         showAudit();
@@ -330,9 +348,9 @@ public class QuoteEditFormController implements Initializable {
             row.setAddedDate(now);
             row.setStatus(SalesQuote.STATUS_DRAFT);
         }
-        if (!row.isDraft()) {
+        if (!row.isDraft() && !row.isCancelled()) {
             SatisDates.showError("Satış teklifi", "Kilitli belge",
-                    "Onaylı veya iptal teklif taslak olarak kaydedilemez.");
+                    "Onaylı teklif taslak olarak kaydedilemez.");
             return false;
         }
         if (!CompanyScope.stamp(row)) {
@@ -439,6 +457,14 @@ public class QuoteEditFormController implements Initializable {
         SatisCombos.selectVat(cmbVatRate, 20d);
     }
 
+    private void loadLineEditor(SalesQuoteLine line) {
+        SatisCombos.select(cmbItem, line.getItemCode());
+        txtUnit.setText(SatisDates.empty(line.getItemUnit()));
+        txtQuantity.setText(NumericCells.text(line.getQuantity()));
+        txtUnitPrice.setText(NumericCells.text(line.getUnitPrice()));
+        SatisCombos.selectVat(cmbVatRate, line.getVatRate());
+    }
+
     private void applyItem(String itemCode) {
         IItemLookup items = TerpApplication.getInstance().getItemLookup();
         IStockItem item = items == null ? null : items.findByCode(itemCode);
@@ -462,20 +488,21 @@ public class QuoteEditFormController implements Initializable {
     private void applyLock(int status) {
         boolean draft = status == SalesQuote.STATUS_DRAFT;
         boolean approved = status == SalesQuote.STATUS_APPROVED;
-        txtDocumentNo.setDisable(!draft);
-        dtDocumentDate.setDisable(!draft);
-        cmbAccount.setDisable(!draft);
-        cmbWarehouse.setDisable(!draft);
-        txtNotes.setDisable(!draft);
-        cmbItem.setDisable(!draft);
-        txtQuantity.setDisable(!draft);
-        txtUnit.setDisable(!draft);
-        txtUnitPrice.setDisable(!draft);
-        cmbVatRate.setDisable(!draft);
-        btnAddLine.setDisable(!draft);
-        btnRemoveLine.setDisable(!draft);
-        btnSave.setDisable(!draft);
-        btnApprove.setDisable(!draft);
+        boolean editable = draft || status == SalesQuote.STATUS_CANCELLED;
+        txtDocumentNo.setDisable(!editable);
+        dtDocumentDate.setDisable(!editable);
+        cmbAccount.setDisable(!editable);
+        cmbWarehouse.setDisable(!editable);
+        txtNotes.setDisable(!editable);
+        cmbItem.setDisable(!editable);
+        txtQuantity.setDisable(!editable);
+        txtUnit.setDisable(!editable);
+        txtUnitPrice.setDisable(!editable);
+        cmbVatRate.setDisable(!editable);
+        btnAddLine.setDisable(!editable);
+        btnRemoveLine.setDisable(!editable);
+        btnSave.setDisable(!editable);
+        btnApprove.setDisable(!editable);
         btnConvert.setDisable(!approved);
         btnConvert.setVisible(approved || status == SalesQuote.STATUS_CONVERTED);
         btnConvert.setManaged(approved || status == SalesQuote.STATUS_CONVERTED);

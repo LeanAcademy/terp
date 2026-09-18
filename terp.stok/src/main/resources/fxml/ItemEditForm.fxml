@@ -13,6 +13,7 @@
         <ToolBar prefHeight="40.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
             <items>
                 <Button fx:id="btnSubmit" defaultButton="true" mnemonicParsing="false" onAction="#onActionBtnSubmit" text="Kaydet" />
+                <Button fx:id="btnPrintLabel" mnemonicParsing="false" onAction="#onActionBtnPrintLabel" text="Etiket yazdır" />
                 <Button fx:id="btnCancel" cancelButton="true" mnemonicParsing="false" onAction="#onActionBtnCancel" text="Vazgeç" />
             </items>
         </ToolBar>
@@ -165,21 +166,21 @@
                             </columnConstraints>
                             <children>
                                 <Label text="Ana birim" />
-                                <TextField fx:id="txtItemUnit" GridPane.columnIndex="1" />
+                                <ComboBox fx:id="cmbItemUnit" editable="true" maxWidth="Infinity" GridPane.columnIndex="1" />
                                 <Label text="İkinci birim" GridPane.columnIndex="2" />
-                                <TextField fx:id="txtSecondUnit" GridPane.columnIndex="3" />
+                                <ComboBox fx:id="cmbSecondUnit" editable="true" maxWidth="Infinity" GridPane.columnIndex="3" />
                                 <Label text="Çevrim katsayısı" GridPane.rowIndex="1" />
-                                <TextField fx:id="txtUnitFactor" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                                <TextField alignment="CENTER_RIGHT" fx:id="txtUnitFactor" GridPane.columnIndex="1" GridPane.rowIndex="1" />
                                 <Label text="Ağırlık" GridPane.columnIndex="2" GridPane.rowIndex="1" />
-                                <TextField fx:id="txtWeight" GridPane.columnIndex="3" GridPane.rowIndex="1" />
+                                <TextField alignment="CENTER_RIGHT" fx:id="txtWeight" GridPane.columnIndex="3" GridPane.rowIndex="1" />
                                 <Label text="Hacim" GridPane.rowIndex="2" />
-                                <TextField fx:id="txtVolume" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                                <TextField alignment="CENTER_RIGHT" fx:id="txtVolume" GridPane.columnIndex="1" GridPane.rowIndex="2" />
                                 <Label text="En" GridPane.columnIndex="2" GridPane.rowIndex="2" />
-                                <TextField fx:id="txtWidth" GridPane.columnIndex="3" GridPane.rowIndex="2" />
+                                <TextField alignment="CENTER_RIGHT" fx:id="txtWidth" GridPane.columnIndex="3" GridPane.rowIndex="2" />
                                 <Label text="Boy" GridPane.rowIndex="3" />
-                                <TextField fx:id="txtLength" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                                <TextField alignment="CENTER_RIGHT" fx:id="txtLength" GridPane.columnIndex="1" GridPane.rowIndex="3" />
                                 <Label text="Yükseklik" GridPane.columnIndex="2" GridPane.rowIndex="3" />
-                                <TextField fx:id="txtHeight" GridPane.columnIndex="3" GridPane.rowIndex="3" />
+                                <TextField alignment="CENTER_RIGHT" fx:id="txtHeight" GridPane.columnIndex="3" GridPane.rowIndex="3" />
                             </children>
                         </GridPane>
                     </content>
@@ -198,17 +199,97 @@
                             </columnConstraints>
                             <children>
                                 <Label text="Min. stok" />
-                                <TextField fx:id="txtMinStock" GridPane.columnIndex="1" />
+                                <TextField alignment="CENTER_RIGHT" fx:id="txtMinStock" GridPane.columnIndex="1" />
                                 <Label text="Max. stok" GridPane.columnIndex="2" />
-                                <TextField fx:id="txtMaxStock" GridPane.columnIndex="3" />
+                                <TextField alignment="CENTER_RIGHT" fx:id="txtMaxStock" GridPane.columnIndex="3" />
                                 <Label text="Emniyet stoğu" GridPane.rowIndex="1" />
-                                <TextField fx:id="txtSafetyStock" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                                <TextField alignment="CENTER_RIGHT" fx:id="txtSafetyStock" GridPane.columnIndex="1" GridPane.rowIndex="1" />
                                 <Label text="Raf ömrü (gün)" GridPane.columnIndex="2" GridPane.rowIndex="1" />
                                 <TextField fx:id="txtShelfLifeDays" GridPane.columnIndex="3" GridPane.rowIndex="1" />
                                 <CheckBox fx:id="chkLotTracked" mnemonicParsing="false" text="Lot takibi" GridPane.columnIndex="1" GridPane.rowIndex="2" />
                                 <CheckBox fx:id="chkSerialTracked" mnemonicParsing="false" text="Seri takibi" GridPane.columnIndex="3" GridPane.rowIndex="2" />
                             </children>
                         </GridPane>
+                    </content>
+                </Tab>
+                <Tab text="Depo seviye">
+                    <content>
+                        <VBox spacing="8.0">
+                            <padding>
+                                <Insets bottom="12.0" left="12.0" right="12.0" top="12.0" />
+                            </padding>
+                            <children>
+                                <GridPane hgap="8.0" vgap="6.0">
+                                    <columnConstraints>
+                                        <ColumnConstraints prefWidth="70.0" />
+                                        <ColumnConstraints hgrow="ALWAYS" prefWidth="180.0" />
+                                        <ColumnConstraints prefWidth="50.0" />
+                                        <ColumnConstraints prefWidth="90.0" />
+                                        <ColumnConstraints prefWidth="70.0" />
+                                        <ColumnConstraints prefWidth="90.0" />
+                                        <ColumnConstraints prefWidth="50.0" />
+                                        <ColumnConstraints prefWidth="90.0" />
+                                        <ColumnConstraints prefWidth="80.0" />
+                                        <ColumnConstraints prefWidth="80.0" />
+                                    </columnConstraints>
+                                    <children>
+                                        <Label text="Depo" />
+                                        <ComboBox fx:id="cmbLevelWarehouse" editable="true" maxWidth="Infinity" GridPane.columnIndex="1" />
+                                        <Label text="Min" GridPane.columnIndex="2" />
+                                        <TextField alignment="CENTER_RIGHT" fx:id="txtLevelMin" GridPane.columnIndex="3" />
+                                        <Label text="Sipariş" GridPane.columnIndex="4" />
+                                        <TextField alignment="CENTER_RIGHT" fx:id="txtLevelOrder" GridPane.columnIndex="5" />
+                                        <Label text="Hedef" GridPane.columnIndex="6" />
+                                        <TextField alignment="CENTER_RIGHT" fx:id="txtLevelTarget" GridPane.columnIndex="7" />
+                                        <Button fx:id="btnAddLevel" mnemonicParsing="false" onAction="#onActionAddLevel" text="Ekle" GridPane.columnIndex="8" />
+                                        <Button fx:id="btnRemoveLevel" mnemonicParsing="false" onAction="#onActionRemoveLevel" text="Sil" GridPane.columnIndex="9" />
+                                    </children>
+                                </GridPane>
+                                <TableView fx:id="tblLevels" prefHeight="320.0" tableMenuButtonVisible="true" VBox.vgrow="ALWAYS">
+                                    <columns>
+                                        <TableColumn fx:id="tcLevelWarehouse" prefWidth="140.0" text="Depo" />
+                                        <TableColumn fx:id="tcLevelMin" prefWidth="100.0" text="Min" />
+                                        <TableColumn fx:id="tcLevelOrder" prefWidth="100.0" text="Sipariş" />
+                                        <TableColumn fx:id="tcLevelTarget" prefWidth="100.0" text="Hedef" />
+                                    </columns>
+                                </TableView>
+                            </children>
+                        </VBox>
+                    </content>
+                </Tab>
+                <Tab text="Barkodlar">
+                    <content>
+                        <VBox spacing="8.0">
+                            <padding>
+                                <Insets bottom="12.0" left="12.0" right="12.0" top="12.0" />
+                            </padding>
+                            <children>
+                                <GridPane hgap="8.0" vgap="6.0">
+                                    <columnConstraints>
+                                        <ColumnConstraints prefWidth="70.0" />
+                                        <ColumnConstraints hgrow="ALWAYS" prefWidth="220.0" />
+                                        <ColumnConstraints prefWidth="50.0" />
+                                        <ColumnConstraints prefWidth="140.0" />
+                                        <ColumnConstraints prefWidth="80.0" />
+                                        <ColumnConstraints prefWidth="80.0" />
+                                    </columnConstraints>
+                                    <children>
+                                        <Label text="Barkod" />
+                                        <TextField fx:id="txtExtraBarcode" GridPane.columnIndex="1" />
+                                        <Label text="Birim" GridPane.columnIndex="2" />
+                                        <ComboBox fx:id="cmbBarcodeUnit" editable="true" maxWidth="Infinity" GridPane.columnIndex="3" />
+                                        <Button fx:id="btnAddBarcode" mnemonicParsing="false" onAction="#onActionAddBarcode" text="Ekle" GridPane.columnIndex="4" />
+                                        <Button fx:id="btnRemoveBarcode" mnemonicParsing="false" onAction="#onActionRemoveBarcode" text="Sil" GridPane.columnIndex="5" />
+                                    </children>
+                                </GridPane>
+                                <TableView fx:id="tblBarcodes" prefHeight="320.0" tableMenuButtonVisible="true" VBox.vgrow="ALWAYS">
+                                    <columns>
+                                        <TableColumn fx:id="tcBarcodeValue" prefWidth="220.0" text="Barkod" />
+                                        <TableColumn fx:id="tcBarcodeUnit" prefWidth="120.0" text="Birim" />
+                                    </columns>
+                                </TableView>
+                            </children>
+                        </VBox>
                     </content>
                 </Tab>
                 <Tab text="Ticari">
@@ -229,9 +310,9 @@
                                 <Label text="Para birimi" GridPane.columnIndex="2" />
                                 <TextField fx:id="txtCurrency" GridPane.columnIndex="3" />
                                 <Label text="Alış fiyatı" GridPane.rowIndex="1" />
-                                <TextField fx:id="txtPurchasePrice" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                                <TextField alignment="CENTER_RIGHT" fx:id="txtPurchasePrice" GridPane.columnIndex="1" GridPane.rowIndex="1" />
                                 <Label text="Satış fiyatı" GridPane.columnIndex="2" GridPane.rowIndex="1" />
-                                <TextField fx:id="txtSalesPrice" GridPane.columnIndex="3" GridPane.rowIndex="1" />
+                                <TextField alignment="CENTER_RIGHT" fx:id="txtSalesPrice" GridPane.columnIndex="3" GridPane.rowIndex="1" />
                             </children>
                         </GridPane>
                     </content>

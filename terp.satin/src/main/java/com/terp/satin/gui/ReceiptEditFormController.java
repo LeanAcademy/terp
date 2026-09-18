@@ -26,8 +26,11 @@ import com.terp.plugin.data.ICommonDao;
 import com.terp.plugin.data.IItemLookup;
 import com.terp.plugin.data.IStockLedger;
 import com.terp.plugin.data.IWarehouseLookup;
+import com.terp.plugin.data.StockCard;
 import com.terp.plugin.data.StockDirection;
 import com.terp.plugin.data.StockPosting;
+import com.terp.plugin.data.WorkingPeriod;
+import com.terp.plugin.gui.DocumentPrint;
 import com.terp.plugin.data.model.IAccount;
 import com.terp.plugin.data.model.IMovementReason;
 import com.terp.plugin.data.model.IStockItem;
@@ -63,8 +66,7 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.control.cell.TextFieldTableCell;
-import javafx.util.StringConverter;
+import com.terp.plugin.gui.NumericCells;
 
 public class ReceiptEditFormController implements Initializable {
 
@@ -80,6 +82,8 @@ public class ReceiptEditFormController implements Initializable {
     private Button btnClose;
     @FXML
     private TextField txtDocumentNo;
+    @FXML
+    private TextField txtOfficialNo;
     @FXML
     private DatePicker dtDocumentDate;
     @FXML
@@ -103,6 +107,12 @@ public class ReceiptEditFormController implements Initializable {
     @FXML
     private TextField txtUnitPrice;
     @FXML
+    private TextField txtLotNo;
+    @FXML
+    private TextField txtSerialNo;
+    @FXML
+    private DatePicker dtExpiry;
+    @FXML
     private Label lblRemaining;
     @FXML
     private Button btnAddLine;
@@ -122,6 +132,10 @@ public class ReceiptEditFormController implements Initializable {
     private TableColumn<PurchaseReceiptLine, Double> tcQuantity;
     @FXML
     private TableColumn<PurchaseReceiptLine, Double> tcUnitPrice;
+    @FXML
+    private TableColumn<PurchaseReceiptLine, String> tcLotNo;
+    @FXML
+    private Button btnPrint;
 
     private ICommonDao<PurchaseReceipt> receiptDao;
     private ICommonDao<PurchaseReceiptLine> lineDao;
@@ -152,6 +166,7 @@ public class ReceiptEditFormController implements Initializable {
         fillLookups();
         lines.clear();
         txtDocumentNo.clear();
+        txtOfficialNo.clear();
         txtNotes.clear();
         txtQuantity.clear();
         txtUnit.clear();
@@ -172,6 +187,7 @@ public class ReceiptEditFormController implements Initializable {
             return;
         }
         txtDocumentNo.setText(SatinDates.empty(row.getDocumentNo()));
+        txtOfficialNo.setText(SatinDates.empty(row.getOfficialNo()));
         dtDocumentDate.setValue(SatinDates.toLocalDate(row.getDocumentDate()));
         SatinCombos.select(cmbAccount, row.getAccountCode());
         SatinCombos.select(cmbWarehouse, row.getWarehouseCode());
@@ -202,6 +218,7 @@ public class ReceiptEditFormController implements Initializable {
         this.currentRow.setNotes(order.getNotes());
         dtDocumentDate.setValue(LocalDate.now());
         txtDocumentNo.clear();
+        txtOfficialNo.clear();
         SatinCombos.select(cmbAccount, order.getAccountCode());
         SatinCombos.select(cmbWarehouse, order.getWarehouseCode());
         SatinCombos.select(cmbSourceOrder, order.getDocumentNo());
@@ -293,6 +310,33 @@ public class ReceiptEditFormController implements Initializable {
     }
 
     @FXML
+    private void onActionBtnPrint(ActionEvent event) {
+        if (currentRow == null) {
+            return;
+        }
+        StringBuilder linesText = new StringBuilder();
+        for (PurchaseReceiptLine line : lines) {
+            if (line == null) {
+                continue;
+            }
+            linesText.append(line.getItemCode()).append("  ").append(line.getItemDesc())
+                    .append("  ").append(line.getQuantity()).append(" ")
+                    .append(line.getItemUnit() == null ? "" : line.getItemUnit()).append('\n');
+        }
+        java.util.Map<String, String> values = new java.util.LinkedHashMap<>();
+        values.put("DOCUMENT_NO", SatinDates.empty(currentRow.getDocumentNo()));
+        values.put("OFFICIAL_NO", SatinDates.empty(currentRow.getOfficialNo()));
+        values.put("ACCOUNT", SatinDates.empty(currentRow.getAccountName()));
+        values.put("DATE", currentRow.getDateLabel());
+        values.put("LINES", linesText.toString());
+        values.put("TOTAL", "");
+        javafx.stage.Window owner = btnPrint.getScene() == null ? null : btnPrint.getScene().getWindow();
+        DocumentPrint.print(owner, "ALIM_IRSALIYE", "Mal kabul " + SatinDates.empty(currentRow.getDocumentNo()),
+                "Mal kabul {DOCUMENT_NO}\nEvrak: {OFFICIAL_NO}\nCari: {ACCOUNT}\nTarih: {DATE}\n\n{LINES}",
+                values);
+    }
+
+    @FXML
     private void onActionBtnClose(ActionEvent event) {
         close();
     }
@@ -311,6 +355,7 @@ public class ReceiptEditFormController implements Initializable {
 
     @FXML
     private void onActionBtnAddLine(ActionEvent event) {
+        PurchaseReceiptLine selected = tblvLines.getSelectionModel().getSelectedItem();
         String orderNo = SatinCombos.codeOf(cmbOrder);
         String itemCode = SatinCombos.codeOf(cmbItem);
         Double quantity = SatinDates.parseDouble(txtQuantity.getText());
@@ -323,7 +368,9 @@ public class ReceiptEditFormController implements Initializable {
         PurchaseOrderLine orderLine = null;
         if (orderNo != null) {
             order = resolveOrder(orderNo);
-            if (!usableOrder(order)) {
+            boolean sameSource = selected != null && order != null
+                    && order.getRowId() != null && order.getRowId().equals(selected.getSourceOrderId());
+            if (!sameSource && !usableOrder(order)) {
                 return;
             }
             orderLine = PurchaseDocs.findOrderLine(orderLineDao, order.getRowId(), itemCode);
@@ -332,7 +379,7 @@ public class ReceiptEditFormController implements Initializable {
                         itemCode + " bu siparişte yok: " + order.getDocumentNo());
                 return;
             }
-            String error = validateQty(orderLine, quantity, null);
+            String error = validateQty(orderLine, quantity, selected);
             if (error != null) {
                 SatinDates.showError("Mal kabul", "Miktar", error);
                 return;
@@ -340,13 +387,22 @@ public class ReceiptEditFormController implements Initializable {
         }
         IItemLookup items = TerpApplication.getInstance().getItemLookup();
         IStockItem item = items == null ? null : items.findByCode(itemCode);
-        PurchaseReceiptLine line = new PurchaseReceiptLine();
+        String tracking = StockCard.trackingError(item, SatinDates.trimToNull(txtLotNo.getText()),
+                SatinDates.trimToNull(txtSerialNo.getText()));
+        if (tracking != null) {
+            SatinDates.showError("Mal kabul", "İzleme", tracking);
+            return;
+        }
+        PurchaseReceiptLine line = selected != null ? selected : new PurchaseReceiptLine();
         line.setItemCode(itemCode);
         line.setItemDesc(item == null ? SatinCombos.nameOf(cmbItem) : item.getItemDesc());
         String unit = SatinDates.trimToNull(txtUnit.getText());
         line.setItemUnit(unit == null && item != null ? item.getItemUnit() : unit);
         line.setQuantity(quantity);
-        line.setUnitPrice(price);
+        line.setUnitPrice(StockCard.fillPrice(item, price, true));
+        line.setLotNo(SatinDates.trimToNull(txtLotNo.getText()));
+        line.setSerialNo(SatinDates.trimToNull(txtSerialNo.getText()));
+        line.setExpiryDate(dtExpiry.getValue() == null ? null : SatinDates.toDate(dtExpiry.getValue()));
         if (order != null) {
             line.setSourceOrderId(order.getRowId());
             line.setSourceOrderNo(order.getDocumentNo());
@@ -358,11 +414,23 @@ public class ReceiptEditFormController implements Initializable {
                 line.setUnitPrice(orderLine.getUnitPrice());
             }
             applyOrderHeader(order);
+        } else {
+            line.setSourceOrderId(null);
+            line.setSourceOrderNo(null);
+            line.setSourceOrderLineId(null);
         }
-        line.setLineNo(lines.size() + 1);
-        lines.add(line);
+        if (selected == null) {
+            line.setLineNo(lines.size() + 1);
+            lines.add(line);
+        } else {
+            tblvLines.refresh();
+        }
         txtQuantity.clear();
         txtUnitPrice.clear();
+        txtLotNo.clear();
+        txtSerialNo.clear();
+        dtExpiry.setValue(null);
+        tblvLines.getSelectionModel().clearSelection();
         refreshRemainingHint();
     }
 
@@ -393,8 +461,11 @@ public class ReceiptEditFormController implements Initializable {
         this.tcItemDesc.setCellValueFactory(new PropertyValueFactory<>("itemDesc"));
         this.tcItemUnit.setCellValueFactory(new PropertyValueFactory<>("itemUnit"));
         this.tcQuantity.setCellValueFactory(new PropertyValueFactory<>("quantity"));
+        NumericCells.apply(this.tcQuantity);
         this.tcUnitPrice.setCellValueFactory(new PropertyValueFactory<>("unitPrice"));
-        this.tcQuantity.setCellFactory(TextFieldTableCell.forTableColumn(qtyConverter()));
+        NumericCells.apply(this.tcUnitPrice);
+        this.tcLotNo.setCellValueFactory(new PropertyValueFactory<>("lotNo"));
+        NumericCells.applyEditable(this.tcQuantity);
         this.tcQuantity.setOnEditCommit(event -> {
             PurchaseReceiptLine line = event.getRowValue();
             Double value = event.getNewValue();
@@ -419,6 +490,11 @@ public class ReceiptEditFormController implements Initializable {
             refreshRemainingHint();
         });
         this.tblvLines.setItems(lines);
+        this.tblvLines.getSelectionModel().selectedItemProperty().addListener((obs, old, selected) -> {
+            if (selected != null) {
+                loadLineEditor(selected);
+            }
+        });
         cmbItem.valueProperty().addListener((obs, old, value) -> {
             applyItem(SatinCombos.codeOf(cmbItem));
             applyOrderDefaults();
@@ -446,6 +522,21 @@ public class ReceiptEditFormController implements Initializable {
             SatinDates.showError("Mal kabul", "Depo eksik", "Depo seçin.");
             return false;
         }
+        String periodError = WorkingPeriod.rejectIfOutside(SatinDates.toDate(dtDocumentDate.getValue()));
+        if (periodError != null) {
+            SatinDates.showError("Mal kabul", "Dönem", periodError);
+            return false;
+        }
+        IItemLookup items = TerpApplication.getInstance().getItemLookup();
+        for (PurchaseReceiptLine line : lines) {
+            IStockItem item = items == null || line == null ? null : items.findByCode(line.getItemCode());
+            String tracking = StockCard.trackingError(item, line == null ? null : line.getLotNo(),
+                    line == null ? null : line.getSerialNo());
+            if (tracking != null) {
+                SatinDates.showError("Mal kabul", "İzleme", tracking);
+                return false;
+            }
+        }
         if (lines.isEmpty()) {
             SatinDates.showError("Mal kabul", "Satır yok", "En az bir malzeme satırı ekleyin.");
             return false;
@@ -466,9 +557,9 @@ public class ReceiptEditFormController implements Initializable {
             row.setAddedDate(now);
             row.setStatus(PurchaseReceipt.STATUS_DRAFT);
         }
-        if (!row.isDraft()) {
+        if (!row.isDraft() && !row.isCancelled()) {
             SatinDates.showError("Mal kabul", "Kilitli belge",
-                    "Onaylı veya iptal belge taslak olarak kaydedilemez.");
+                    "Onaylı belge taslak olarak kaydedilemez.");
             return false;
         }
         if (!CompanyScope.stamp(row)) {
@@ -478,11 +569,12 @@ public class ReceiptEditFormController implements Initializable {
         stampHeaderOrder(row);
         String documentNo = SatinDates.assignDocumentNo(DocumentNumbers.PURCHASE_RECEIPT, txtDocumentNo);
         if (documentNo == null || documentNo.isBlank()) {
-            SatinDates.showError("Mal kabul", "Belge no",
-                    "Belge no üretilemedi. Elle yazın veya Sistem yönetimi → Belge numaraları serisini kontrol edin.");
+            SatinDates.showError("Mal kabul", "Sistem no",
+                    "Sistem no üretilemedi. Elle yazın veya Sistem yönetimi → Belge numaraları serisini kontrol edin.");
             return false;
         }
         row.setDocumentNo(documentNo);
+        row.setOfficialNo(SatinDates.trimToNull(txtOfficialNo.getText()));
         row.setDocumentDate(SatinDates.toDate(dtDocumentDate.getValue()));
         row.setAccountCode(SatinCombos.codeOf(cmbAccount));
         row.setAccountName(SatinCombos.nameOf(cmbAccount));
@@ -498,7 +590,7 @@ public class ReceiptEditFormController implements Initializable {
         if (CompanyScope.rejectDuplicate(
                 CompanyScope.findDuplicate(receiptDao, "PurchaseReceipt", "documentNo",
                         row.getDocumentNo(), row.getRowId()),
-                "Belge numarası tekrar ediyor")) {
+                "Sistem numarası tekrar ediyor")) {
             return false;
         }
         PurchaseReceipt saved = receiptDao.addOrUpdate(row);
@@ -532,6 +624,9 @@ public class ReceiptEditFormController implements Initializable {
             copy.setItemUnit(line.getItemUnit());
             copy.setQuantity(line.getQuantity());
             copy.setUnitPrice(line.getUnitPrice());
+            copy.setLotNo(line.getLotNo());
+            copy.setSerialNo(line.getSerialNo());
+            copy.setExpiryDate(line.getExpiryDate());
             copy.setSourceOrderLineId(line.getSourceOrderLineId());
             copy.setSourceOrderId(line.getSourceOrderId());
             copy.setSourceOrderNo(line.getSourceOrderNo());
@@ -553,6 +648,9 @@ public class ReceiptEditFormController implements Initializable {
         posting.setItemUnit(line.getItemUnit());
         posting.setQuantity(line.getQuantity());
         posting.setUnitPrice(line.getUnitPrice());
+        posting.setLotNo(line.getLotNo());
+        posting.setSerialNo(line.getSerialNo());
+        posting.setExpiryDate(line.getExpiryDate());
         posting.setAccountCode(currentRow.getAccountCode());
         posting.setAccountName(currentRow.getAccountName());
         posting.setDocumentNo(currentRow.getDocumentNo());
@@ -609,11 +707,32 @@ public class ReceiptEditFormController implements Initializable {
         SatinCombos.fill(cmbOrder, orderLabels);
     }
 
+    private void loadLineEditor(PurchaseReceiptLine line) {
+        applyingLookup = true;
+        try {
+            SatinCombos.select(cmbOrder, line.getSourceOrderNo());
+            SatinCombos.select(cmbItem, line.getItemCode());
+            txtUnit.setText(SatinDates.empty(line.getItemUnit()));
+            txtQuantity.setText(NumericCells.text(line.getQuantity()));
+            txtUnitPrice.setText(NumericCells.text(line.getUnitPrice()));
+            txtLotNo.setText(SatinDates.empty(line.getLotNo()));
+            txtSerialNo.setText(SatinDates.empty(line.getSerialNo()));
+            dtExpiry.setValue(line.getExpiryDate() == null ? null : SatinDates.toLocalDate(line.getExpiryDate()));
+            refreshRemainingHint();
+        } finally {
+            applyingLookup = false;
+        }
+    }
+
     private void applyItem(String itemCode) {
         IItemLookup items = TerpApplication.getInstance().getItemLookup();
         IStockItem item = items == null ? null : items.findByCode(itemCode);
         if (item != null && (txtUnit.getText() == null || txtUnit.getText().isBlank())) {
             txtUnit.setText(SatinDates.empty(item.getItemUnit()));
+        }
+        if (item != null && (txtUnitPrice.getText() == null || txtUnitPrice.getText().isBlank())
+                && item.getPurchasePrice() != null) {
+            txtUnitPrice.setText(NumericCells.text(item.getPurchasePrice()));
         }
     }
 
@@ -642,15 +761,14 @@ public class ReceiptEditFormController implements Initializable {
                             orderLine.getQuantity() == null ? 0d : orderLine.getQuantity(), allocated);
                     if (txtQuantity.getText() == null || txtQuantity.getText().isBlank()) {
                         if (remaining > 0d) {
-                            txtQuantity.setText(Double.toString(remaining));
+                            txtQuantity.setText(NumericCells.format(remaining));
                         }
                     }
                     if (txtUnit.getText() == null || txtUnit.getText().isBlank()) {
                         txtUnit.setText(SatinDates.empty(orderLine.getItemUnit()));
                     }
                     if (txtUnitPrice.getText() == null || txtUnitPrice.getText().isBlank()) {
-                        txtUnitPrice.setText(orderLine.getUnitPrice() == null ? ""
-                                : orderLine.getUnitPrice().toString());
+                        txtUnitPrice.setText(NumericCells.text(orderLine.getUnitPrice()));
                     }
                 }
             }
@@ -834,30 +952,35 @@ public class ReceiptEditFormController implements Initializable {
                 orderLine.getQuantity() == null ? 0d : orderLine.getQuantity(), allocated);
         double max = PurchaseDocs.maxReceivable(orderLine.getQuantity() == null ? 0d : orderLine.getQuantity(),
                 allocated, PurchaseDocs.overPercent(settingsDao));
-        lblRemaining.setText("Kalan " + remaining + " / max " + max);
+        lblRemaining.setText("Kalan " + NumericCells.format(remaining) + " / max " + NumericCells.format(max));
     }
 
     private void applyLock(int status) {
         boolean draft = status == PurchaseReceipt.STATUS_DRAFT;
         boolean posted = status == PurchaseReceipt.STATUS_POSTED;
         boolean invoiced = status == PurchaseReceipt.STATUS_INVOICED;
-        txtDocumentNo.setDisable(!draft);
-        dtDocumentDate.setDisable(!draft);
-        cmbAccount.setDisable(!draft);
-        cmbWarehouse.setDisable(!draft);
-        cmbSourceOrder.setDisable(!draft);
-        btnLoadRemaining.setDisable(!draft);
-        txtNotes.setDisable(!draft);
-        cmbOrder.setDisable(!draft);
-        cmbItem.setDisable(!draft);
-        txtQuantity.setDisable(!draft);
-        txtUnit.setDisable(!draft);
-        txtUnitPrice.setDisable(!draft);
-        btnAddLine.setDisable(!draft);
-        btnRemoveLine.setDisable(!draft);
-        tblvLines.setEditable(draft);
-        btnSave.setDisable(!draft);
-        btnApprove.setDisable(!draft);
+        boolean editable = draft || status == PurchaseReceipt.STATUS_CANCELLED;
+        txtDocumentNo.setDisable(!editable);
+        txtOfficialNo.setDisable(!editable);
+        dtDocumentDate.setDisable(!editable);
+        cmbAccount.setDisable(!editable);
+        cmbWarehouse.setDisable(!editable);
+        cmbSourceOrder.setDisable(!editable);
+        btnLoadRemaining.setDisable(!editable);
+        txtNotes.setDisable(!editable);
+        cmbOrder.setDisable(!editable);
+        cmbItem.setDisable(!editable);
+        txtQuantity.setDisable(!editable);
+        txtUnit.setDisable(!editable);
+        txtUnitPrice.setDisable(!editable);
+        txtLotNo.setDisable(!editable);
+        txtSerialNo.setDisable(!editable);
+        dtExpiry.setDisable(!editable);
+        btnAddLine.setDisable(!editable);
+        btnRemoveLine.setDisable(!editable);
+        tblvLines.setEditable(editable);
+        btnSave.setDisable(!editable);
+        btnApprove.setDisable(!editable);
         boolean canInvoice = currentRow != null && currentRow.getRowId() != null
                 && PurchaseDocs.hasInvoiceableBalance(currentRow, lineDao, invoiceDao, invoiceLineDao);
         if (btnInvoice != null) {
@@ -889,17 +1012,4 @@ public class ReceiptEditFormController implements Initializable {
         }
     }
 
-    private static StringConverter<Double> qtyConverter() {
-        return new StringConverter<>() {
-            @Override
-            public String toString(Double value) {
-                return value == null ? "" : value.toString();
-            }
-
-            @Override
-            public Double fromString(String text) {
-                return SatinDates.parseDouble(text);
-            }
-        };
-    }
 }

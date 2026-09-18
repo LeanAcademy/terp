@@ -41,6 +41,7 @@ import javafx.scene.control.DatePicker;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
+import com.terp.plugin.gui.NumericCells;
 
 public class MovementEditFormController implements Initializable {
 
@@ -82,7 +83,7 @@ public class MovementEditFormController implements Initializable {
         txtDocumentNo.setText(CariDates.empty(row.getDocumentNo()));
         dtMovementDate.setValue(CariDates.toLocalDate(row.getMovementDate()));
         cmbMovementType.getSelectionModel().select(row.getMovementType());
-        txtAmount.setText(row.getAmount() == null ? "" : row.getAmount().toString());
+        txtAmount.setText(NumericCells.text(row.getAmount()));
         CariCombos.select(cmbAccount, row.getAccountCode());
         txtNotes.setText(CariDates.empty(row.getNotes()));
         showAudit();

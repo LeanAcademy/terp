@@ -51,6 +51,7 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
+import com.terp.plugin.gui.NumericCells;
 
 public class PurchaseInvoiceFormController implements Initializable {
 
@@ -82,6 +83,8 @@ public class PurchaseInvoiceFormController implements Initializable {
     private TableColumn<PurchaseInvoice, String> tcDateLabel;
     @FXML
     private TableColumn<PurchaseInvoice, String> tcDocumentNo;
+    @FXML
+    private TableColumn<PurchaseInvoice, String> tcOfficialNo;
     @FXML
     private TableColumn<PurchaseInvoice, String> tcAccountCode;
     @FXML
@@ -123,7 +126,7 @@ public class PurchaseInvoiceFormController implements Initializable {
     public void onActionBtnSearch(ActionEvent event) {
         StringBuilder sql = new StringBuilder("from PurchaseInvoice e");
         boolean whereAdded = CompanyScope.append(sql, false);
-        whereAdded = SatinDates.appendLike(sql, whereAdded, "e.documentNo", txtDocumentNo.getText());
+        whereAdded = SatinDates.appendNumberSearch(sql, whereAdded, txtDocumentNo.getText());
         whereAdded = SatinDates.appendLike(sql, whereAdded, "e.accountCode", txtAccountCode.getText());
         String status = cmbSearchStatus.getValue();
         if ("Taslak".equals(status)) {
@@ -222,6 +225,7 @@ public class PurchaseInvoiceFormController implements Initializable {
         cmbSearchStatus.getSelectionModel().select(ALL_STATUS);
         this.tcDateLabel.setCellValueFactory(new PropertyValueFactory<>("dateLabel"));
         this.tcDocumentNo.setCellValueFactory(new PropertyValueFactory<>("documentNo"));
+        this.tcOfficialNo.setCellValueFactory(new PropertyValueFactory<>("officialNo"));
         this.tcAccountCode.setCellValueFactory(new PropertyValueFactory<>("accountCode"));
         this.tcAccountName.setCellValueFactory(new PropertyValueFactory<>("accountName"));
         this.tcWarehouseCode.setCellValueFactory(new PropertyValueFactory<>("warehouseCode"));
@@ -233,7 +237,9 @@ public class PurchaseInvoiceFormController implements Initializable {
         this.tcLineItemDesc.setCellValueFactory(new PropertyValueFactory<>("itemDesc"));
         this.tcLineItemUnit.setCellValueFactory(new PropertyValueFactory<>("itemUnit"));
         this.tcLineQuantity.setCellValueFactory(new PropertyValueFactory<>("quantity"));
+        NumericCells.apply(this.tcLineQuantity);
         this.tcLineUnitPrice.setCellValueFactory(new PropertyValueFactory<>("unitPrice"));
+        NumericCells.apply(this.tcLineUnitPrice);
         this.tblvLineView.setPlaceholder(new Label("Belge satırı yok"));
         this.pgnInvoiceData.currentPageIndexProperty().addListener(
                 (ObservableValue<? extends Number> observable, Number oldValue, Number newValue) -> {

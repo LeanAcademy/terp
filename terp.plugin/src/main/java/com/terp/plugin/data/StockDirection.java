@@ -17,29 +17,40 @@
 package com.terp.plugin.data;
 
 /**
- * Warehouse quantity direction. Business reasons (purchase, sales delivery)
- * are separate codes; balances still use these values.
+ * Warehouse quantity sign. Business meaning lives on the movement reason.
+ * Stored values other than {@link #IN}/{@link #OUT} are folded by {@link #of(int)}.
  */
 public final class StockDirection {
 
     public static final int IN = 0;
     public static final int OUT = 1;
-    public static final int TRANSFER = 2;
-    public static final int COUNT_IN = 3;
-    public static final int COUNT_OUT = 4;
-    public static final int SCRAP = 5;
 
     public static final String[] LABELS = {
-        "Giriş", "Çıkış", "Transfer", "Sayım artış", "Sayım azalış", "Fire"
+        "Giriş", "Çıkış"
     };
 
     private StockDirection() {
     }
 
-    public static String labelOf(int direction) {
-        if (direction < 0 || direction >= LABELS.length) {
-            return Integer.toString(direction);
+    public static int of(int direction) {
+        if (direction == IN) {
+            return IN;
         }
-        return LABELS[direction];
+        if (direction == 3) {
+            return IN;
+        }
+        if (direction == OUT || direction == 2 || direction == 4 || direction == 5) {
+            return OUT;
+        }
+        return IN;
+    }
+
+    public static boolean isOut(int direction) {
+        return of(direction) == OUT;
+    }
+
+    public static String labelOf(int direction) {
+        int value = of(direction);
+        return LABELS[value];
     }
 }

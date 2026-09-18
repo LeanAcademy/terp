@@ -9,7 +9,7 @@
     <artifactId>terp.uretim</artifactId>
     <packaging>jar</packaging>
     <name>TERP Production Plugin</name>
-    <description>Production plugin: bill of materials (recipe); production voucher later</description>
+    <description>Production plugin: bill of materials (recipe) and production orders</description>
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>

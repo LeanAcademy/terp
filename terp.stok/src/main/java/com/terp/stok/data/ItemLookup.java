@@ -17,8 +17,10 @@
 package com.terp.stok.data;
 
 import com.terp.plugin.CompanyScope;
+import com.terp.plugin.TerpApplication;
 import com.terp.plugin.data.ICommonDao;
 import com.terp.plugin.data.IItemLookup;
+import com.terp.plugin.data.IPersistence;
 import com.terp.plugin.data.model.IStockItem;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,9 +28,15 @@ import java.util.List;
 public class ItemLookup implements IItemLookup {
 
     private final ICommonDao<Item> dao;
+    private final ICommonDao<ItemBarcode> barcodeDao;
 
     public ItemLookup(ICommonDao<Item> dao) {
+        this(dao, null);
+    }
+
+    public ItemLookup(ICommonDao<Item> dao, ICommonDao<ItemBarcode> barcodeDao) {
         this.dao = dao;
+        this.barcodeDao = barcodeDao;
     }
 
     @Override
@@ -54,5 +62,34 @@ public class ItemLookup implements IItemLookup {
         String escaped = itemCode.replace("'", "''");
         return dao.firstOrDefault("from Item e where " + CompanyScope.predicate("e")
                 + " and e.itemId = '" + escaped + "'");
+    }
+
+    @Override
+    public IStockItem findByBarcode(String barcode) {
+        if (barcode == null || barcode.isBlank()) {
+            return null;
+        }
+        String escaped = barcode.replace("'", "''");
+        Item byField = dao.firstOrDefault("from Item e where " + CompanyScope.predicate("e")
+                + " and e.barcode = '" + escaped + "'");
+        if (byField != null) {
+            return byField;
+        }
+        ICommonDao<ItemBarcode> barcodes = barcodeDao;
+        if (barcodes == null) {
+            IPersistence persistence = TerpApplication.getInstance().getPersistence();
+            if (persistence != null) {
+                barcodes = persistence.createDao(ItemBarcode.class);
+            }
+        }
+        if (barcodes == null) {
+            return null;
+        }
+        ItemBarcode extra = barcodes.firstOrDefault("from ItemBarcode e where "
+                + CompanyScope.predicate("e") + " and e.barcode = '" + escaped + "'");
+        if (extra == null || extra.getItemCode() == null || extra.getItemCode().isBlank()) {
+            return null;
+        }
+        return findByCode(extra.getItemCode());
     }
 }

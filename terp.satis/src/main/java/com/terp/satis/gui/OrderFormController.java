@@ -51,6 +51,7 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
+import com.terp.plugin.gui.NumericCells;
 
 public class OrderFormController implements Initializable {
 
@@ -66,6 +67,8 @@ public class OrderFormController implements Initializable {
     private Button btnEdit;
     @FXML
     private Button btnDeliver;
+    @FXML
+    private Button btnProduce;
     @FXML
     private Button btnDelete;
     @FXML
@@ -114,6 +117,7 @@ public class OrderFormController implements Initializable {
     private ICommonDao<SalesQuote> quoteDao;
     private FormRights rights = FormRights.forMenu("STS03");
     private FormRights deliveryRights = FormRights.forMenu("STS02");
+    private FormRights productionRights = FormRights.forMenu("URT03");
     private int rowsPerPage = DEFAULT_ROWS_PER_PAGE;
     private int currentPageNum = 1;
     private String searchSqlStatement = "";
@@ -166,14 +170,28 @@ public class OrderFormController implements Initializable {
     }
 
     @FXML
+    public void onActionBtnProduce(ActionEvent event) {
+        SalesOrder selected = tblvOrderView.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            return;
+        }
+        SatisWindows.convertToProduction(selected, orderDao, lineDao, this::refreshView);
+    }
+
+    @FXML
     public void onActionBtnDelete(ActionEvent event) {
         SalesOrder selected = tblvOrderView.getSelectionModel().getSelectedItem();
         if (selected == null) {
             return;
         }
-        if (SalesDocs.hasPostedDelivery(deliveryDao, deliveryLineDao, lineDao, selected.getRowId())) {
+        if (selected.isDelivered()
+                || SalesDocs.hasPostedDelivery(deliveryDao, deliveryLineDao, lineDao, selected.getRowId())) {
             SatisDates.showError("Satış siparişi", "İrsaliyeye bağlı",
-                    "Önce bağlı satış irsaliyesini iptal veya silin.");
+                    "Teslim edilmiş sipariş silinemez. Önce bağlı satış irsaliyesini iptal veya silin.");
+            return;
+        }
+        if (selected.isCancelled()) {
+            SatisDates.showError("Satış siparişi", "İptal", "İptal edilmiş sipariş silinemez.");
             return;
         }
         String message = selected.isApproved()
@@ -190,7 +208,7 @@ public class OrderFormController implements Initializable {
                     selected.setStatus(SalesOrder.STATUS_CANCELLED);
                     selected.setLastUpdateDate(new Date());
                     orderDao.addOrUpdate(selected);
-                } else {
+                } else if (selected.isDraft()) {
                     SalesDocs.deleteByParent(lineDao, "SalesOrderLine", "orderId", selected.getRowId());
                     orderDao.delete(selected.getRowId());
                 }
@@ -230,7 +248,9 @@ public class OrderFormController implements Initializable {
         this.tcLineItemDesc.setCellValueFactory(new PropertyValueFactory<>("itemDesc"));
         this.tcLineItemUnit.setCellValueFactory(new PropertyValueFactory<>("itemUnit"));
         this.tcLineQuantity.setCellValueFactory(new PropertyValueFactory<>("quantity"));
+        NumericCells.apply(this.tcLineQuantity);
         this.tcLineUnitPrice.setCellValueFactory(new PropertyValueFactory<>("unitPrice"));
+        NumericCells.apply(this.tcLineUnitPrice);
         this.tblvLineView.setPlaceholder(new Label("Belge satırı yok"));
         this.pgnOrderData.currentPageIndexProperty().addListener(
                 (ObservableValue<? extends Number> observable, Number oldValue, Number newValue) -> {
@@ -241,7 +261,7 @@ public class OrderFormController implements Initializable {
                 .addListener(this::selectionChanged);
         this.searchSqlStatement = CompanyScope.from("SalesOrder");
         this.btnAdd.setDisable(!rights.add);
-        updateButtons(true, true, true);
+        updateButtons(true, true, true, true);
         refreshView();
         if (!tblvOrderView.getItems().isEmpty()) {
             tblvOrderView.getSelectionModel().select(0);
@@ -313,7 +333,7 @@ public class OrderFormController implements Initializable {
     private void selectionChanged(Change<? extends SalesOrder> change) {
         int size = change.getList().size();
         if (size == 0) {
-            updateButtons(true, true, true);
+            updateButtons(true, true, true, true);
             if (!syncingSelection) {
                 showLines(null);
             }
@@ -323,15 +343,23 @@ public class OrderFormController implements Initializable {
         boolean deliverDisabled = size != 1 || selected == null
                 || !SalesDocs.hasDeliverableBalance(selected, lineDao, deliveryDao, deliveryLineDao)
                 || !deliveryRights.add;
-        updateButtons(size != 1, size == 0, deliverDisabled);
+        boolean produceDisabled = size != 1 || selected == null
+                || !SatisWindows.hasProducibleBalance(selected, lineDao)
+                || !productionRights.add;
+        boolean deleteDisabled = size == 0 || selected == null || selected.isDelivered()
+                || selected.isCancelled()
+                || SalesDocs.hasPostedDelivery(deliveryDao, deliveryLineDao, lineDao, selected.getRowId());
+        updateButtons(size != 1, deleteDisabled, deliverDisabled, produceDisabled);
         if (!syncingSelection && size == 1) {
             showLines(selected);
         }
     }
 
-    private void updateButtons(boolean editDisabled, boolean deleteDisabled, boolean deliverDisabled) {
+    private void updateButtons(boolean editDisabled, boolean deleteDisabled, boolean deliverDisabled,
+            boolean produceDisabled) {
         this.btnEdit.setDisable(editDisabled || !rights.edit);
         this.btnDelete.setDisable(deleteDisabled || !rights.delete);
         this.btnDeliver.setDisable(deliverDisabled);
+        this.btnProduce.setDisable(produceDisabled);
     }
 }

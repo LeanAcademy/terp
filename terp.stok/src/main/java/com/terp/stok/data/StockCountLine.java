@@ -21,6 +21,8 @@ import java.io.Serializable;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
 import jakarta.persistence.Transient;
 
 @Entity
@@ -49,6 +51,16 @@ public class StockCountLine extends CommonFields implements Serializable {
 
     @Column(name = "sayilan_miktar", nullable = false)
     private Double countedQty;
+
+    @Column(name = "lot_no", length = 50)
+    private String lotNo;
+
+    @Column(name = "seri_no", length = 50)
+    private String serialNo;
+
+    @Temporal(TemporalType.DATE)
+    @Column(name = "skt")
+    private java.util.Date expiryDate;
 
     public StockCountLine() {
         this.lineNo = 1;
@@ -110,6 +122,30 @@ public class StockCountLine extends CommonFields implements Serializable {
 
     public void setCountedQty(Double countedQty) {
         this.countedQty = countedQty;
+    }
+
+    public String getLotNo() {
+        return lotNo;
+    }
+
+    public void setLotNo(String lotNo) {
+        this.lotNo = lotNo;
+    }
+
+    public String getSerialNo() {
+        return serialNo;
+    }
+
+    public void setSerialNo(String serialNo) {
+        this.serialNo = serialNo;
+    }
+
+    public java.util.Date getExpiryDate() {
+        return expiryDate;
+    }
+
+    public void setExpiryDate(java.util.Date expiryDate) {
+        this.expiryDate = expiryDate;
     }
 
     @Transient

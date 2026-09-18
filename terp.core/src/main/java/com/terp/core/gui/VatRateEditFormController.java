@@ -20,6 +20,7 @@ import com.terp.core.data.VatRate;
 import com.terp.plugin.CompanyScope;
 import com.terp.plugin.TerpApplication;
 import com.terp.plugin.data.ICommonDao;
+import com.terp.plugin.gui.NumericCells;
 import com.terp.plugin.gui.RecordAuditBar;
 import java.net.URL;
 import java.util.Date;
@@ -65,7 +66,7 @@ public class VatRateEditFormController implements Initializable {
         }
         txtRateCode.setText(empty(row.getRateCode()));
         txtRateName.setText(empty(row.getRateName()));
-        txtRate.setText(row.getRate() == null ? "" : String.valueOf(row.getRate()));
+        txtRate.setText(NumericCells.text(row.getRate()));
         chkActive.setSelected(row.getStatus() == VatRate.STATUS_ACTIVE);
         showAudit();
     }
@@ -160,13 +161,6 @@ public class VatRateEditFormController implements Initializable {
     }
 
     private static Double parseRate(String text) {
-        if (text == null || text.isBlank()) {
-            return null;
-        }
-        try {
-            return Double.valueOf(text.trim().replace(',', '.'));
-        } catch (NumberFormatException ex) {
-            return null;
-        }
+        return NumericCells.parse(text);
     }
 }
